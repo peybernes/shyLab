@@ -541,8 +541,8 @@ void Simulation::Run() {
       CompressibleEulerFvUwKappa2dY(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_v, in_u, in_e, 
 				    predicted_rho, predicted_v, predicted_u, predicted_e);
 
-      // CompressibleEulerFvUwKappa2dBoundaryConditionsY(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_v, in_u, in_e, 
-      // 						      predicted_rho, predicted_v, predicted_u, predicted_e);
+      CompressibleEulerFvUwKappa2dBoundaryConditionsY(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_v, in_u, in_e, 
+      						      predicted_rho, predicted_v, predicted_u, predicted_e);
 
       CompressibleEulerConservativeToPhysical(nx, ny, predicted_rho, predicted_u, predicted_v, predicted_e);
 
@@ -554,14 +554,14 @@ void Simulation::Run() {
       CompressibleEulerFvUwKappa2dX(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_u, predicted_v, predicted_e, 
       				    out_rho, out_u, out_v, out_e);
 
-      // CompressibleEulerFvUwKappa2dBoundaryConditionsX(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_u, predicted_v, predicted_e, 
-      // 						      out_rho, out_u, out_v, out_e);
+      CompressibleEulerFvUwKappa2dBoundaryConditionsX(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_u, predicted_v, predicted_e, 
+      						      out_rho, out_u, out_v, out_e);
 
       CompressibleEulerFvUwKappa2dY(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_v, predicted_u, predicted_e, 
       				    out_rho, out_v, out_u, out_e);
 
-      // CompressibleEulerFvUwKappa2dBoundaryConditionsY(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_v, predicted_u, predicted_e, 
-      // 						      out_rho, out_v, out_u, out_e);
+      CompressibleEulerFvUwKappa2dBoundaryConditionsY(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_v, predicted_u, predicted_e, 
+      						      out_rho, out_v, out_u, out_e);
 
       CompressibleEulerConservativeToPhysical(nx, ny, out_rho, out_u, out_v, out_e);
       

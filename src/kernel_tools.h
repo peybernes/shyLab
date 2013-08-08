@@ -12,8 +12,8 @@ inline RealType EquationOfStatePerfectGas(RealType gamma, RealType rho, RealType
 /// Van Albada limiter (reference : Nishikawa 2008, carbuncle free solver)
 inline RealType VanAlbadaLimiter(RealType a, RealType b) {
 
-  return 0.0;
-  //return (2.0 * ((a * b) + 1.0e-6) / ((a * a) + (b * b) + (2.0 * 1.0e-6)));
+  //return 0.0;
+  return (2.0 * ((a * b) + 1.0e-6) / ((a * a) + (b * b) + (2.0 * 1.0e-6)));
 
 }
 

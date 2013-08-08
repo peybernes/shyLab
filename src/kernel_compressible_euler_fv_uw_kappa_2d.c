@@ -154,6 +154,8 @@ void CompressibleEulerFvUwKappa2dY(int nx,
   }
 }
 
+
+
 void CompressibleEulerFvUwKappa2dBoundaryConditionsX(int nx, 
 						     int ny, 
 						     int halo_width,
@@ -189,10 +191,10 @@ void CompressibleEulerFvUwKappa2dBoundaryConditionsX(int nx,
       const int cell_p1o = (nx * iy) + ix + 1;
       const int cell_p2o = (nx * iy) + ix + 2;
 
+      const int index_in_main_direction = ix;
+
 #include "compressible_euler_2d_data_load_mirror_min.h"
 #include "compressible_euler_2d_computation.h"
-
-      printf("iy=%d, ix=%d, out_velocity_x_ooo=%lf\n", iy, ix, out_velocity_x_ooo);
 
       out_rho[cell_ooo] += out_rho_ooo;
       out_velocity_x[cell_ooo] += out_velocity_x_ooo;
@@ -211,6 +213,9 @@ void CompressibleEulerFvUwKappa2dBoundaryConditionsX(int nx,
       const int cell_ooo = (nx * iy) + ix + 0;
       const int cell_p1o = (nx * iy) + ix + 1;
       const int cell_p2o = (nx * iy) + ix + 2;
+
+      const int index_in_main_direction = ix;
+      const int size_in_main_direction = nx;
 
 #include "compressible_euler_2d_data_load_mirror_max.h"
 #include "compressible_euler_2d_computation.h"
@@ -297,12 +302,13 @@ void CompressibleEulerFvUwKappa2dBoundaryConditionsY(int nx,
   for (int iy = 0; iy < halo_width; ++iy) {
     for (int ix = 0; ix < nx; ++ix) {
 
-
       const int cell_m2o = (nx * (iy - 2)) + ix;
       const int cell_m1o = (nx * (iy - 1)) + ix;
       const int cell_ooo = (nx * (iy + 0)) + ix;
       const int cell_p1o = (nx * (iy + 1)) + ix;
       const int cell_p2o = (nx * (iy + 2)) + ix;
+
+      const int index_in_main_direction = iy;
 
 #include "compressible_euler_2d_data_load_mirror_min.h"
 #include "compressible_euler_2d_computation.h"
@@ -319,12 +325,14 @@ void CompressibleEulerFvUwKappa2dBoundaryConditionsY(int nx,
   for (int iy = ny - halo_width; iy < ny; ++iy) {
     for (int ix = 0; ix < nx; ++ix) {
 
-
       const int cell_m2o = (nx * (iy - 2)) + ix;
       const int cell_m1o = (nx * (iy - 1)) + ix;
       const int cell_ooo = (nx * (iy + 0)) + ix;
       const int cell_p1o = (nx * (iy + 1)) + ix;
       const int cell_p2o = (nx * (iy + 2)) + ix;
+
+      const int index_in_main_direction = iy;
+      const int size_in_main_direction = ny;
 
 #include "compressible_euler_2d_data_load_mirror_max.h"
 #include "compressible_euler_2d_computation.h"
