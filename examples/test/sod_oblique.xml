@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Simulation>
+
+  <Clock>
+    <time>0.</time>
+    <iteration>0</iteration>
+  </Clock>
+  
+  <Timetable>
+    <iend>24900</iend>
+  </Timetable>
+
+  <Grid>
+    <nx>300</nx>
+    <ny>300</ny>
+    <xmin>0.0</xmin>
+    <xmax>1.0</xmax>
+    <ymin>0.0</ymin>
+    <ymax>1.0</ymax>
+  </Grid>
+
+  <Events>
+
+    <InitVariable>
+      <name>in_rho</name>
+      <expression>((cell_centers_x >= cell_centers_y) * 1.0) + ((cell_centers_y > cell_centers_x) * 0.125)</expression>
+    </InitVariable>
+
+    <InitVariable>
+      <name>predicted_rho</name>
+      <expression>((cell_centers_x >= cell_centers_y) * 1.0) + ((cell_centers_y > cell_centers_x) * 0.125)</expression>
+    </InitVariable>
+
+    <InitVariable>
+      <name>out_rho</name>
+      <expression>((cell_centers_x >= cell_centers_y) * 1.0) + ((cell_centers_y > cell_centers_x) * 0.125)</expression>
+    </InitVariable>
+
+    <InitVariable>
+      <name>in_e</name>
+      <expression>((cell_centers_x >= cell_centers_y) * 2.5) + ((cell_centers_y > cell_centers_x) * 2.0)</expression>
+    </InitVariable>
+
+    <InitVariable>
+      <name>predicted_e</name>
+      <expression>((cell_centers_x >= cell_centers_y) * 2.5) + ((cell_centers_y > cell_centers_x) * 2.0)</expression>
+    </InitVariable>
+
+    <InitVariable>
+      <name>out_e</name>
+      <expression>((cell_centers_x >= cell_centers_y) * 2.5) + ((cell_centers_y > cell_centers_x) * 2.0)</expression>
+    </InitVariable>
+
+    <OutputSimulation>
+      <filename>result/sim%i</filename>
+      <format>binary</format>
+      <Timetable>
+    	<istep>100</istep>
+      </Timetable>
+    </OutputSimulation>
+
+  </Events>
+
+</Simulation>
