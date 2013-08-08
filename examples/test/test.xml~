@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Simulation>
+
+  <Clock>
+    <time>0.</time>
+    <iteration>0</iteration>
+  </Clock>
+  
+  <Timetable>
+    <iend>100</iend>
+  </Timetable>
+
+  <Grid>
+    <nx>50</nx>
+    <ny>50</ny>
+    <nz>4</nz>
+    <xmin>0.0</xmin>
+    <xmax>1.0</xmax>
+    <ymin>0.0</ymin>
+    <ymax>1.0</ymax>
+    <zmin>0.0</zmin>
+    <zmax>1.0</zmax>
+  </Grid>
+
+  <Events>
+
+    <InitVariable>
+      <name>in_rho</name>
+      <expression>(0.15 * 0.15 >= ((cell_centers_x - 0.5) * (cell_centers_x - 0.5) + (cell_centers_y - 0.75) * (cell_centers_y - 0.75)))</expression>
+    </InitVariable>
+
+    <InitVariable>
+      <name>in_u</name>
+      <expression>sin(pi * cell_centers_x) * cos(pi * cell_centers_y) * sin(pi * cell_centers_z)</expression>
+    </InitVariable>
+
+    <InitVariable>
+      <name>in_v</name>
+      <expression>-cos(pi * cell_centers_x) * sin(pi * cell_centers_y) * sin(pi * cell_centers_z)</expression>
+    </InitVariable>
+
+    <InitVariable>
+      <name>in_w</name>
+      <expression>cos(pi * cell_centers_z)</expression>
+    </InitVariable>
+
+    <!-- <InitVariable> -->
+    <!--   <name>in_u</name> -->
+    <!--   <expression>1.0</expression> -->
+    <!-- </InitVariable> -->
+
+    <!-- <InitVariable> -->
+    <!--   <name>in_v</name> -->
+    <!--   <expression>-1.0</expression> -->
+    <!-- </InitVariable> -->
+
+
+    <OutputSimulation>
+      <filename>result/sim%i</filename>
+      <format>binary</format>
+      <Timetable>
+    	<istep>10</istep>
+      </Timetable>
+    </OutputSimulation>
+
+  </Events>
+
+</Simulation>

@@ -1,0 +1,17 @@
+#ifndef BOUNDARY_FACE_VARIABLE_METADATA_HPP
+#define BOUNDARY_FACE_VARIABLE_METADATA_HPP
+
+enum {RHOL_FACE, 
+      RHOR_FACE, 
+      UL_FACE, 
+      UR_FACE, 
+      VL_FACE, 
+      VR_FACE,
+      WL_FACE, 
+      WR_FACE,
+      EL_FACE,
+      ER_FACE,
+      NB_BOUNDARY_FACE_VALUES};
+
+
+#endif

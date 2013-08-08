@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Water drop in a basin. -->
+
+<!-- Evolution of a gaussian water height distribution in a square -->
+<!-- domain. This test case in meant to assess, in a qualitative way, the -->
+<!-- behaviour of the code. One can observe wave propagation and reflection -->
+<!-- patterns, and experiment with changing analytical formulas for -->
+<!-- variable initialization. -->
+
+<Simulation>
+
+  <!-- Simulation clock : initial time and iteration number -->
+  <Clock>
+    <time>0.</time>
+    <iteration>0</iteration>
+  </Clock>
+  
+  <!-- Simulation timetable : final time and/or iteration number -->
+  <Timetable>
+    <iend>100</iend>
+  </Timetable>
+
+  <!-- Simulation physical parameters : to change gravity value for -->
+  <!-- instance. Useful for testing (e.g. setting gravity to 0). -->
+  <!-- <PhysicalParams> -->
+  <!--   <gravity>0.</gravity> -->
+  <!-- </PhysicalParams> -->
+
+  <!-- Mesh file (in Gmsh binary format) -->
+  <!-- http://www.geuz.org/gmsh -->
+  <Mesh>
+    <filename>/mnt/lustre/g_meso/square-4M.msh</filename>
+  </Mesh>
+
+  <!-- Simulation events : contains mainly variable initialisation and
+       I/O. All variables are set to 0 by default. -->
+  <Events>
+
+    <!-- INITIAL DATA --> 
+
+    <!-- In this test case, we initialize variables using analytical -->
+    <!-- formulas. -->
+
+    <InitVariable>
+      <name>Height</name>
+      <expression>exp(-x * x - y * y)</expression>
+    </InitVariable>
+
+    <InitVariable>
+    <name>Bathymetry</name>
+    <expression>-1.</expression>
+    </InitVariable>
+
+    <!-- OUTPUTS -->
+
+    <!-- Output mesh and variables in VTK format. Readable by Paraview, -->
+    <!-- VisIt, MayaVi etc. -->
+    <!-- <OutputSimulation> -->
+    <!--   <filename>result/sim%i.vtk</filename> -->
+    <!--   <Timetable> -->
+    <!-- 	<istep>100</istep> <\!-- every 10th timestep -\-> -->
+    <!--   </Timetable> -->
+    <!-- </OutputSimulation> -->
+
+    <!-- Output variable at a given location -->
+    <OutputLocation>
+      <filename>./gages/gage0.txt</filename>
+      <Timetable>
+    	<istep>2</istep> <!-- every 2nd timestep -->
+      </Timetable>
+      <x>0.00356001</x>
+      <y>0.0234005</y>
+    </OutputLocation>
+
+        <!-- Output variable at a given location -->
+    <OutputLocation>
+      <filename>./gages/gage1.txt</filename>
+      <Timetable>
+    	<istep>2</istep> <!-- every 2nd timestep -->
+      </Timetable>
+      <x>1.</x>
+      <y>1.</y>
+    </OutputLocation>
+
+    
+  </Events>
+
+</Simulation>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Simulation>
+
+  <Clock>
+    <time>0.</time>
+    <iteration>0</iteration>
+  </Clock>
+  
+  <Timetable>
+    <iend>20000</iend>
+  </Timetable>
+
+  <Grid>
+    <nx>100</nx>
+    <ny>100</ny>
+    <xmin>0.0</xmin>
+    <xmax>1.0</xmax>
+    <ymin>0.0</ymin>
+    <ymax>1.0</ymax>
+  </Grid>
+
+  <Events>
+
+    <InitVariable>
+      <name>in_rho</name>
+      <expression>(0.15 * 0.15 >= ((cell_centers_x - 0.5) * (cell_centers_x - 0.5) + (cell_centers_y - 0.75) * (cell_centers_y - 0.75)))</expression>
+    </InitVariable>
+
+    <InitVariable>
+      <Timetable>
+    	<istep>1</istep>
+      </Timetable>
+      <name>u_face</name>
+      <expression>sin(pi * face_centers_x) * cos(pi * face_centers_y) * cos(pi * t / 1.0)</expression>
+    </InitVariable>
+
+    <InitVariable>
+      <Timetable>
+    	<istep>1</istep>
+      </Timetable>
+      <name>v_face</name>
+      <expression>- cos(pi * face_centers_x) * sin(pi * face_centers_y) * cos(pi * t / 1.0)</expression>
+    </InitVariable>
+
+    <OutputSimulation>
+      <filename>result/sim%i</filename>
+      <format>binary</format>
+      <Timetable>
+    	<istep>100000</istep>
+      </Timetable>
+    </OutputSimulation>
+
+  </Events>
+
+</Simulation>

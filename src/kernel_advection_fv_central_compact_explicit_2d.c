@@ -1,0 +1,277 @@
+#include "kernel_advection_fv_central_compact_explicit_2d.h"
+
+#include <stdio.h>
+
+#define RESTRICT __restrict__
+
+// Conditions on a,b,c,d,e coefficients :
+
+// dx(f) ~= (a/1h) * (fc[i+1] - fc[i-1]) +
+//          (b/2h) * (fn[i+1] - fn[i-1]) +
+//          (c/3h) * (fc[i+2] - fc[i-2]) +
+//          (d/4h) * (fn[i+2] - fn[i-2]) +
+//          (e/5h) * (fc[i+3] - fc[i-3])
+//
+// Exact for polynomial of order 1:
+// a + b + c + d + e = 1
+// Exact for polynomial of order 2:
+//
+
+// explicit -- order 4.
+// (a,b,c,d,e) = (4/3,-1/3,0,0,0)w
+const RealType a = 4.0 / 3.0;
+const RealType b = (- 1.0 / (2.0 * 3.0));
+const RealType c = (0.0 / (3.0 * 10.0));
+const RealType d = (0.0 / (4.0 * 1.0));
+const RealType e = (0.0 / (5.0 * 1.0));
+
+// explicit -- order 6.
+// (a,b,c,d,e) = (3/2,-3/5,1/10,0,0)w
+/* const RealType a = 3.0 / 2.0; */
+/* const RealType b = (- 3.0 / (2.0 * 5.0)); */
+/* const RealType c = (1.0 / (3.0 * 10.0)); */
+/* const RealType d = (0.0 / (4.0 * 1.0)); */
+/* const RealType e = (0.0 / (5.0 * 1.0)); */
+
+// explicit -- order 10.
+/* const RealType a = 5.0 / 3.0; */
+/* const RealType b = (- 20.0 / (2.0 * 21.0)); */
+/* const RealType c = (5.0 / (3.0 * 14.0)); */
+/* const RealType d = (- 5.0 / (4.0 * 63.0)); */
+/* const RealType e = (1.0 / (5.0 * 126.0)); */
+
+// Reference : "A new class of central compact schemes with
+// spectral-like resolution I: Linear schemes".
+void AdvectionFdCentralCompact2dCentered(int nx, 
+					 int ny, 
+					 RealType dt,
+					 RealType dx,
+					 RealType dy,
+					 const RealType* RESTRICT in_value_cell, 
+					 const RealType* RESTRICT in_value_node, 
+					 const RealType* RESTRICT in_velocity_x_cell,
+					 const RealType* RESTRICT in_velocity_y_cell,
+					 const RealType* RESTRICT in_velocity_x_node,
+					 const RealType* RESTRICT in_velocity_y_node,
+					 RealType* RESTRICT out_value_cell) {
+
+  assert(0 < dx);
+  assert(0 < dy);
+  assert(0 <= dt);
+
+  const RealType cx = 1.0 / dx;
+  const RealType cy = 1.0 / dy;
+
+  // Loop over cells.
+  for (int j = 3; j < ny - 3; ++j) {
+    for (int i = 3; i < nx - 3; ++i) {
+
+      const int cell_ooo = (nx * j) + i;
+
+      const int cell_m2o = (nx * j) + i - 2;
+      const int cell_m1o = (nx * j) + i - 1;
+      const int cell_p1o = (nx * j) + i + 1;
+      const int cell_p2o = (nx * j) + i + 2;
+
+      const int cell_om2 = (nx * (j - 2)) + i;      
+      const int cell_om1 = (nx * (j - 1)) + i;
+      const int cell_op1 = (nx * (j + 1)) + i;
+      const int cell_op2 = (nx * (j + 2)) + i;
+
+      const int node_m3o = ((nx + 1) * j) + i - 2;
+      const int node_m2o = ((nx + 1) * j) + i - 1;
+      const int node_m1o = ((nx + 1) * j) + i;
+      const int node_p1o = ((nx + 1) * j) + i + 1;
+      const int node_p2o = ((nx + 1) * j) + i + 2;
+      const int node_p3o = ((nx + 1) * j) + i + 3;
+
+      const int node_om3 = ((nx + 1) * (j - 2)) + i;
+      const int node_om2 = ((nx + 1) * (j - 1)) + i;
+      const int node_om1 = ((nx + 1) * (j - 0)) + i;
+      const int node_op1 = ((nx + 1) * (j + 1)) + i;
+      const int node_op2 = ((nx + 1) * (j + 2)) + i;
+      const int node_op3 = ((nx + 1) * (j + 3)) + i;
+
+      const RealType in_cell_ooo = in_value_cell[cell_ooo];
+
+      const RealType in_cell_m2o = in_value_cell[cell_m2o];
+      const RealType in_cell_m1o = in_value_cell[cell_m1o];
+      const RealType in_cell_p1o = in_value_cell[cell_p1o];
+      const RealType in_cell_p2o = in_value_cell[cell_p2o];
+
+      const RealType in_cell_om2 = in_value_cell[cell_om2];
+      const RealType in_cell_om1 = in_value_cell[cell_om1];
+      const RealType in_cell_op1 = in_value_cell[cell_op1];
+      const RealType in_cell_op2 = in_value_cell[cell_op2];
+
+      const RealType in_node_m3o = in_value_node[node_m3o];
+      const RealType in_node_m2o = in_value_node[node_m2o];
+      const RealType in_node_m1o = in_value_node[node_m1o];
+      const RealType in_node_p1o = in_value_node[node_p1o];
+      const RealType in_node_p2o = in_value_node[node_p2o];
+      const RealType in_node_p3o = in_value_node[node_p3o];
+
+      const RealType in_node_om3 = in_value_node[node_om3];
+      const RealType in_node_om2 = in_value_node[node_om2];
+      const RealType in_node_om1 = in_value_node[node_om1];
+      const RealType in_node_op1 = in_value_node[node_op1];
+      const RealType in_node_op2 = in_value_node[node_op2];
+      const RealType in_node_op3 = in_value_node[node_op3];
+
+      const RealType flux_cell_m2o = in_cell_m2o;
+      const RealType flux_cell_m1o = in_cell_m1o;
+      const RealType flux_cell_p1o = in_cell_p1o;
+      const RealType flux_cell_p2o = in_cell_p2o;
+
+      const RealType flux_cell_om2 = in_cell_om2;
+      const RealType flux_cell_om1 = in_cell_om1;
+      const RealType flux_cell_op1 = in_cell_op1;
+      const RealType flux_cell_op2 = in_cell_op2;
+
+      const RealType flux_node_m3o = in_node_m3o;
+      const RealType flux_node_m2o = in_node_m2o;
+      const RealType flux_node_m1o = in_node_m1o;
+      const RealType flux_node_p1o = in_node_p1o;
+      const RealType flux_node_p2o = in_node_p2o;
+      const RealType flux_node_p3o = in_node_p3o;
+
+      const RealType flux_node_om3 = in_node_om3;
+      const RealType flux_node_om2 = in_node_om2;
+      const RealType flux_node_om1 = in_node_om1;
+      const RealType flux_node_op1 = in_node_op1;
+      const RealType flux_node_op2 = in_node_op2;
+      const RealType flux_node_op3 = in_node_op3;
+      
+      const RealType out_cell_residual_ooo = 
+	cx * a * (flux_node_p1o - flux_node_m1o) +
+	cx * b * (flux_cell_p1o - flux_cell_m1o) +
+	cx * c * (flux_node_p2o - flux_node_m2o) + 
+	cx * d * (flux_cell_p2o - flux_cell_m2o) +
+	cx * e * (flux_node_p3o - flux_node_m3o);
+      
+      //printf("cell_ooo=%d, out_cell_residual_ooo=%lf\n", cell_ooo, out_cell_residual_ooo);
+
+      out_value_cell[cell_ooo] = in_cell_ooo - (dt * out_cell_residual_ooo);
+
+    }
+  }
+
+  //assert(0);
+
+}
+
+void AdvectionFdCentralCompact2dNodal(int nx, 
+				      int ny, 
+				      RealType dt,
+				      RealType dx,
+				      RealType dy,
+				      const RealType* RESTRICT in_value_cell, 
+				      const RealType* RESTRICT in_value_node, 
+				      const RealType* RESTRICT in_velocity_x_cell,
+				      const RealType* RESTRICT in_velocity_y_cell,
+				      const RealType* RESTRICT in_velocity_x_node,
+				      const RealType* RESTRICT in_velocity_y_node,
+				      RealType* RESTRICT out_value_node) {
+
+  assert(0 < dx);
+  assert(0 < dy);
+  assert(0 <= dt);
+
+  const RealType cx = 1.0 / dx;
+  const RealType cy = 1.0 / dy;
+
+  // Loop over nodes.
+  for (int j = 3; j < ny + 1 - 3; ++j) {
+    for (int i = 3; i < nx + 1 - 3; ++i) {
+
+      const int node_ooo = ((nx + 1) * j) + i;
+
+      const int node_m2o = ((nx + 1) * j) + i - 2;
+      const int node_m1o = ((nx + 1) * j) + i - 1;
+      const int node_p1o = ((nx + 1) * j) + i + 1;
+      const int node_p2o = ((nx + 1) * j) + i + 2;
+
+      const int node_om2 = ((nx + 1) * (j - 2)) + i;      
+      const int node_om1 = ((nx + 1) * (j - 1)) + i;
+      const int node_op1 = ((nx + 1) * (j + 1)) + i;
+      const int node_op2 = ((nx + 1) * (j + 2)) + i;
+
+      const int cell_m3o = (nx * j) + i - 3;
+      const int cell_m2o = (nx * j) + i - 2;
+      const int cell_m1o = (nx * j) + i - 1;
+      const int cell_p1o = (nx * j) + i + 1;
+      const int cell_p2o = (nx * j) + i + 2;
+      const int cell_p3o = (nx * j) + i + 2;
+
+      const int cell_om3 = (nx * (j - 3)) + i;
+      const int cell_om2 = (nx * (j - 2)) + i;
+      const int cell_om1 = (nx * (j - 1)) + i;
+      const int cell_op1 = (nx * (j + 0)) + i;
+      const int cell_op2 = (nx * (j + 1)) + i;
+      const int cell_op3 = (nx * (j + 2)) + i;
+
+      const RealType in_node_ooo = in_value_node[node_ooo];
+
+      //printf("in_node=%lf\n", in_node_ooo);
+
+      const RealType in_node_m2o = in_value_node[node_m2o];
+      const RealType in_node_m1o = in_value_node[node_m1o];
+      const RealType in_node_p1o = in_value_node[node_p1o];
+      const RealType in_node_p2o = in_value_node[node_p2o];
+
+      const RealType in_node_om2 = in_value_node[node_om2];
+      const RealType in_node_om1 = in_value_node[node_om1];
+      const RealType in_node_op1 = in_value_node[node_op1];
+      const RealType in_node_op2 = in_value_node[node_op2];
+
+      const RealType in_cell_m3o = in_value_cell[cell_m3o];
+      const RealType in_cell_m2o = in_value_cell[cell_m2o];
+      const RealType in_cell_m1o = in_value_cell[cell_m1o];
+      const RealType in_cell_p1o = in_value_cell[cell_p1o];
+      const RealType in_cell_p2o = in_value_cell[cell_p2o];
+      const RealType in_cell_p3o = in_value_cell[cell_p3o];
+
+      const RealType in_cell_om3 = in_value_cell[cell_om3];
+      const RealType in_cell_om2 = in_value_cell[cell_om2];
+      const RealType in_cell_om1 = in_value_cell[cell_om1];
+      const RealType in_cell_op1 = in_value_cell[cell_op1];
+      const RealType in_cell_op2 = in_value_cell[cell_op2];
+      const RealType in_cell_op3 = in_value_cell[cell_op3];
+
+      const RealType flux_node_m2o = in_node_m2o;
+      const RealType flux_node_m1o = in_node_m1o;
+      const RealType flux_node_p1o = in_node_p1o;
+      const RealType flux_node_p2o = in_node_p2o;
+
+      const RealType flux_node_om2 = in_node_om2;
+      const RealType flux_node_om1 = in_node_om1;
+      const RealType flux_node_op1 = in_node_op1;
+      const RealType flux_node_op2 = in_node_op2;
+
+      const RealType flux_cell_m3o = in_cell_m3o;
+      const RealType flux_cell_m2o = in_cell_m2o;
+      const RealType flux_cell_m1o = in_cell_m1o;
+      const RealType flux_cell_p1o = in_cell_p1o;
+      const RealType flux_cell_p2o = in_cell_p2o;
+      const RealType flux_cell_p3o = in_cell_p3o;
+
+      const RealType flux_cell_om3 = in_cell_om3;
+      const RealType flux_cell_om2 = in_cell_om2;
+      const RealType flux_cell_om1 = in_cell_om1;
+      const RealType flux_cell_op1 = in_cell_op1;
+      const RealType flux_cell_op2 = in_cell_op2;
+      const RealType flux_cell_op3 = in_cell_op3;
+      
+      const RealType out_node_residual_ooo = 
+	cx * a * (flux_cell_p1o - flux_cell_m1o) +
+	cx * b * (flux_node_p1o - flux_node_m1o) +
+	cx * c * (flux_cell_p2o - flux_cell_m2o) + 
+	cx * d * (flux_node_p2o - flux_node_m2o) +
+	cx * e * (flux_cell_p3o - flux_cell_m3o);
+
+      out_value_node[node_ooo] = in_node_ooo - (dt * out_node_residual_ooo);
+
+    }
+  }
+  //assert(0);
+}

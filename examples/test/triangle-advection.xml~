@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Simulation>
+
+  <Clock>
+    <time>0.</time>
+    <iteration>0</iteration>
+  </Clock>
+  
+  <Timetable>
+    <iend>500</iend>
+  </Timetable>
+
+  <Grid>
+    <nx>100</nx>
+    <ny>5</ny>
+    <xmin>0.0</xmin>
+    <xmax>1.0</xmax>
+    <ymin>0.0</ymin>
+    <ymax>0.05</ymax>
+  </Grid>
+
+  <Events>
+
+    <InitVariable>
+      <name>in_rho</name>
+     <expression>sin(4 * pi * cell_centers_x)</expression>
+    </InitVariable>
+
+    <InitVariable>
+      <name>u_face</name>
+      <expression>1</expression>
+    </InitVariable>
+
+    <OutputSimulation>
+      <filename>result/sim%i</filename>
+      <format>binary</format>
+      <Timetable>
+    	<istep>10</istep>
+      </Timetable>
+    </OutputSimulation>
+
+  </Events>
+
+</Simulation>

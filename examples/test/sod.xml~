@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Simulation>
+
+  <Clock>
+    <time>0.</time>
+    <iteration>0</iteration>
+  </Clock>
+  
+  <Timetable>
+    <iend>200</iend>
+  </Timetable>
+
+  <Grid>
+    <nx>100</nx>
+    <ny>10</ny>
+    <xmin>0.0</xmin>
+    <xmax>1.0</xmax>
+    <ymin>0.0</ymin>
+    <ymax>0.1</ymax>
+  </Grid>
+
+  <Events>
+
+    <InitVariable>
+      <name>in_rho</name>
+      <expression>((0.5 >= cell_centers_x) * 1.0) + ((cell_centers_x > 0.5) * 0.125)</expression>
+    </InitVariable>
+
+    <InitVariable>
+      <name>in_e</name>
+      <expression>(1.0 / 0.4) * ((0.5 >= cell_centers_x) * (1.0 / 1.0)) + ((cell_centers_x > 0.5) * (0.1 / 0.125))</expression>
+    </InitVariable>
+
+    <InitVariable>
+      <name>in_u</name>
+      <expression>0.0</expression>
+    </InitVariable>
+
+    <InitVariable>
+      <name>in_v</name>
+      <expression>0.0</expression>
+    </InitVariable>
+
+    <OutputSimulation>
+      <filename>result/sim%i</filename>
+      <format>binary</format>
+      <Timetable>
+    	<istep>1</istep>
+      </Timetable>
+    </OutputSimulation>
+
+  </Events>
+
+</Simulation>
