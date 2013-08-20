@@ -1,6 +1,7 @@
 #include "kernel_advection_fv_uw_2_2d.h"
 
 #include <assert.h>
+#include <math.h>
 
 #define RESTRICT __restrict
 

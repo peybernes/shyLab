@@ -6,7 +6,7 @@
 # CMake is cross-platform, the Volna scripts are not (yet) : compiler
 # flags and custom lib detection scripts, for example.
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6 FATAL_ERROR)
-
+PROJECT(ASSEMBLER C)
 #include(ExternalProject)
 
 # Make release with debug info the default compilation mode
@@ -29,24 +29,39 @@ set(LD_LIBRARY_PATH "${LD_LIBRARY_PATH}" "${CMAKE_SOURCE_DIR}/lib")
 
 #set (CMAKE_C_COMPILER ${HMPP_HOME}/bin/hmpp)
 
-set (CMAKE_C_COMPILER gcc)
-set (CMAKE_CXX_COMPILER g++)
-set (CMAKE_CXX_COMPILER mpic++)
+# set (CMAKE_C_COMPILER gcc)
+# set (CMAKE_CXX_COMPILER g++)
+# set (CMAKE_CXX_COMPILER mpic++)
+
+set (CMAKE_C_COMPILER icc)
+set (CMAKE_CXX_COMPILER icc)
+set (CMAKE_CXX_COMPILER icc)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 
-set(CMAKE_C_FLAGS "-g -march=native -ffast-math -ftree-vectorize -ftree-vectorizer-verbose=6 -O3 -fopenmp -std=c99 -Wall -Wextra")
-set(CMAKE_CXX_FLAGS "-g -O2 -fopenmp")
+#-axAVX -axSSE4.2 -xSSE2
 
-INCLUDE(TestBigEndian)
-TEST_BIG_ENDIAN(WORDS_BIGENDIAN)
-IF (WORDS_BIGENDIAN)
- ADD_DEFINITIONS("-DBIG_ENDIAN")
-ELSE (WORDS_BIGENDIAN)
- ADD_DEFINITIONS("-DLOW_ENDIAN")
-ENDIF (WORDS_BIGENDIAN)
+# Intel CPU
+set(CMAKE_C_FLAGS "-g -O3 -xAVX -vec-report -std=c99")
+set(CMAKE_CXX_FLAGS "-g -O3 -xAVX")
 
-ADD_DEFINITIONS("-DHAVE_MPI -DRealType=float -I${CMAKE_SOURCE_DIR}/external/boost")
+# Intel Xeon Phi
+# set(CMAKE_C_FLAGS "-g -O3 -mmic -no-vec -vec-report -std=c99")
+# set(CMAKE_CXX_FLAGS "-g -O3 -mmic -no-vec")
+
+# set(CMAKE_C_FLAGS "-g -march=native -ffast-math -ftree-vectorize -ftree-vectorizer-verbose=6 -O3 -fopenmp -std=c99 -Wall -Wextra")
+# set(CMAKE_CXX_FLAGS "-g -O2 -fopenmp")
+
+# INCLUDE(TestBigEndian)
+# TEST_BIG_ENDIAN(WORDS_BIGENDIAN)
+# IF (WORDS_BIGENDIAN)
+#  ADD_DEFINITIONS("-DBIG_ENDIAN")
+# ELSE (WORDS_BIGENDIAN)
+#  ADD_DEFINITIONS("-DLOW_ENDIAN")
+# ENDIF (WORDS_BIGENDIAN)
+
+ADD_DEFINITIONS(" -DRealType=double -I${CMAKE_SOURCE_DIR}/external/boost")
+#ADD_DEFINITIONS("-DHAVE_MPI -DRealType=float -I${CMAKE_SOURCE_DIR}/external/boost")
 
 add_executable(
     shy
@@ -114,7 +129,7 @@ if (MUPARSER_FOUND)
 #  target_link_libraries(shy ${MUPARSER_LIBRARIES})
 endif (MUPARSER_FOUND)
 
-set(MUPARSER_LIBRARIES "${CMAKE_SOURCE_DIR}/external/muparser/lib/libmuparser.so")
+set(MUPARSER_LIBRARIES "${CMAKE_SOURCE_DIR}/external/muparser/lib/libmuparser.a")
 target_link_libraries(shy ${MUPARSER_LIBRARIES})
 
 add_subdirectory(src)
