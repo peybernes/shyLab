@@ -4,10 +4,10 @@
 
 #include <algorithm>
 #include <cstdlib>
-#include <iostream>
 #ifdef HAVE_MPI
 #include <mpi.h>
 #endif // HAVE_MPI
+#include <numeric>
 #include <string>
 
 #include <boost/foreach.hpp>
@@ -23,6 +23,45 @@
 #include "serialize.hpp"
 #include "structured_grid.hpp"
 #include "variable_metadata.hpp"
+
+#include <ctime>
+
+static double diff(timespec start, timespec end) {
+
+  timespec result;
+
+  if ((end.tv_nsec-start.tv_nsec) < 0) {
+
+    result.tv_sec = end.tv_sec-start.tv_sec - 1;
+    result.tv_nsec = 1000000000 + end.tv_nsec - start.tv_nsec;
+
+  } else {
+
+    result.tv_sec = end.tv_sec - start.tv_sec;
+    result.tv_nsec = end.tv_nsec - start.tv_nsec;
+
+  }
+
+  const double  ms_time = 
+    (1000.0 * result.tv_sec) + (result.tv_nsec / 1000000.0);
+
+  return ms_time;
+}
+
+
+static void PrintTimings(const std::vector<double>& timings, const std::string& kernel_name) {
+
+  const double mean = accumulate(timings.begin(), timings.end(), 0.0);
+
+  std::cerr << std::setprecision(10) << kernel_name << " : "
+	    << "min=" 
+	    << *std::min_element(timings.begin(), timings.end()) << "ms, "
+	    << "mean=" 
+	    << mean / timings.size() << "ms, "
+	    << "max=" 
+	    << *std::max_element(timings.begin(), timings.end()) << "ms\n";
+
+}
 
 static double get_time() {
 
@@ -462,6 +501,13 @@ void Simulation::Run() {
   RealType* out_e = cell_variables(OUT_E);
 
   boost::timer simulation_timer = boost::timer();
+
+  std::vector<RealType> time_compressible_euler_physical_to_conservative_0;
+  std::vector<RealType> time_compressible_euler_fv_uw_kappa_2d_x_0;
+  std::vector<RealType> time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_x_0;
+  std::vector<RealType> time_compressible_euler_fv_uw_kappa_2d_y_0;
+  std::vector<RealType> time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_y_0;
+  std::vector<RealType> time_compressible_euler_conservative_to_physical_0;
   
   // Will hold the range of all simulation variables (including
   // temporaries for each time step).
@@ -521,30 +567,53 @@ void Simulation::Run() {
     // Arbitrary. Should be computed using CFL constraint,
     const RealType dt = 0.1 * dx;
 
-    const RealType kappa = -1.0;
+    const RealType kappa = 1.0 / 3.0;
 
     std::cerr << "dt=" << dt << ", dx=" << dx << ", dy=" << dy << "\n";
+
+    struct timespec time1;
+    struct timespec time2;
 
     if (m_grid.dimension() == 2) {
 
       // PREDICTION.
-
+      clock_gettime(CLOCK_REALTIME, &time1);
       CompressibleEulerPhysicalToConservative(nx, ny, in_rho, in_u, in_v, in_e,
 					      predicted_rho, predicted_u, predicted_v, predicted_e);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_compressible_euler_physical_to_conservative_0.push_back(diff(time1, time2));
 
+
+      clock_gettime(CLOCK_REALTIME, &time1);
       CompressibleEulerFvUwKappa2dX(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_u, in_v, in_e, 
 				    predicted_rho, predicted_u, predicted_v, predicted_e);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_compressible_euler_fv_uw_kappa_2d_x_0.push_back(diff(time1, time2));
 
+
+      clock_gettime(CLOCK_REALTIME, &time1);
       CompressibleEulerFvUwKappa2dBoundaryConditionsX(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_u, in_v, in_e, 
       						      predicted_rho, predicted_u, predicted_v, predicted_e);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_x_0.push_back(diff(time1,time2));
 
+
+      clock_gettime(CLOCK_REALTIME, &time1);
       CompressibleEulerFvUwKappa2dY(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_v, in_u, in_e, 
 				    predicted_rho, predicted_v, predicted_u, predicted_e);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_compressible_euler_fv_uw_kappa_2d_y_0.push_back(diff(time1, time2));
 
+      clock_gettime(CLOCK_REALTIME, &time1);
       CompressibleEulerFvUwKappa2dBoundaryConditionsY(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_v, in_u, in_e, 
       						      predicted_rho, predicted_v, predicted_u, predicted_e);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_y_0.push_back(diff(time1,time2));
 
+      clock_gettime(CLOCK_REALTIME, &time1);
       CompressibleEulerConservativeToPhysical(nx, ny, predicted_rho, predicted_u, predicted_v, predicted_e);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_compressible_euler_conservative_to_physical_0.push_back(diff(time1,time2));
 
       // CORRECTION.
 
@@ -632,6 +701,23 @@ void Simulation::Run() {
   time = get_time() - time;
 
   std::cerr << "Elapsed time for simulation: " << time << "s\n";
+
+  std::cerr << "\n-----------------------------------------------------------------------------------------\n\n";
+
+  PrintTimings(time_compressible_euler_physical_to_conservative_0, "CompressibleEulerPhysicalToConservative");
+  PrintTimings(time_compressible_euler_conservative_to_physical_0, "CompressibleEulerConservativeToPhysical");
+
+  std::cerr << "\n";
+
+  PrintTimings(time_compressible_euler_fv_uw_kappa_2d_x_0, "CompressibleEulerFvUwKappa2dX");
+  PrintTimings(time_compressible_euler_fv_uw_kappa_2d_y_0, "CompressibleEulerFvUwKappa2dY");
+
+  std::cerr << "\n";
+
+  PrintTimings(time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_x_0, "CompressibleEulerFvUwKappaBoundaryConditionsX");
+  PrintTimings(time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_y_0, "CompressibleEulerFvUwKappaBoundaryConditionsY");
+
+  std::cerr << "\n-----------------------------------------------------------------------------------------\n\n";
 
   ofs.close();
 }

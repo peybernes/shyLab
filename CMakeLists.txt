@@ -39,15 +39,17 @@ set (CMAKE_CXX_COMPILER icc)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 
-#-axAVX -axSSE4.2 -xSSE2
-
 # Intel CPU
-set(CMAKE_C_FLAGS "-g -O3 -xAVX -vec-report -std=c99")
-set(CMAKE_CXX_FLAGS "-g -O3 -xAVX")
+# set(CMAKE_C_FLAGS "-g -O3 -xCORE-AVX2 -vec-report -std=c99")
+# set(CMAKE_CXX_FLAGS "-g -O3 -xCORE-AVX2")
+set(CMAKE_C_FLAGS "-g -O3 -xCORE-AVX2 -vec-report -std=c99")
+set(CMAKE_CXX_FLAGS "-g -O3 -xCORE-AVX2")
+
+
 
 # Intel Xeon Phi
-# set(CMAKE_C_FLAGS "-g -O3 -mmic -no-vec -vec-report -std=c99")
-# set(CMAKE_CXX_FLAGS "-g -O3 -mmic -no-vec")
+# set(CMAKE_C_FLAGS "-g -O3 -mmic -vec-report -std=c99")
+# set(CMAKE_CXX_FLAGS "-g -O3 -mmic")
 
 # set(CMAKE_C_FLAGS "-g -march=native -ffast-math -ftree-vectorize -ftree-vectorizer-verbose=6 -O3 -fopenmp -std=c99 -Wall -Wextra")
 # set(CMAKE_CXX_FLAGS "-g -O2 -fopenmp")
@@ -131,6 +133,10 @@ endif (MUPARSER_FOUND)
 
 set(MUPARSER_LIBRARIES "${CMAKE_SOURCE_DIR}/external/muparser/lib/libmuparser.a")
 target_link_libraries(shy ${MUPARSER_LIBRARIES})
+
+set(REALTIME_LIBRARY "rt")
+
+target_link_libraries(shy ${REALTIME_LIBRARY})
 
 add_subdirectory(src)
 

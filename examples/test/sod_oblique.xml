@@ -8,12 +8,12 @@
   </Clock>
   
   <Timetable>
-    <iend>24900</iend>
+    <iend>200</iend>
   </Timetable>
 
   <Grid>
-    <nx>300</nx>
-    <ny>300</ny>
+    <nx>1000</nx>
+    <ny>1000</ny>
     <xmin>0.0</xmin>
     <xmax>1.0</xmax>
     <ymin>0.0</ymin>
