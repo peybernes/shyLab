@@ -1,16 +1,12 @@
 # -*- shell-script -*-
 # CMake shy configuration script.
 # http://www.cmake.org
-#
-# N.B. compilation has only be tested under Linux with gcc. Even if
-# CMake is cross-platform, the Volna scripts are not (yet) : compiler
-# flags and custom lib detection scripts, for example.
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6 FATAL_ERROR)
-PROJECT(ASSEMBLER C)
-#include(ExternalProject)
 
-# Make release with debug info the default compilation mode
-# (corresponds to -O2 -g with gcc).
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6 FATAL_ERROR)
+
+# Add rules to the makefile to generate assembly files.
+PROJECT(ASSEMBLER C)
+
 IF(NOT CMAKE_BUILD_TYPE)
 SET(CMAKE_BUILD_TYPE Debug CACHE STRING
     "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
@@ -20,35 +16,16 @@ ENDIF(NOT CMAKE_BUILD_TYPE)
 project(Shy)
 message(STATUS "Configuring Shy")
 
-#set(HMPP_HOME "/soft/tools/HMPPWorkbench-2.3.3/")
+set(LD_LIBRARY_PATH "${LD_LIBRARY_PATH}" "${CMAKE_SOURCE_DIR}/external/muparser/lib ")
 
-set(LD_LIBRARY_PATH "${LD_LIBRARY_PATH}" "${CMAKE_SOURCE_DIR}/lib")
-
-#[CAPS] added to compile with hmpp and compiler gcc 
-#add_definitions(gcc)
-
-#set (CMAKE_C_COMPILER ${HMPP_HOME}/bin/hmpp)
-
-# set (CMAKE_C_COMPILER gcc)
-# set (CMAKE_CXX_COMPILER g++)
-# set (CMAKE_CXX_COMPILER mpic++)
-
-set (CMAKE_C_COMPILER icc)
-set (CMAKE_CXX_COMPILER icc)
-set (CMAKE_CXX_COMPILER icc)
+set (CMAKE_C_COMPILER icpc)
+set (CMAKE_CXX_COMPILER icpc)
+set (CMAKE_CXX_COMPILER icpc)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 
-# Intel CPU
-# set(CMAKE_C_FLAGS "-g -O3 -xCORE-AVX2 -vec-report -std=c99")
-# set(CMAKE_CXX_FLAGS "-g -O3 -xCORE-AVX2")
-# set(CMAKE_C_FLAGS "-g -O3 -no-vec -vec-report -std=c99")
-# set(CMAKE_CXX_FLAGS "-g -O3 -no-vec")
-
-# Intel Xeon Phi
-set(CMAKE_C_FLAGS "-g -O3 -mmic -fimf-domain-exclusion=15:sqrt,/ -vec-report -std=c99")
-set(CMAKE_CXX_FLAGS "-g -O3 -mmic -fimf-domain-exclusion=15:sqrt,/")
-
+set(CMAKE_C_FLAGS "-g -O3 -xAVX -fimf-domain-exclusion=15:sqrt,/,sqrtf,/f -vec-report -std=c99")
+set(CMAKE_CXX_FLAGS "-g -O3 -xAVX -fimf-domain-exclusion=15:sqrt,/,sqrtf,/f")
 
 # set(CMAKE_C_FLAGS "-g -march=native -ffast-math -ftree-vectorize -ftree-vectorizer-verbose=6 -O3 -fopenmp -std=c99 -Wall -Wextra")
 # set(CMAKE_CXX_FLAGS "-g -O2 -fopenmp")
@@ -61,8 +38,7 @@ set(CMAKE_CXX_FLAGS "-g -O3 -mmic -fimf-domain-exclusion=15:sqrt,/")
 #  ADD_DEFINITIONS("-DLOW_ENDIAN")
 # ENDIF (WORDS_BIGENDIAN)
 
-ADD_DEFINITIONS(" -DRealType=double -I${CMAKE_SOURCE_DIR}/external/boost")
-#ADD_DEFINITIONS("-DHAVE_MPI -DRealType=float -I${CMAKE_SOURCE_DIR}/external/boost")
+ADD_DEFINITIONS(" -DRealType=float -I${CMAKE_SOURCE_DIR}/external/boost")
 
 add_executable(
     shy
@@ -94,11 +70,6 @@ add_executable(
     src/timetable.cpp 
     src/variable_database.cpp
     src/variable_store.cpp)
-
-
-# Uncomment the 2 following lines only for Catalina2 test case.
-# add_definitions(-DCATALINA2)
-# add_definitions(-DCATALINA_BC_FILE="${CMAKE_CURRENT_BINARY_DIR}/examples/catalina2_benchmark/boundaryHeight.txt")
 
 # Telling cmake where our custom cmake modules are.
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake/Modules/")
@@ -134,7 +105,6 @@ set(MUPARSER_LIBRARIES "${CMAKE_SOURCE_DIR}/external/muparser/lib/libmuparser.a"
 target_link_libraries(shy ${MUPARSER_LIBRARIES})
 
 set(REALTIME_LIBRARY "rt")
-
 target_link_libraries(shy ${REALTIME_LIBRARY})
 
 add_subdirectory(src)

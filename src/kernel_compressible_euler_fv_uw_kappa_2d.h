@@ -1,6 +1,10 @@
 #ifndef KERNEL_COMPRESSIBLE_EULER_FV_UW_KAPPA_2D_H
 #define KERNEL_COMPRESSIBLE_EULER_FV_UW_KAPPA_2D_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void CompressibleEulerPhysicalToConservative(int nx, 
 					     int ny, 
 					     const RealType* in_rho, 
@@ -82,5 +86,10 @@ void CompressibleEulerFvUwKappa2dBoundaryConditionsY(int nx,
 						     RealType* out_velocity_x,
 						     RealType* out_velocity_y,
 						     RealType* out_total_energy);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif // KERNEL_COMPRESSIBLE_EULER_FV_UW_KAPPA_2D_H

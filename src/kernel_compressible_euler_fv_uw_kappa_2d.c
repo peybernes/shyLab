@@ -4,9 +4,9 @@
 #define RESTRICT __restrict__
 
 #define NDEBUG
-#include <assert.h>
-#include <math.h>
-#include <stdio.h>
+#include <cassert>
+#include <cmath>
+#include <cstdio>
 
 #include "kernel_tools.h"
 
