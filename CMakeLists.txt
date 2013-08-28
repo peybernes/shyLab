@@ -18,17 +18,34 @@ message(STATUS "Configuring Shy")
 
 set(LD_LIBRARY_PATH "${LD_LIBRARY_PATH}" "${CMAKE_SOURCE_DIR}/external/muparser/lib ")
 
-set (CMAKE_C_COMPILER icpc)
-set (CMAKE_CXX_COMPILER icpc)
-set (CMAKE_CXX_COMPILER icpc)
+set (CMAKE_C_COMPILER g++)
+set (CMAKE_CXX_COMPILER g++)
+set (CMAKE_CXX_COMPILER g++)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 
-set(CMAKE_C_FLAGS "-g -O3 -mmic -fimf-domain-exclusion=15:sqrt,/,sqrtf,/f -vec-report -std=c99")
-set(CMAKE_CXX_FLAGS "-g -O3 -mmic -fimf-domain-exclusion=15:sqrt,/,sqrtf,/f")
+IF(CMAKE_COMPILER_IS_GNUCXX)
+set(CMAKE_C_FLAGS "-g -O3 -msse4.2 -ffast-math -ftree-vectorize -ftree-vectorizer-verbose=1 -O3 -fopenmp -std=c99")
+set(CMAKE_CXX_FLAGS "-g -O3 -fopenmp")
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
-# set(CMAKE_C_FLAGS "-g -march=native -ffast-math -ftree-vectorize -ftree-vectorizer-verbose=6 -O3 -fopenmp -std=c99 -Wall -Wextra")
-# set(CMAKE_CXX_FLAGS "-g -O2 -fopenmp")
+IF(${CMAKE_C_COMPILER} MATCHES "icc")
+set(CMAKE_C_FLAGS "-g -O3 -xCORE-AVX2 -fimf-domain-exclusion=15:sqrt,/,sqrtf,/f -vec-report -std=c99")
+set(CMAKE_CXX_FLAGS "-g -O3 -fopenmp")
+ENDIF( ${CMAKE_C_COMPILER} MATCHES "icc" )
+
+IF(${CMAKE_CXX_COMPILER} MATCHES "icc")
+set(CMAKE_CXX_FLAGS "-g -O3 -fopenmp")
+ENDIF( ${CMAKE_CXX_COMPILER} MATCHES "icc" )
+
+IF(${CMAKE_C_COMPILER} MATCHES "icpc")
+set(CMAKE_C_FLAGS "-g -O3 -xCORE-AVX2 -fimf-domain-exclusion=15:sqrt,/,sqrtf,/f -vec-report -std=c99")
+ENDIF( ${CMAKE_C_COMPILER} MATCHES "icpc" )
+
+IF(${CMAKE_CXX_COMPILER} MATCHES "icpc")
+set(CMAKE_CXX_FLAGS "-g -O3 -fopenmp")
+ENDIF( ${CMAKE_CXX_COMPILER} MATCHES "icpc" )
+
 
 # INCLUDE(TestBigEndian)
 # TEST_BIG_ENDIAN(WORDS_BIGENDIAN)

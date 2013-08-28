@@ -3,6 +3,17 @@
 
 #define RESTRICT __restrict__
 
+#define ALIGN_BYTES 64
+
+#ifdef __GNUC__
+#define ASSUME_ALIGNED(x) __builtin_assume_aligned(x, ALIGN_BYTES)
+#elif __INTEL_COMPILER
+#define ASSUME_ALIGNED(x) __assume_aligned(x, ALIGN_BYTES)
+#else
+#define ASSUME_ALIGNED(x) assert(0)
+#endif
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
