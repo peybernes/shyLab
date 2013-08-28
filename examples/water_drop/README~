@@ -1,9 +1,0 @@
-In this qualitative test case, a water drop propagates from the center
-of the domain and reflects against domain boundaries.
-
-You can experiment with the various meshes (between
-
-N.B. Be sure that CATALINA2 is not #defined. It could mess with the
-boundary conditions. The sure way is to check that
-add_definitions(-DCATALINA2) is commented out in the CMakeLists.txt,
-and recompile. See also the README.CAPS file.
