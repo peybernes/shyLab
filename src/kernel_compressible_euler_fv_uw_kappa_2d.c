@@ -10,6 +10,8 @@
 
 #include "kernel_tools.h"
 
+#include "iacaMarks.h"
+
 void CompressibleEulerPhysicalToConservative(int nx, 
 					     int ny, 
 					     const RealType* RESTRICT in_rho, 
@@ -22,7 +24,10 @@ void CompressibleEulerPhysicalToConservative(int nx,
 					     RealType* RESTRICT out_total_energy) {
 
 
+  int current_cell = 0;
+
   for (int iy = 0; iy < ny; ++iy) {
+
     ASSUME_ALIGNED(in_rho);
     ASSUME_ALIGNED(in_velocity_x);
     ASSUME_ALIGNED(in_velocity_y);
@@ -31,15 +36,17 @@ void CompressibleEulerPhysicalToConservative(int nx,
     ASSUME_ALIGNED(out_velocity_x);
     ASSUME_ALIGNED(out_velocity_y);
     ASSUME_ALIGNED(out_total_energy);
+
     for (int ix = 0; ix < nx; ++ix) {
 
-      const int cell_ooo = (nx * iy) + ix;
+      const int cell_ooo = current_cell;
 
       out_rho[cell_ooo] = in_rho[cell_ooo];
       out_velocity_x[cell_ooo] = in_rho[cell_ooo] * in_velocity_x[cell_ooo];
       out_velocity_y[cell_ooo] = in_rho[cell_ooo] * in_velocity_y[cell_ooo];
       out_total_energy[cell_ooo] = in_rho[cell_ooo] * in_total_energy[cell_ooo];
 
+      ++current_cell;
     }
   }
 
@@ -53,19 +60,24 @@ void CompressibleEulerConservativeToPhysical(int nx,
 					     RealType* RESTRICT out_velocity_y,
 					     RealType* RESTRICT out_total_energy) {
 
+  int current_cell = 0;
+
   for (int iy = 0; iy < ny; ++iy) {
+
     ASSUME_ALIGNED(out_rho);
     ASSUME_ALIGNED(out_velocity_x);
     ASSUME_ALIGNED(out_velocity_y);
     ASSUME_ALIGNED(out_total_energy);
+
     for (int ix = 0; ix < nx; ++ix) {
 
-      const int cell_ooo = (nx * iy) + ix;
+      const int cell_ooo = current_cell;
 
       out_velocity_x[cell_ooo] /= out_rho[cell_ooo];
       out_velocity_y[cell_ooo] /= out_rho[cell_ooo];
       out_total_energy[cell_ooo] /= out_rho[cell_ooo];
 
+      ++current_cell;
     }
   }
 
@@ -97,7 +109,10 @@ void CompressibleEulerFvUwKappa2dX(int nx,
 
   const RealType half = 0.5;
 
+  int current_cell = 0;
+
   for (int iy = 0; iy < ny; ++iy) {
+    
     ASSUME_ALIGNED(in_rho);
     ASSUME_ALIGNED(in_velocity_x);
     ASSUME_ALIGNED(in_velocity_y);
@@ -106,13 +121,18 @@ void CompressibleEulerFvUwKappa2dX(int nx,
     ASSUME_ALIGNED(out_velocity_x);
     ASSUME_ALIGNED(out_velocity_y);
     ASSUME_ALIGNED(out_total_energy);
+
+    current_cell += halo_width;
+
     for (int ix = halo_width; ix < nx - halo_width; ++ix) {
 
-      const int cell_m2o = (nx * iy) + ix - 2;
-      const int cell_m1o = (nx * iy) + ix - 1;
-      const int cell_ooo = (nx * iy) + ix + 0;
-      const int cell_p1o = (nx * iy) + ix + 1;
-      const int cell_p2o = (nx * iy) + ix + 2;
+      //IACA_START
+
+      const int cell_m2o = current_cell - 2;
+      const int cell_m1o = current_cell - 1;
+      const int cell_ooo = current_cell;
+      const int cell_p1o = current_cell + 1;
+      const int cell_p2o = current_cell + 2;
 
 #include "compressible_euler_2d_data_load.h"
 #include "compressible_euler_2d_computation.h"
@@ -122,7 +142,13 @@ void CompressibleEulerFvUwKappa2dX(int nx,
       out_velocity_y[cell_ooo] += out_velocity_y_ooo;
       out_total_energy[cell_ooo] += out_total_energy_ooo;
 
+      ++current_cell;
+
     }
+    //IACA_END
+
+    current_cell += halo_width;
+    
   }
 
 }
@@ -153,7 +179,10 @@ void CompressibleEulerFvUwKappa2dY(int nx,
 
   const RealType half = 0.5;
 
+  int current_cell = halo_width * nx;
+
   for (int iy = halo_width; iy < ny - halo_width; ++iy) {
+
     ASSUME_ALIGNED(in_rho);
     ASSUME_ALIGNED(in_velocity_x);
     ASSUME_ALIGNED(in_velocity_y);
@@ -162,13 +191,20 @@ void CompressibleEulerFvUwKappa2dY(int nx,
     ASSUME_ALIGNED(out_velocity_x);
     ASSUME_ALIGNED(out_velocity_y);
     ASSUME_ALIGNED(out_total_energy);
+
     for (int ix = 0; ix < nx; ++ix) {
 
-      const int cell_m2o = (nx * (iy - 2)) + ix;
-      const int cell_m1o = (nx * (iy - 1)) + ix;
-      const int cell_ooo = (nx * (iy + 0)) + ix;
-      const int cell_p1o = (nx * (iy + 1)) + ix;
-      const int cell_p2o = (nx * (iy + 2)) + ix;
+      // const int cell_m2o = (nx * (iy - 2)) + ix;
+      // const int cell_m1o = (nx * (iy - 1)) + ix;
+      // const int cell_ooo = (nx * (iy + 0)) + ix;
+      // const int cell_p1o = (nx * (iy + 1)) + ix;
+      // const int cell_p2o = (nx * (iy + 2)) + ix;
+
+      const int cell_m2o = current_cell - (2 * nx);
+      const int cell_m1o = current_cell - nx;
+      const int cell_ooo = current_cell;
+      const int cell_p1o = current_cell + nx;
+      const int cell_p2o = current_cell + (2 * nx);
 
 #include "compressible_euler_2d_data_load.h"
 #include "compressible_euler_2d_computation.h"
@@ -178,7 +214,10 @@ void CompressibleEulerFvUwKappa2dY(int nx,
       out_velocity_y[cell_ooo] += out_velocity_y_ooo;
       out_total_energy[cell_ooo] += out_total_energy_ooo;
 
+      ++current_cell;
+
     }
+
   }
 }
 

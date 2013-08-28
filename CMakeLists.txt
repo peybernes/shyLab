@@ -16,7 +16,7 @@ ENDIF(NOT CMAKE_BUILD_TYPE)
 project(Shy)
 message(STATUS "Configuring Shy")
 
-set(LD_LIBRARY_PATH "${LD_LIBRARY_PATH}" "${CMAKE_SOURCE_DIR}/external/muparser/lib ")
+set(LD_LIBRARY_PATH "${LD_LIBRARY_PATH}" "${CMAKE_SOURCE_DIR}/external/muparser/lib " "${CMAKE_SOURCE_DIR}/external/iaca-lin32/lib")
 
 set (CMAKE_C_COMPILER g++)
 set (CMAKE_CXX_COMPILER g++)
@@ -25,7 +25,7 @@ set (CMAKE_CXX_COMPILER g++)
 set(CMAKE_VERBOSE_MAKEFILE on)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
-set(CMAKE_C_FLAGS "-g -O3 -msse4.2 -ffast-math -ftree-vectorize -ftree-vectorizer-verbose=1 -O3 -fopenmp -std=c99")
+set(CMAKE_C_FLAGS "-g -O3 -msse4.2 -ffast-math -fno-tree-vectorize -ftree-vectorizer-verbose=1 -O3 -fopenmp -std=c99")
 set(CMAKE_CXX_FLAGS "-g -O3 -fopenmp")
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
@@ -55,7 +55,7 @@ ENDIF( ${CMAKE_CXX_COMPILER} MATCHES "icpc" )
 #  ADD_DEFINITIONS("-DLOW_ENDIAN")
 # ENDIF (WORDS_BIGENDIAN)
 
-ADD_DEFINITIONS(" -DRealType=float -I${CMAKE_SOURCE_DIR}/external/boost")
+ADD_DEFINITIONS(" -DRealType=float -I${CMAKE_SOURCE_DIR}/external/boost -I${CMAKE_SOURCE_DIR}/external/iaca-lin32/include")
 
 add_executable(
     shy
