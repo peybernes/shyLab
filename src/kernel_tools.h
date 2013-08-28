@@ -8,17 +8,21 @@ extern "C" {
 #endif
 
 static inline RealType EquationOfStatePerfectGas(RealType gamma, RealType rho, RealType ux, RealType uy, RealType total_energy) {
-  
-  return (1.4 - 1.0) * rho * (total_energy - 0.5 * (ux * ux + uy * uy));
+
+  const RealType one = 1.0;
+  const RealType half = 0.5;
+
+  return (gamma - one) * rho * (total_energy - half * (ux * ux + uy * uy));
 
 }
 
 /// Van Albada limiter (reference : Nishikawa 2008, carbuncle free solver)
 static inline RealType VanAlbadaLimiter(RealType a, RealType b) {
+  
+  const RealType epsilon = 1.0e-6;
+  const RealType two = 2.0;
 
-  //return 0.0;
-  return (2.0 * ((a * b) + 1.0e-6) / ((a * a) + (b * b) + (2.0 * 1.0e-6)));
-
+  return (two * ((a * b) + epsilon) / ((a * a) + (b * b) + (two * epsilon)));
 }
 
 /// Van Leer kappa scheme
@@ -30,13 +34,19 @@ static inline RealType VanAlbadaLimiter(RealType a, RealType b) {
 /// kappa = -1 : linear upwind scheme
 static inline RealType ReconstructValueLefftKappa(RealType in, RealType s, RealType kappa, RealType dx, RealType delta_minus, RealType delta_plus) {
 
-  return (in + 0.25 * s * dx * (((1.0 - kappa * s) * delta_minus) + ((1.0 + kappa * s) * delta_plus)));
+  const RealType one_quarter = 0.25;
+  const RealType one = 1.0;
+
+  return (in + one_quarter * s * dx * (((one - kappa * s) * delta_minus) + ((one + kappa * s) * delta_plus)));
 
 }  
 
 static inline RealType ReconstructValueRightKappa(RealType in, RealType s, RealType kappa, RealType dx, RealType delta_minus, RealType delta_plus) {
 
-  return (in - 0.25 * s * dx * (((1.0 + kappa * s) * delta_minus + (1.0 - kappa * s) * delta_plus)));
+  const RealType one_quarter = 0.25;
+  const RealType one = 1.0;
+
+  return (in - one_quarter * s * dx * (((one + kappa * s) * delta_minus + (one - kappa * s) * delta_plus)));
 
 }  
 

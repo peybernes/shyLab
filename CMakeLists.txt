@@ -24,8 +24,8 @@ set (CMAKE_CXX_COMPILER icpc)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 
-set(CMAKE_C_FLAGS "-g -O3 -xAVX -fimf-domain-exclusion=15:sqrt,/,sqrtf,/f -vec-report -std=c99")
-set(CMAKE_CXX_FLAGS "-g -O3 -xAVX -fimf-domain-exclusion=15:sqrt,/,sqrtf,/f")
+set(CMAKE_C_FLAGS "-g -O3 -mmic -fimf-domain-exclusion=15:sqrt,/,sqrtf,/f -vec-report -std=c99")
+set(CMAKE_CXX_FLAGS "-g -O3 -mmic -fimf-domain-exclusion=15:sqrt,/,sqrtf,/f")
 
 # set(CMAKE_C_FLAGS "-g -march=native -ffast-math -ftree-vectorize -ftree-vectorizer-verbose=6 -O3 -fopenmp -std=c99 -Wall -Wextra")
 # set(CMAKE_CXX_FLAGS "-g -O2 -fopenmp")
