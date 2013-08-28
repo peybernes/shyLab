@@ -49,7 +49,7 @@ static double diff(timespec start, timespec end) {
 }
 
 
-static void PrintTimings(const std::vector<double>& timings, const std::string& kernel_name) {
+static void PrintTimings(const std::vector<RealType>& timings, const std::string& kernel_name) {
 
   const double mean = accumulate(timings.begin(), timings.end(), 0.0);
 

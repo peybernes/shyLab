@@ -114,24 +114,30 @@ const RealType mean_flux_face_po_rho_total_energy =
 
 // We now need average quantities for diffusing the numerical fluxes.
 
-const RealType mean_rho_mo = sqrtf(in_rho_lefft_mo * in_rho_right_mo);
-const RealType mean_rho_po = sqrtf(in_rho_lefft_po * in_rho_right_po);
+const RealType sqrt_in_rho_lefft_mo = sqrt(in_rho_lefft_mo);
+const RealType sqrt_in_rho_right_mo = sqrt(in_rho_lefft_mo);
 
-const RealType mean_velocity_mo = 
-  ((sqrtf(in_rho_lefft_mo) * in_velocity_x_lefft_mo) + (sqrtf(in_rho_right_mo) * in_velocity_x_right_mo)) / (sqrtf(in_rho_lefft_mo) + sqrtf(in_rho_right_mo));
+const RealType sqrt_in_rho_lefft_po = sqrt(in_rho_lefft_po);
+const RealType sqrt_in_rho_right_po = sqrt(in_rho_lefft_po);
 
-const RealType mean_velocity_po = 
-  ((sqrtf(in_rho_lefft_po) * in_velocity_x_lefft_po) + (sqrtf(in_rho_right_po) * in_velocity_x_right_po)) / (sqrtf(in_rho_lefft_po) + sqrtf(in_rho_right_po));
+const RealType mean_rho_mo = sqrt_in_rho_lefft_mo * sqrt_in_rho_right_mo;
+const RealType mean_rho_po = sqrt_in_rho_lefft_po * sqrt_in_rho_right_po;
 
-const RealType mean_pressure_mo = 
-  ((sqrtf(in_rho_lefft_mo) * pressure_lefft_mo) + (sqrtf(in_rho_right_mo) * pressure_right_mo)) / (sqrtf(in_rho_lefft_mo) + sqrtf(in_rho_right_mo));
+const RealType mean_velocity_mo =
+  ((sqrt_in_rho_lefft_mo * in_velocity_x_lefft_mo) + (sqrt_in_rho_right_mo * in_velocity_x_right_mo)) / (sqrt_in_rho_lefft_mo + sqrt_in_rho_right_mo);
 
-const RealType mean_pressure_po = 
-  ((sqrtf(in_rho_lefft_po) * pressure_lefft_po) + (sqrtf(in_rho_right_po) * pressure_right_po)) / (sqrtf(in_rho_lefft_po) + sqrtf(in_rho_right_po));
+const RealType mean_velocity_po =
+  ((sqrt_in_rho_lefft_po * in_velocity_x_lefft_po) + (sqrt_in_rho_right_po * in_velocity_x_right_po)) / (sqrt_in_rho_lefft_po + sqrt_in_rho_right_po);
+
+const RealType mean_pressure_mo =
+  ((sqrt_in_rho_lefft_mo * pressure_lefft_mo) + (sqrt_in_rho_right_mo * pressure_right_mo)) / (sqrt_in_rho_lefft_mo + sqrt_in_rho_right_mo);
+
+const RealType mean_pressure_po =
+  ((sqrt_in_rho_lefft_po * pressure_lefft_po) + (sqrt_in_rho_right_po * pressure_right_po)) / (sqrt_in_rho_lefft_po + sqrt_in_rho_right_po);
 
 // Numerical fluxes at faces (Lax Friedrichs).
-const RealType diffusion_coefficient_mo = fabsf(mean_velocity_mo) + sqrtf((gamma * mean_pressure_mo) / mean_rho_mo);
-const RealType diffusion_coefficient_po = fabsf(mean_velocity_po) + sqrtf((gamma * mean_pressure_po) / mean_rho_po);
+const RealType diffusion_coefficient_mo = fabs(mean_velocity_mo) + sqrt((gamma * mean_pressure_mo) / mean_rho_mo);
+const RealType diffusion_coefficient_po = fabs(mean_velocity_po) + sqrt((gamma * mean_pressure_po) / mean_rho_po);
 								  
 const RealType flux_face_mo_rho = cy * (mean_flux_face_mo_rho - half * diffusion_coefficient_mo * (in_rho_right_mo - in_rho_lefft_mo));
 const RealType flux_face_po_rho = cy * (mean_flux_face_po_rho - half * diffusion_coefficient_po * (in_rho_right_po - in_rho_lefft_po));

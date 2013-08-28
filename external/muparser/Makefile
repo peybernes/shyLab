@@ -35,7 +35,7 @@ AR = ar
 AROPTIONS = rcu
 RANLIB = ranlib
 CXX = icc
-CXXFLAGS =  -O2
+CXXFLAGS =  -O2 -mmic
 CPPFLAGS = 
 LDFLAGS = 
 

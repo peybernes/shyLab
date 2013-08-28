@@ -23,6 +23,14 @@ void CompressibleEulerPhysicalToConservative(int nx,
 
 
   for (int iy = 0; iy < ny; ++iy) {
+    __assume_aligned(in_rho, 64);
+    __assume_aligned(in_velocity_x, 64);
+    __assume_aligned(in_velocity_y, 64);
+    __assume_aligned(in_total_energy, 64);
+    __assume_aligned(out_rho, 64);
+    __assume_aligned(out_velocity_x, 64);
+    __assume_aligned(out_velocity_y, 64);
+    __assume_aligned(out_total_energy, 64);
     for (int ix = 0; ix < nx; ++ix) {
 
       const int cell_ooo = (nx * iy) + ix;
@@ -46,6 +54,10 @@ void CompressibleEulerConservativeToPhysical(int nx,
 					     RealType* RESTRICT out_total_energy) {
 
   for (int iy = 0; iy < ny; ++iy) {
+    __assume_aligned(out_rho, 64);
+    __assume_aligned(out_velocity_x, 64);
+    __assume_aligned(out_velocity_y, 64);
+    __assume_aligned(out_total_energy, 64);
     for (int ix = 0; ix < nx; ++ix) {
 
       const int cell_ooo = (nx * iy) + ix;
@@ -86,6 +98,14 @@ void CompressibleEulerFvUwKappa2dX(int nx,
   const RealType half = 0.5;
 
   for (int iy = 0; iy < ny; ++iy) {
+    __assume_aligned(in_rho, 64);
+    __assume_aligned(in_velocity_x, 64);
+    __assume_aligned(in_velocity_y, 64);
+    __assume_aligned(in_total_energy, 64);
+    __assume_aligned(out_rho, 64);
+    __assume_aligned(out_velocity_x, 64);
+    __assume_aligned(out_velocity_y, 64);
+    __assume_aligned(out_total_energy, 64);
     for (int ix = halo_width; ix < nx - halo_width; ++ix) {
 
       const int cell_m2o = (nx * iy) + ix - 2;
@@ -134,6 +154,14 @@ void CompressibleEulerFvUwKappa2dY(int nx,
   const RealType half = 0.5;
 
   for (int iy = halo_width; iy < ny - halo_width; ++iy) {
+    __assume_aligned(in_rho, 64);
+    __assume_aligned(in_velocity_x, 64);
+    __assume_aligned(in_velocity_y, 64);
+    __assume_aligned(in_total_energy, 64);
+    __assume_aligned(out_rho, 64);
+    __assume_aligned(out_velocity_x, 64);
+    __assume_aligned(out_velocity_y, 64);
+    __assume_aligned(out_total_energy, 64);
     for (int ix = 0; ix < nx; ++ix) {
 
       const int cell_m2o = (nx * (iy - 2)) + ix;
@@ -183,6 +211,14 @@ void CompressibleEulerFvUwKappa2dBoundaryConditionsX(int nx,
 
   // Wall boundary conditions. xmin
   for (int iy = 0; iy < ny; ++iy) {
+    __assume_aligned(in_rho, 64);
+    __assume_aligned(in_velocity_x, 64);
+    __assume_aligned(in_velocity_y, 64);
+    __assume_aligned(in_total_energy, 64);
+    __assume_aligned(out_rho, 64);
+    __assume_aligned(out_velocity_x, 64);
+    __assume_aligned(out_velocity_y, 64);
+    __assume_aligned(out_total_energy, 64);
     for (int ix = 0; ix < halo_width; ++ix) {
 
       const int cell_m2o = (nx * iy) + ix - 2;
@@ -206,6 +242,14 @@ void CompressibleEulerFvUwKappa2dBoundaryConditionsX(int nx,
   
   // Wall boundary conditions. xmax
   for (int iy = 0; iy < ny; ++iy) {
+    __assume_aligned(in_rho, 64);
+    __assume_aligned(in_velocity_x, 64);
+    __assume_aligned(in_velocity_y, 64);
+    __assume_aligned(in_total_energy, 64);
+    __assume_aligned(out_rho, 64);
+    __assume_aligned(out_velocity_x, 64);
+    __assume_aligned(out_velocity_y, 64);
+    __assume_aligned(out_total_energy, 64);
     for (int ix = nx - halo_width; ix < nx; ++ix) {
 
       const int cell_m2o = (nx * iy) + ix - 2;
@@ -300,6 +344,14 @@ void CompressibleEulerFvUwKappa2dBoundaryConditionsY(int nx,
 
   // Wall boundary conditions. ymin
   for (int iy = 0; iy < halo_width; ++iy) {
+    __assume_aligned(in_rho, 64);
+    __assume_aligned(in_velocity_x, 64);
+    __assume_aligned(in_velocity_y, 64);
+    __assume_aligned(in_total_energy, 64);
+    __assume_aligned(out_rho, 64);
+    __assume_aligned(out_velocity_x, 64);
+    __assume_aligned(out_velocity_y, 64);
+    __assume_aligned(out_total_energy, 64);
     for (int ix = 0; ix < nx; ++ix) {
 
       const int cell_m2o = (nx * (iy - 2)) + ix;
@@ -323,6 +375,14 @@ void CompressibleEulerFvUwKappa2dBoundaryConditionsY(int nx,
 
   // Wall boundary conditions. ymax
   for (int iy = ny - halo_width; iy < ny; ++iy) {
+    __assume_aligned(in_rho, 64);
+    __assume_aligned(in_velocity_x, 64);
+    __assume_aligned(in_velocity_y, 64);
+    __assume_aligned(in_total_energy, 64);
+    __assume_aligned(out_rho, 64);
+    __assume_aligned(out_velocity_x, 64);
+    __assume_aligned(out_velocity_y, 64);
+    __assume_aligned(out_total_energy, 64);
     for (int ix = 0; ix < nx; ++ix) {
 
       const int cell_m2o = (nx * (iy - 2)) + ix;
