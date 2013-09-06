@@ -115,10 +115,10 @@ const RealType mean_flux_face_po_rho_total_energy =
 // We now need average quantities for diffusing the numerical fluxes.
 
 const RealType sqrt_in_rho_lefft_mo = std::sqrt(in_rho_lefft_mo);
-const RealType sqrt_in_rho_right_mo = std::sqrt(in_rho_lefft_mo);
+const RealType sqrt_in_rho_right_mo = std::sqrt(in_rho_right_mo);
 
 const RealType sqrt_in_rho_lefft_po = std::sqrt(in_rho_lefft_po);
-const RealType sqrt_in_rho_right_po = std::sqrt(in_rho_lefft_po);
+const RealType sqrt_in_rho_right_po = std::sqrt(in_rho_right_po);
 
 const RealType mean_rho_mo = sqrt_in_rho_lefft_mo * sqrt_in_rho_right_mo;
 const RealType mean_rho_po = sqrt_in_rho_lefft_po * sqrt_in_rho_right_po;
