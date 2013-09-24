@@ -44,9 +44,9 @@ void VariableStore::Allocate(int nx, int ny) {
   std::cerr << "allocated " << data_size * sizeof(RealType) << " bytes\n";
   
   for (int var = 0; var < m_nb_variables; ++var) {
-    //#pragma omp parallel for
-    for (int j = 2; j < ny - 2; ++j) {
-      for (int i = 0; i < nx - 2; ++i) {
+#pragma omp parallel for
+    for (int j = 0; j < ny; ++j) {
+      for (int i = 0; i < nx; ++i) {
 
 	m_data[(var * (m_nb_elements + m_padding)) + (nx * j) + i] = 0.0;
 

@@ -1,8 +1,6 @@
 // -*- c++ -*- (for emacs users)
 #include "kernel_compressible_euler_fv_uw_kappa_2d.h"
 
-#define RESTRICT __restrict__
-
 #define NDEBUG
 #include <cassert>
 #include <cmath>
@@ -26,17 +24,17 @@ void CompressibleEulerPhysicalToConservative(int nx,
 
   int current_cell = 0;
 
+#pragma omp parallel for
   for (int iy = 0; iy < ny; ++iy) {
 
-    ASSUME_ALIGNED(in_rho);
-    ASSUME_ALIGNED(in_velocity_x);
-    ASSUME_ALIGNED(in_velocity_y);
-    ASSUME_ALIGNED(in_total_energy);
-    ASSUME_ALIGNED(out_rho);
-    ASSUME_ALIGNED(out_velocity_x);
-    ASSUME_ALIGNED(out_velocity_y);
-    ASSUME_ALIGNED(out_total_energy);
-
+    // ASSUME_ALIGNED(in_rho);
+    // ASSUME_ALIGNED(in_velocity_x);
+    // ASSUME_ALIGNED(in_velocity_y);
+    // ASSUME_ALIGNED(in_total_energy);
+    // ASSUME_ALIGNED(out_rho);
+    // ASSUME_ALIGNED(out_velocity_x);
+    // ASSUME_ALIGNED(out_velocity_y);
+    // ASSUME_ALIGNED(out_total_energy);
     for (int ix = 0; ix < nx; ++ix) {
 
       const int cell_ooo = current_cell;
@@ -62,13 +60,13 @@ void CompressibleEulerConservativeToPhysical(int nx,
 
   int current_cell = 0;
 
+#pragma omp parallel for
   for (int iy = 0; iy < ny; ++iy) {
 
-    ASSUME_ALIGNED(out_rho);
-    ASSUME_ALIGNED(out_velocity_x);
-    ASSUME_ALIGNED(out_velocity_y);
-    ASSUME_ALIGNED(out_total_energy);
-
+    // ASSUME_ALIGNED(out_rho);
+    // ASSUME_ALIGNED(out_velocity_x);
+    // ASSUME_ALIGNED(out_velocity_y);
+    // ASSUME_ALIGNED(out_total_energy);
     for (int ix = 0; ix < nx; ++ix) {
 
       const int cell_ooo = current_cell;
@@ -111,28 +109,27 @@ void CompressibleEulerFvUwKappa2dX(int nx,
 
   int current_cell = 0;
 
+#pragma omp parallel for
   for (int iy = 0; iy < ny; ++iy) {
-    
-    ASSUME_ALIGNED(in_rho);
-    ASSUME_ALIGNED(in_velocity_x);
-    ASSUME_ALIGNED(in_velocity_y);
-    ASSUME_ALIGNED(in_total_energy);
-    ASSUME_ALIGNED(out_rho);
-    ASSUME_ALIGNED(out_velocity_x);
-    ASSUME_ALIGNED(out_velocity_y);
-    ASSUME_ALIGNED(out_total_energy);
 
-    current_cell += halo_width;
-
+    //current_cell += halo_width;
+   
+    __assume_aligned(in_rho, 64);
+    __assume_aligned(in_velocity_x, 64);
+    __assume_aligned(in_velocity_y, 64);
+    __assume_aligned(in_total_energy, 64);
+    __assume_aligned(out_rho, 64);
+    __assume_aligned(out_velocity_x, 64);
+    __assume_aligned(out_velocity_y, 64);
+    __assume_aligned(out_total_energy, 64);
     for (int ix = halo_width; ix < nx - halo_width; ++ix) {
 
       //IACA_START
-
-      const int cell_m2o = current_cell - 2;
-      const int cell_m1o = current_cell - 1;
-      const int cell_ooo = current_cell;
-      const int cell_p1o = current_cell + 1;
-      const int cell_p2o = current_cell + 2;
+      const int cell_m2o = (nx * iy) + ix - 2;
+      const int cell_m1o = (nx * iy) + ix - 1;
+      const int cell_ooo = (nx * iy) + ix;
+      const int cell_p1o = (nx * iy) + ix + 1;
+      const int cell_p2o = (nx * iy) + ix + 2;
 
 #include "compressible_euler_2d_data_load.h"
 #include "compressible_euler_2d_computation.h"
@@ -142,7 +139,7 @@ void CompressibleEulerFvUwKappa2dX(int nx,
       out_velocity_y[cell_ooo] += out_velocity_y_ooo;
       out_total_energy[cell_ooo] += out_total_energy_ooo;
 
-      ++current_cell;
+      //++current_cell;
 
     }
     //IACA_END
@@ -179,8 +176,7 @@ void CompressibleEulerFvUwKappa2dY(int nx,
 
   const RealType half = 0.5;
 
-  int current_cell = halo_width * nx;
-
+  #pragma omp parallel for
   for (int iy = halo_width; iy < ny - halo_width; ++iy) {
 
     ASSUME_ALIGNED(in_rho);
@@ -191,20 +187,19 @@ void CompressibleEulerFvUwKappa2dY(int nx,
     ASSUME_ALIGNED(out_velocity_x);
     ASSUME_ALIGNED(out_velocity_y);
     ASSUME_ALIGNED(out_total_energy);
-
     for (int ix = 0; ix < nx; ++ix) {
 
-      // const int cell_m2o = (nx * (iy - 2)) + ix;
-      // const int cell_m1o = (nx * (iy - 1)) + ix;
-      // const int cell_ooo = (nx * (iy + 0)) + ix;
-      // const int cell_p1o = (nx * (iy + 1)) + ix;
-      // const int cell_p2o = (nx * (iy + 2)) + ix;
+      const int cell_m2o = (nx * (iy - 2)) + ix;
+      const int cell_m1o = (nx * (iy - 1)) + ix;
+      const int cell_ooo = (nx * (iy + 0)) + ix;
+      const int cell_p1o = (nx * (iy + 1)) + ix;
+      const int cell_p2o = (nx * (iy + 2)) + ix;
 
-      const int cell_m2o = current_cell - (2 * nx);
-      const int cell_m1o = current_cell - nx;
-      const int cell_ooo = current_cell;
-      const int cell_p1o = current_cell + nx;
-      const int cell_p2o = current_cell + (2 * nx);
+      // const int cell_m2o = current_cell - (2 * nx);
+      // const int cell_m1o = current_cell - nx;
+      // const int cell_ooo = current_cell;
+      // const int cell_p1o = current_cell + nx;
+      // const int cell_p2o = current_cell + (2 * nx);
 
 #include "compressible_euler_2d_data_load.h"
 #include "compressible_euler_2d_computation.h"
@@ -214,7 +209,7 @@ void CompressibleEulerFvUwKappa2dY(int nx,
       out_velocity_y[cell_ooo] += out_velocity_y_ooo;
       out_total_energy[cell_ooo] += out_total_energy_ooo;
 
-      ++current_cell;
+      //++current_cell;
 
     }
 
@@ -249,15 +244,18 @@ void CompressibleEulerFvUwKappa2dBoundaryConditionsX(int nx,
   const RealType half = 0.5;
 
   // Wall boundary conditions. xmin
+
+#pragma omp parallel for
   for (int iy = 0; iy < ny; ++iy) {
-    ASSUME_ALIGNED(in_rho);
-    ASSUME_ALIGNED(in_velocity_x);
-    ASSUME_ALIGNED(in_velocity_y);
-    ASSUME_ALIGNED(in_total_energy);
-    ASSUME_ALIGNED(out_rho);
-    ASSUME_ALIGNED(out_velocity_x);
-    ASSUME_ALIGNED(out_velocity_y);
-    ASSUME_ALIGNED(out_total_energy);
+
+    // ASSUME_ALIGNED(in_rho);
+    // ASSUME_ALIGNED(in_velocity_x);
+    // ASSUME_ALIGNED(in_velocity_y);
+    // ASSUME_ALIGNED(in_total_energy);
+    // ASSUME_ALIGNED(out_rho);
+    // ASSUME_ALIGNED(out_velocity_x);
+    // ASSUME_ALIGNED(out_velocity_y);
+    // ASSUME_ALIGNED(out_total_energy);
     for (int ix = 0; ix < halo_width; ++ix) {
 
       const int cell_m2o = (nx * iy) + ix - 2;
@@ -280,15 +278,16 @@ void CompressibleEulerFvUwKappa2dBoundaryConditionsX(int nx,
   }
   
   // Wall boundary conditions. xmax
+#pragma omp parallel for
   for (int iy = 0; iy < ny; ++iy) {
-    ASSUME_ALIGNED(in_rho);
-    ASSUME_ALIGNED(in_velocity_x);
-    ASSUME_ALIGNED(in_velocity_y);
-    ASSUME_ALIGNED(in_total_energy);
-    ASSUME_ALIGNED(out_rho);
-    ASSUME_ALIGNED(out_velocity_x);
-    ASSUME_ALIGNED(out_velocity_y);
-    ASSUME_ALIGNED(out_total_energy);
+    // ASSUME_ALIGNED(in_rho);
+    // ASSUME_ALIGNED(in_velocity_x);
+    // ASSUME_ALIGNED(in_velocity_y);
+    // ASSUME_ALIGNED(in_total_energy);
+    // ASSUME_ALIGNED(out_rho);
+    // ASSUME_ALIGNED(out_velocity_x);
+    // ASSUME_ALIGNED(out_velocity_y);
+    // ASSUME_ALIGNED(out_total_energy);
     for (int ix = nx - halo_width; ix < nx; ++ix) {
 
       const int cell_m2o = (nx * iy) + ix - 2;
@@ -382,15 +381,17 @@ void CompressibleEulerFvUwKappa2dBoundaryConditionsY(int nx,
   const RealType half = 0.5;
 
   // Wall boundary conditions. ymin
+#pragma omp parallel for
   for (int iy = 0; iy < halo_width; ++iy) {
-    ASSUME_ALIGNED(in_rho);
-    ASSUME_ALIGNED(in_velocity_x);
-    ASSUME_ALIGNED(in_velocity_y);
-    ASSUME_ALIGNED(in_total_energy);
-    ASSUME_ALIGNED(out_rho);
-    ASSUME_ALIGNED(out_velocity_x);
-    ASSUME_ALIGNED(out_velocity_y);
-    ASSUME_ALIGNED(out_total_energy);
+
+    // ASSUME_ALIGNED(in_rho);
+    // ASSUME_ALIGNED(in_velocity_x);
+    // ASSUME_ALIGNED(in_velocity_y);
+    // ASSUME_ALIGNED(in_total_energy);
+    // ASSUME_ALIGNED(out_rho);
+    // ASSUME_ALIGNED(out_velocity_x);
+    // ASSUME_ALIGNED(out_velocity_y);
+    // ASSUME_ALIGNED(out_total_energy);
     for (int ix = 0; ix < nx; ++ix) {
 
       const int cell_m2o = (nx * (iy - 2)) + ix;
@@ -413,15 +414,17 @@ void CompressibleEulerFvUwKappa2dBoundaryConditionsY(int nx,
   }
 
   // Wall boundary conditions. ymax
+#pragma omp parallel for
   for (int iy = ny - halo_width; iy < ny; ++iy) {
-    ASSUME_ALIGNED(in_rho);
-    ASSUME_ALIGNED(in_velocity_x);
-    ASSUME_ALIGNED(in_velocity_y);
-    ASSUME_ALIGNED(in_total_energy);
-    ASSUME_ALIGNED(out_rho);
-    ASSUME_ALIGNED(out_velocity_x);
-    ASSUME_ALIGNED(out_velocity_y);
-    ASSUME_ALIGNED(out_total_energy);
+
+    // ASSUME_ALIGNED(in_rho);
+    // ASSUME_ALIGNED(in_velocity_x);
+    // ASSUME_ALIGNED(in_velocity_y);
+    // ASSUME_ALIGNED(in_total_energy);
+    // ASSUME_ALIGNED(out_rho);
+    // ASSUME_ALIGNED(out_velocity_x);
+    // ASSUME_ALIGNED(out_velocity_y);
+    // ASSUME_ALIGNED(out_total_energy);
     for (int ix = 0; ix < nx; ++ix) {
 
       const int cell_m2o = (nx * (iy - 2)) + ix;

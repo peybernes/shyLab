@@ -46,29 +46,29 @@ double WallClock() {
   return t.tv_sec * 1.0e3 + t.tv_usec * 1.0e-3;
 }
 
-// HMPP : creation of the grouplet
-#pragma hmpp <shy> group, target=CUDA
+// // HMPP : creation of the grouplet
+// #pragma hmpp <shy> group, target=CUDA
 
-// HMPP :  maps arguments of different codelet in the same memory space
+// // HMPP :  maps arguments of different codelet in the same memory space
 
-// Mesh values. Does not change after simulation initialization.
-#pragma hmpp <shy> mapbyname face_front_cell_id, face_back_cell_id
-#pragma hmpp <shy> mapbyname normal_x, normal_y
-#pragma hmpp <shy> mapbyname face_volume, cell_volume
-#pragma hmpp <shy> mapbyname cell_signed_face1_id, cell_signed_face2_id, cell_signed_face3_id
+// // Mesh values. Does not change after simulation initialization.
+// #pragma hmpp <shy> mapbyname face_front_cell_id, face_back_cell_id
+// #pragma hmpp <shy> mapbyname normal_x, normal_y
+// #pragma hmpp <shy> mapbyname face_volume, cell_volume
+// #pragma hmpp <shy> mapbyname cell_signed_face1_id, cell_signed_face2_id, cell_signed_face3_id
 
-// Cell values.
-#pragma hmpp <shy> mapbyname in_H, in_U, in_V, in_Z, 
-#pragma hmpp <shy> mapbyname out_H, out_U, out_V
-#pragma hmpp <shy> mapbyname cell_timestep
+// // Cell values.
+// #pragma hmpp <shy> mapbyname in_H, in_U, in_V, in_Z, 
+// #pragma hmpp <shy> mapbyname out_H, out_U, out_V
+// #pragma hmpp <shy> mapbyname cell_timestep
 
-// Boundary face values.
-#pragma hmpp <shy> mapbyname HL_face, HR_face, UL_face, UR_face, VL_face, VR_face, ZL_face, ZR_face
+// // Boundary face values.
+// #pragma hmpp <shy> mapbyname HL_face, HR_face, UL_face, UR_face, VL_face, VR_face, ZL_face, ZR_face
 
-// Face fluxes.
-#pragma hmpp <shy> mapbyname flux_H, flux_HU, flux_HV, flux_bathy_left, flux_bathy_right, face_max_eigenvalue
+// // Face fluxes.
+// #pragma hmpp <shy> mapbyname flux_H, flux_HU, flux_HV, flux_bathy_left, flux_bathy_right, face_max_eigenvalue
 
-#pragma hmpp <shy> facefromcell codelet, args[0-11].io=in, args[12-19].io=out, args[4-7].size={nb_cells}, args[8-11].size={nb_faces}, args[12-19].size={nb_boundary_faces}, args[0-3].const=true
+// #pragma hmpp <shy> facefromcell codelet, args[0-11].io=in, args[12-19].io=out, args[4-7].size={nb_cells}, args[8-11].size={nb_faces}, args[12-19].size={nb_boundary_faces}, args[0-3].const=true
 void InterpolateCellToFace(int id_face_begin,
 			   int id_face_end,
 			   const int* __restrict face_back_cell_id,
@@ -251,8 +251,8 @@ void ComputeTimestep(int nb_cells,
 
   RealType timestep = max_timestep;
 
-#pragma hmppcg parallel, reduce (min:timestep)
-#pragma omp reduce(min:timestep)
+// #pragma hmppcg parallel, reduce (min:timestep)
+//#pragma omp reduce(min:timestep)
   for (int i = 0; i < nb_cells; ++i)
     timestep = fminf(timestep, cell_timestep[i]);
   
@@ -260,7 +260,7 @@ void ComputeTimestep(int nb_cells,
   
 }
 
-#pragma hmpp <shy> cell_residuals codelet, args[0-14].io=in, args[15-18].io=out, args[3-10].size={nb_faces}, args[11-18].size={nb_cells}, args[0-2].const=true
+//#pragma hmpp <shy> cell_residuals codelet, args[0-14].io=in, args[15-18].io=out, args[3-10].size={nb_faces}, args[11-18].size={nb_cells}, args[0-2].const=true
 void CellResiduals(int id_cell_begin, 
 		   int id_cell_end,
 		   int nb_faces, 
@@ -285,7 +285,7 @@ void CellResiduals(int id_cell_begin,
 		   RealType* __restrict out_rho_e,
 		   RealType* __restrict cell_timestep) {
 
-#pragma hmppcg parallel
+// #pragma hmppcg parallel
 #pragma omp parallel for
   for (int i = id_cell_begin; i < id_cell_end; ++i) {
 
@@ -405,7 +405,7 @@ void CellResiduals(int id_cell_begin,
 /// \param[out] out_cells_H Water height at the end of time step.
 /// \param[out] out_cells_U Water x velocity at the end of time step.
 /// \param[out] out_cells_V Water y velocity at the end of time step.
-#pragma hmpp <shy> RK1 codelet, args[6-8].io=inout, args[3-8].size={nb_cells}, args[0-2].const=true
+///#pragma hmpp <shy> RK1 codelet, args[6-8].io=inout, args[3-8].size={nb_cells}, args[0-2].const=true
 void EvolveValuesRK1(int nb_cells,
 		     RealType EPS, 
 		     RealType dt,
@@ -420,7 +420,7 @@ void EvolveValuesRK1(int nb_cells,
 		     RealType* __restrict out_w,
 		     RealType* __restrict out_e) {
 
-#pragma hmppcg grid blocksize "64x1" 
+  //#pragma hmppcg grid blocksize "64x1" 
 #pragma omp parallel for
   for (int i = 0; i < nb_cells; ++i) {
 
@@ -504,10 +504,10 @@ void CopyValues(int nb_cells,
 
 void HMPPAllocate(int nb_boundary_faces, int nb_faces, int nb_cells)
 {
-#pragma hmpp <shy> allocate
+  //#pragma hmpp <shy> allocate
 }
 
 void HMPPRelease()
 {
-#pragma hmpp <shy> release
+  //#pragma hmpp <shy> release
 }

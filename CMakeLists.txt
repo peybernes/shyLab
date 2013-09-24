@@ -18,9 +18,8 @@ message(STATUS "Configuring Shy")
 
 set(LD_LIBRARY_PATH "${LD_LIBRARY_PATH}" "${CMAKE_SOURCE_DIR}/external/muparser/lib " "${CMAKE_SOURCE_DIR}/external/iaca-lin32/lib")
 
-set (CMAKE_C_COMPILER g++)
-set (CMAKE_CXX_COMPILER g++)
-set (CMAKE_CXX_COMPILER g++)
+set (CMAKE_C_COMPILER icpc)
+set (CMAKE_CXX_COMPILER icpc)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 
@@ -29,21 +28,16 @@ set(CMAKE_C_FLAGS "-g -O3 -msse4.2 -ffast-math -fno-tree-vectorize -ftree-vector
 set(CMAKE_CXX_FLAGS "-g -O3 -fopenmp")
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
-IF(${CMAKE_C_COMPILER} MATCHES "icc")
-set(CMAKE_C_FLAGS "-g -O3 -xCORE-AVX2 -fimf-domain-exclusion=15:sqrt,/,sqrtf,/f -vec-report -std=c99")
-set(CMAKE_CXX_FLAGS "-g -O3 -fopenmp")
-ENDIF( ${CMAKE_C_COMPILER} MATCHES "icc" )
-
-IF(${CMAKE_CXX_COMPILER} MATCHES "icc")
-set(CMAKE_CXX_FLAGS "-g -O3 -fopenmp")
-ENDIF( ${CMAKE_CXX_COMPILER} MATCHES "icc" )
-
 IF(${CMAKE_C_COMPILER} MATCHES "icpc")
-set(CMAKE_C_FLAGS "-g -O3 -xCORE-AVX2 -fimf-domain-exclusion=15:sqrt,/,sqrtf,/f -vec-report -std=c99")
+#set(CMAKE_C_FLAGS "-g -O3 -xsse4.2 -fp-model fast=2 -no-prec-div -no-prec-sqrt -fimf-domain-exclusion=15 -vec-report")
+#set(CMAKE_C_FLAGS "-O3 -xCORE-AVX2 -vec-report2")
+set(CMAKE_C_FLAGS "-O3 -xAVX -fimf-domain-exclusion=15 -vec-report2 -openmp")
 ENDIF( ${CMAKE_C_COMPILER} MATCHES "icpc" )
 
 IF(${CMAKE_CXX_COMPILER} MATCHES "icpc")
-set(CMAKE_CXX_FLAGS "-g -O3 -fopenmp")
+#set(CMAKE_CXX_FLAGS "-g -xsse4.2 -O3")
+#set(CMAKE_CXX_FLAGS "-O3 -xCORE-AVX2 -vec-report2")
+set(CMAKE_CXX_FLAGS "-O3 -xAVX -openmp")
 ENDIF( ${CMAKE_CXX_COMPILER} MATCHES "icpc" )
 
 
@@ -55,7 +49,7 @@ ENDIF( ${CMAKE_CXX_COMPILER} MATCHES "icpc" )
 #  ADD_DEFINITIONS("-DLOW_ENDIAN")
 # ENDIF (WORDS_BIGENDIAN)
 
-ADD_DEFINITIONS(" -DRealType=float -I${CMAKE_SOURCE_DIR}/external/boost -I${CMAKE_SOURCE_DIR}/external/iaca-lin32/include")
+ADD_DEFINITIONS(" -DRealType=double -I${CMAKE_SOURCE_DIR}/external/boost -I${CMAKE_SOURCE_DIR}/external/iaca-lin32/include")
 
 add_executable(
     shy

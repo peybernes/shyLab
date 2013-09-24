@@ -12,8 +12,8 @@
   </Timetable>
 
   <Grid>
-    <nx>100</nx>
-    <ny>100</ny>
+    <nx>300</nx>
+    <ny>300</ny>
     <xmin>0.0</xmin>
     <xmax>1.0</xmax>
     <ymin>0.0</ymin>
