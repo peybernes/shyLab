@@ -5,7 +5,8 @@
 <head>
   <link rel="stylesheet" type="text/css" href="style/formate.css"/>
   <meta name="author" content="Ingo Berg"/>
-  <!-- $META -->	
+
+  <!-- $META -->
   <meta name="keywords" content="muparser, related links, related"/>
   <meta name="description" content="Software using muparser"/>
   <title>Software using muparser</title>
@@ -34,7 +35,7 @@
       <div class="header">
         muParser - a fast math parser library
         <br/>
-        <div style="font-size:14pt;">Version 1.32</div>
+        <div style="font-size:10pt;">Version 2.1.0</div>
       </div>
 
       <div style="position:absolute; width:250px; height:100px; top:20px; text-align:center">
@@ -49,12 +50,12 @@
 
       <div style="position:absolute; width:100px; right:110px; text-align:center; line-height: 1em;">
         <a class="white" 
-           href="http://www.beltoforion.de"  
+           href="http://beltoforion.de"  
            onmouseover="ChangeButtonImage(1,imgHome)" 
            onmouseout="ChangeButtonImage(1,imgHomeDark)">
           <img src="images/home_dark.png" border="0" height="40" alt="My home page"/>
           <br/>
-          <span class="tiny_text">My home<br/>page</span>
+          <span class="tiny_text dark_text">My home<br/>page</span>
         </a>
      </div>
 
@@ -65,21 +66,9 @@
           onmouseout="ChangeButtonImage(2,imgApiDark)">
          <img src="images/api_dark.png" border="0" alt="class documentation" height="40"/>
          <br/>
-         <span class="tiny_text">muParser<br/>API-doc</span>
+         <span class="tiny_text dark_text">muParser<br/>API-doc</span>
        </a>
     </div>
-  <!--
-    <div  style="position:absolute; width:100px; right:10px; text-align:center; line-height: 1em;">
-      <a class="white" 
-         href="http://sourceforge.net/project/showfiles.php?group_id=137191"
-         onmouseover="ChangeButtonImage(3,imgDown)" 
-         onmouseout="ChangeButtonImage(3,imgDownDark)">
-        <img src="images/download_dark.png" height="40" border="0" alt="muParser download"/>
-        <br/>
-        <span class="tiny_text">muParser<br/>Download</span>
-      </a>
-    </div>
--->
   </div> <!-- class="gradient" -->
 
     <!-- Tabelle mit Hauptinhalt der Seite -->
@@ -90,6 +79,7 @@
             <h3 class="navi_heading navi_info">Introduction</h3>
             <div class="sidebarlink">
                 <a href="index.html">About the parser</a><br/>
+                <a href="mup_intro.html#idRelNote">Release notes</a><br/>
                 <a href="http://sourceforge.net/news/?group_id=137191">News</a><br/>
                 <a href="mup_links.html">Software using muParser</a><br/>
                 <a href="mup_licence.html">Licence</a><br/>
@@ -101,6 +91,7 @@
               <a href="mup_features.html#idFeatureOverview">Overview</a><br/>
               <a href="mup_features.html#idDef2">Built in functions</a><br/>
               <a href="mup_features.html#idDef3">Built in binary operators</a><br/>
+              <a href="mup_features.html#idDef4">Other operators</a><br/>
             </div>
 
             <h3 class="navi_heading navi_build">Build instructions</h3>
@@ -109,23 +100,31 @@
               <a href="mup_usage.html#idInstLinux">Building on BSD/Linux</a><br/>
               <a href="mup_usage.html#idInstMisc">Misc build instructions</a><br/>
               <a href="mup_usage.html#idInstInc">Including the files</a><br/>
-              <a href="mup_usage.html#idInstInc">Where to ask for help</a><br/>
+              <a href="mup_usage.html#idCompilerSwitches">Compiler switches</a><br/>
+              <a href="mup_usage.html#idHelp">Where to ask for help</a><br/>
             </div>
 
             <h3 class="navi_heading navi_list">Math parser interface</h3>
             <div class="sidebarlink">
               <a href="mup_interface.html#idInit">Parser (de)initialization</a><br/>
               <a href="mup_interface.html#idEval">Evaluating an expression</a><br/>
+              &nbsp;&nbsp;&nbsp;<a href="mup_interface.html#idEvalSimple">Single return value</a><br/>
+              &nbsp;&nbsp;&nbsp;<a href="mup_interface.html#idEvalMulti">Multiple return values</a><br/>
+              &nbsp;&nbsp;&nbsp;<a href="mup_interface.html#idEvalBulk">Bulk mode</a><br/>
+
               <a href="mup_interface.html#idSetExpr">Setting the expression</a><br/>
               <a href="mup_interface.html#idDefCharset">Defining identifier charsets</a><br/>
               <a href="mup_interface.html#idDefVar">Defining parser variables</a><br/>
               <a href="mup_interface.html#idDefVarEx">Explicit variable definition</a><br/>
               <a href="mup_interface.html#idDefVarIm">Implicit variable definition</a><br/>
               <a href="mup_interface.html#idDefConst">Defining constants</a><br/>
-              <a href="mup_interface.html#idDefFun">Defining functions</a><br/>
-              <a href="mup_interface.html#idDefOprt">Defining operators</a><br/>
-              <a href="mup_interface.html#idUnOp">Unary operators</a><br/>
-              <a href="mup_interface.html#idBinOp">Binary operators</a><br/>
+
+              <a href="mup_interface_oprt.html#idAddFunOp">Adding functionand operators</a><br/>
+              &nbsp;&nbsp;&nbsp;<a href="mup_interface_oprt.html#idDefFun">Defining functions</a><br/>
+              &nbsp;&nbsp;&nbsp;<a href="mup_interface_oprt.html#idDefOprt">Defining operators</a><br/>
+              &nbsp;&nbsp;&nbsp;<a href="mup_interface_oprt.html#idUnOp">Unary operators</a><br/>
+              &nbsp;&nbsp;&nbsp;<a href="mup_interface_oprt.html#idBinOp">Binary operators</a><br/>
+
               <a href="mup_interface.html#idQueryVar">Querying variables</a><br/>
               <a href="mup_interface.html#idQueryConst">Querying constants</a><br/>
               <a href="mup_interface.html#idDefConst2">Value recognition callbacks</a><br/>
@@ -137,7 +136,6 @@
 
             <h3 class="navi_heading navi_question">Current version</h3>
             <div class="sidebarlink">
-              <a href="mup_version.html#idRelNote">Release notes</a><br/>
               <a href="mup_version.html#idBench">Benchmarks</a><br/>
             </div>
 
@@ -177,12 +175,13 @@
   </colgroup>
 
   <tr>
-    <td><img src="images/thumb_geodes.jpg" border="0" width="120" alt="Geodes thumbnail"/></td>
-    <td align="center"><a href="http://geodes.sourceforge.net/" target="_top">Geodes</a></td>
-    <td>Geodes is a new dynamic geometry software for Mac OS X. The goal of this application is to make geometry become easy and funny.<br/>
-        (Platform:  Mac OSX)</td>
+    <td><img src="images/thumb_gct.jpg" border="0" width="120" alt="Geodes thumbnail"/></td>
+    <td align="center"><a href="http://code.google.com/intl/de/apis/chart/" target="_top">Google chart tools</a></td>
+    <td>The Google chart tools seem to be using muParser for the postprocessing of chart input data. I took this information 
+        from their documentation so i don't know the details. I guess its running at their servers to process data submitted 
+        by user JavaScripts.<br/>
+        (Platform:  Any JavaScript capable browser)</td>
   </tr>
-
   <tr>
     <td><img src="images/thumb_kst.jpg" width="120" border="0" alt="kst thumbnail"/></td>
     <td align="center"><a href="http://extragear.kde.org/apps/kst/" target="_top">kst</a></td>
@@ -243,8 +242,7 @@
             <hr/>
             <table border="0" style="width:100%">
             <tr>
-              <td>&copy; 2005-2010 <a href="http://beltoforion.de">Ingo Berg</a> | 
-                  <a href="http://beltoforion.de/privacy_policy/privacy_policy_en.html">Privacy policy</a></td>
+              <td>&copy; 2005-2011 Ingo Berg</td>
               <td style="text-align:right; padding-right: 3em;">
                 <a href="#top">^ TOP</a>
               </td>
@@ -258,7 +256,7 @@
       </tbody>
     </table>
 
-<!--
+
     <script type="text/javascript">
     var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
     document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
@@ -271,6 +269,6 @@
     } 
     catch(err) {}
     </script>
--->
+
 </body>
 </html>

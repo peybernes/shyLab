@@ -37,12 +37,27 @@ void InitVariable::Execute() {
 
   if (!m_expression.empty()) {
 
+    std::cerr << "Initialising variable " << m_var_name 
+	      << " with mathematical expression: \""
+	      << m_expression << "\"\n";
+
     // Register the expression with the simulation math. parser.
     m_sim_ptr->math_parser.SetExpr(m_expression);
     
     const VariableSupport support = m_variable_entry.support();
     
+    // "x", "y" and "z" variables have different meaning depending if
+    // we consider a cell, facet or vertice variable. So we need to
+    // reinitialize it.
+    m_sim_ptr->math_parser.RemoveVar("x");
+    m_sim_ptr->math_parser.RemoveVar("y");
+    m_sim_ptr->math_parser.RemoveVar("z");
+
     if (support == CELL) {
+
+      m_sim_ptr->math_parser.DefineVar("x", &(m_sim_ptr->math_parser.m_local_variables["cell_centers_x"]));
+      m_sim_ptr->math_parser.DefineVar("y", &(m_sim_ptr->math_parser.m_local_variables["cell_centers_y"]));
+      m_sim_ptr->math_parser.DefineVar("z", &(m_sim_ptr->math_parser.m_local_variables["cell_centers_z"]));
 
       // Evaluate the expression for each cell.
       for (int i = 0; i < m_sim_ptr->cell_variables.nb_elements(); ++i) {
@@ -54,6 +69,10 @@ void InitVariable::Execute() {
 
     } else if (support == VERTICE) {
 
+      m_sim_ptr->math_parser.DefineVar("x", &(m_sim_ptr->math_parser.m_local_variables["vertices_x"]));
+      m_sim_ptr->math_parser.DefineVar("y", &(m_sim_ptr->math_parser.m_local_variables["vertices_y"]));
+      m_sim_ptr->math_parser.DefineVar("z", &(m_sim_ptr->math_parser.m_local_variables["vertices_z"]));
+
       // Evaluate the expression for each cell.
       for (int i = 0; i < m_sim_ptr->vertice_variables.nb_elements(); ++i) {
 
@@ -64,6 +83,11 @@ void InitVariable::Execute() {
 
 
     } else if (support == FACET) {
+
+      m_sim_ptr->math_parser.DefineVar("x", &(m_sim_ptr->math_parser.m_local_variables["face_centers_x"]));
+      m_sim_ptr->math_parser.DefineVar("y", &(m_sim_ptr->math_parser.m_local_variables["face_centers_y"]));
+      m_sim_ptr->math_parser.DefineVar("z", &(m_sim_ptr->math_parser.m_local_variables["face_centers_z"]));
+
       // Evaluate the expression for each cell.
       for (int i = 0; i < m_sim_ptr->face_variables.nb_elements(); ++i) {
 

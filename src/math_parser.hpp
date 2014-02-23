@@ -25,8 +25,8 @@ public:
   void ListExpressions(std::ostream&);
   void RegisterVariables();
   std::map<std::string, mu::value_type> const& local_variables() const;
-private:
   std::map<std::string, mu::value_type> m_local_variables;
+private:
 };
 
 #endif // MATH_PARSER_HPP

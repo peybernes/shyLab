@@ -1,6 +1,18 @@
 These are basic instructions for recreating the project files:
 
-Clearing olf project and makefiles:
+Changing the version number:
+----------------------------
+build/autoconf/configure.ac
+Line 9:	
+AC_INIT ....
+
+Change SO version
+-----------------
+muparser.bkl / tag <so_version>
+
+Updating the make- and projectfiles:
+------------------------------------
+Clearing old project and makefiles:
 bakefile_gen -c
 
 Remaking Projects and Makefiles:

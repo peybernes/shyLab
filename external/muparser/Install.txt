@@ -1,13 +1,21 @@
-
-                __________                                      
-   _____   __ __\______   \_____  _______  ______  ____ _______ 
-  /     \ |  |  \|     ___/\__  \ \_  __ \/  ___/_/ __ \\_  __ \
- |  Y Y  \|  |  /|    |     / __ \_|  | \/\___ \ \  ___/ |  | \/
- |__|_|  /|____/ |____|    (____  /|__|  /____  > \___  >|__|   
-       \/                       \/            \/      \/        
-
- Mathematical expressions parser library 
- Copyright (C) 2010 Ingo Berg (muparser{at}gmx.de)
+#######################################################################
+#                                                                     #
+#                                                                     #
+#                 __________                                          #
+#    _____   __ __\______   \_____  _______  ______  ____ _______     #
+#   /     \ |  |  \|     ___/\__  \ \_  __ \/  ___/_/ __ \\_  __ \    #
+#  |  Y Y  \|  |  /|    |     / __ \_|  | \/\___ \ \  ___/ |  | \/    #
+#  |__|_|  /|____/ |____|    (____  /|__|  /____  > \___  >|__|       #
+#        \/                       \/            \/      \/            #
+#					  Fast math parser Library    #
+#                                                                     #
+#  Copyright (C) 2012 Ingo Berg                                       #
+#                                                                     #
+#  Web:     muparser.beltoforion.de                                   #
+#  e-mail:  muparser@beltoforion.de                                   #
+#                                                                     #
+#                                                                     #
+#######################################################################
 
 
 
@@ -26,7 +34,6 @@
 
  muParser supports various win32 command-line compilers:
  -> mingw
- -> borland
  -> watcom
  -> microsoft CL
  and provides also the project files for MSVC6 IDE.

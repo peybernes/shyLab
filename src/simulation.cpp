@@ -184,7 +184,7 @@ void Simulation::Load(const std::string &filename) {
     // Shared pointer which will hold the current event.
 
     if (event_name == "InitVariable") {
-
+      
       InitVariable* iv = new InitVariable(this, event_timetable);
       iv->Load(pt_event);
 

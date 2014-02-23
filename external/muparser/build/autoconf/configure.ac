@@ -1,12 +1,12 @@
 # ======================================================================================
 # Author: Francesco Montorsi
-# RCS-ID: $Id: configure.ac 269 2010-01-18 18:30:28Z ibg $
+# RCS-ID: $Id: configure.ac 634 2012-12-22 10:34:32Z ibg $
 # ======================================================================================
 
 
 # NOTE:
 #  the version of the project must be updated also in docs/Doxyfile !
-AC_INIT([muParser], [1.32], [frm@users.sourceforge.net])
+AC_INIT([muParser], [2.2.3], [muparser@beltoforion.de])
 
 AC_PREREQ([2.57])
 AC_CONFIG_AUX_DIR([build/autoconf])
@@ -25,11 +25,13 @@ dnl (and sets the AC_CANONICAL_BUILD, AC_CANONICAL_HOST and
 dnl AC_CANONICAL_TARGET variables)
 AC_CANONICAL_SYSTEM
 
-dnl we set these vars to avoid that the AC_PROG_C* macros add the "-g -O2" flags;
-dnl we will add them later, if needed
-CFLAGS=
-CXXFLAGS=
-CPPFLAGS=
+# We want to inhibit AC_PROG_C* macros adding the default "-g -O2" flags.
+# To do so, make sure that the variables are not unset - it is ok if they are
+# empty. However, their value MUST be retained, since one may have
+# called ./configure CFLAGS=-foobar.
+CFLAGS="$CFLAGS"
+CPPFLAGS="$CPPFLAGS"
+CXXFLAGS="$CXXFLAGS"
 
 dnl Checks for basic programs used to compile/install.
 AC_PROG_AWK

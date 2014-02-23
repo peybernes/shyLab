@@ -137,9 +137,6 @@ void StructuredGrid::ComputeGeometricQuantities(VariableStore* cell_variables,
 						VariableStore* face_variables,
 						VariableStore* vertice_variables) {
 
-  // assert(nb_cells() == cell_variables->nb_elements());
-  // assert(nb_vertices() == vertice_variables->nb_elements());
-
   RealType* vertices_x = (*vertice_variables)(VERTICES_X);
   RealType* vertices_y = (*vertice_variables)(VERTICES_Y);
   RealType* vertices_z = (*vertice_variables)(VERTICES_Z);
@@ -154,6 +151,17 @@ void StructuredGrid::ComputeGeometricQuantities(VariableStore* cell_variables,
   const int NZ = nz();
   
   if (m_dimension == 2) {
+
+    for (int j = 0; j < NY + 1; ++j) {
+      for (int i = 0; i < NX + 1; ++i) {
+
+	const int local_id = (NX * j) + i;
+
+	vertices_x[local_id] = m_x_coordinates[i];
+	vertices_y[local_id] = m_y_coordinates[j];
+
+      }
+    }    
 
     for (int j = 0; j < NY; ++j) {
       for (int i = 0; i < NX; ++i) {
@@ -171,6 +179,20 @@ void StructuredGrid::ComputeGeometricQuantities(VariableStore* cell_variables,
     }
       
   } else if (m_dimension == 3) {
+
+    for (int k = 0; k < NZ + 1; ++k) {
+      for (int j = 0; j < NY + 1; ++j) {
+	for (int i = 0; i < NX + 1; ++i) {
+
+	  const int local_id = (NX * j) + i;
+	  
+	  vertices_x[local_id] = m_x_coordinates[i];
+	  vertices_y[local_id] = m_y_coordinates[j];
+	  vertices_y[local_id] = m_z_coordinates[k];
+
+	}
+      }    
+    }
     
     for (int k = 0; k < NZ; ++k) {
       for (int j = 0; j < NY; ++j) {

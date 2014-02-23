@@ -102,6 +102,9 @@ void MathParser::RegisterVariables() {
     DefineVar(var.first, &(m_local_variables[var.first]));
 
   }
+
+  // Specific (abbreviated) names
+
 }
 
 
@@ -159,7 +162,7 @@ void MathParser::UpdateReservedVariables(Simulation* sim,
     const VariableEntry variable_entry = iter->second;
 
     if (variable_entry.support() == CELL) {
-
+      
       m_local_variables[variable_name] = 
 	sim->cell_variables(variable_entry.id())[i];
 

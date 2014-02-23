@@ -1,5 +1,21 @@
 /* Style Sheet Definition */
 
+/* Syntax highlighting */
+.code_cmt             { color: #008000; font-style: italic; } /* comment lines */
+.code_kw              { color: Blue; }                        /* keyword */
+.code_kw_lib          { color: #117799; }
+.code_pp            	{ color: Navy; }                        /* Preprocessor directives */
+.code_str             { color: Magenta;}                      /* literal strings */
+.code_digit				    { color: Navy; }                        /* digits */
+.code_fail          	{ color: #ee0000; }
+.code_SummaryComment	{ color: #808080; }
+
+.code_literal			    { color: Navy; }
+.code_pagedirective		{ background-color:yellow; }
+.code_attribute       { color: red;	 }
+.code_tag			        { color: #800000; }
+.code_leadattribute		{ color: #800000; }
+
 body {
     background-color: #ffffff;
     margin-top:0px;
@@ -22,8 +38,9 @@ div.header
   background-repeat: no-repeat;
   background-position: top center;
   text-align: center;
-  font-family: "Times New Roman",vserif;
-  font-size: 25pt;
+/*  font-family: "Times New Roman",vserif;*/
+  font-family:Helvetica,Arial,sans-serif;
+  font-size: 160%;
 }
 
 div.gradient
@@ -42,9 +59,15 @@ div.sidebarlink
   background-color:#f4f4fF;
   text-align: left;
   line-height: 1.5em;
+  background-image:url("../images/back_idx.png"); 
+  background-repeat: no-repeat;
+  background-position: bottom right;
 }
 
 .tiny_text { font-size: 80%;   line-height: 0.8em;}
+
+/*.dark_text { color:#F4F4FF; }*/
+.dark_text { color:black; }
 
 /* Links */
 a         { text-decoration: none; }
@@ -70,9 +93,9 @@ td.Info { background-color: #ffffff;}
 
 /* Für <h> tags im Navigationsbereich */
 .navi_heading { text-align:left; 
-		padding-left:50px; 
+                padding-left:50px; 
                 line-height:30px;
-                color: #000000;}
+                /*color: #000000;*/ }
 
 .navi_info { background-image:url("../images/info.png");
              background-repeat: no-repeat;
@@ -120,12 +143,16 @@ h2
   color: #0099cc;
 }
 
+hr
+{
+  border-bottom: 1px solid #AAA;
+}
+
 h3
 {
   font-family: Arial, sans-serif;
   font-size: 14pt;
   font-weight: bold;
-  border-bottom: 1px solid #AAA;
   color: #0099cc;
 }
 

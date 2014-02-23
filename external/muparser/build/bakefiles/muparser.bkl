@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 
-<!-- RCS-ID: $Id: muparser.bkl 247 2010-01-17 20:29:05Z ibg $ -->
+<!-- RCS-ID: $Id: muparser.bkl 635 2012-12-22 10:58:11Z ibg $ -->
 
 <makefile>
 
@@ -72,8 +72,8 @@
         <dllname>muparser$(DEBUG_BUILD_POSTFIX)</dllname>
         <libname>muparser$(DEBUG_BUILD_POSTFIX)</libname>
 
-        <version>1.0</version>
-        <so_version>0.0.0</so_version>
+        <version>2.2</version>
+        <so_version>2.2.3</so_version>
         <mac_version>1</mac_version>        <!-- must be > 0 -->
     </dll>
 

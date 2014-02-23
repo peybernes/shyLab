@@ -14,26 +14,26 @@ Sometimes it is necessary to change decimal separator, argument separator or tho
 to match a certain locale. The following functions can be used for this purpose:
 </p>
 
-<h3>[DLL interface]</h3>
+<h4>[DLL interface]</h4>
 <pre>
-// german localization
-mupSetArgSep(hParser, ';');
-mupSetDecSep(hParser, ',');
-mupSetThousandsSep(hParser, '.');
+<span class="code_cmt">// german localization</span>
+<span class="code_kw_lib">mupSetArgSep</span>(hParser, ';');
+<span class="code_kw_lib">mupSetDecSep</span>(hParser, ',');
+<span class="code_kw_lib">mupSetThousandsSep</span>(hParser, '.');
 
-// reset to defaults
-mupResetLocale();
+<span class="code_cmt">// reset to defaults</span>
+<span class="code_kw_lib">mupResetLocale();</span>
 </pre>
 <small>See also: <i>example2/example2.c</i>.</small>
 
-<h3>[Parser class interface]</h3>
+<h4>[Parser class interface]</h4>
 <pre>
-// german localization
-parser.SetArgSep(';');
-parser.SetDecSep(',');
-parser.SetThousandsSep('.');
+<span class="code_cmt">// german localization</span>
+<span class="code_kw_lib">parser.SetArgSep</span>(';');
+<span class="code_kw_lib">parser.SetDecSep</span>(',');
+<span class="code_kw_lib">parser.SetThousandsSep</span>('.');
 
-// reset to defaults
-parser.ResetLocale();
+<span class="code_cmt">// reset to defaults</span>
+<span class="code_kw_lib">parser.ResetLocale();</span>
 </pre>
 <small>See also: <i>example1/example1.cpp</i>.</small>

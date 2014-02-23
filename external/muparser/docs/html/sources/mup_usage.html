@@ -23,7 +23,7 @@ In order to compile muParser from makefiles, open a command prompt then move to 
 type:
 
 <ul>
-  <li>mingw32-make -fmakefile.gcc      for mingw</li>
+  <li>mingw32-make -fmakefile.mingw    for mingw</li>
   <li>nmake -fmakefile.vc              for msvc</li>
   <li>make -fmakefile.bcc              for borland</li>
   <li>wmake -fmakefile.wat             for watcom</li>
@@ -134,7 +134,50 @@ using namespace mu;
 
 to your files or reference all classes with their complete name.
 
-<h2>Where to ask for help</h2>
+<h2><a id="idCompilerSwitches"></a>Compiler switches</h2>
+If you use muParser by compiling your own version or including the source code directly you can use 
+a set of preprocessor definitions in order to customize its behaviour. The following definitions 
+are located in the file <b>muParserDef.h</b>: 
+
+<pre>
+<span class="code_pp">#define MUP_BASETYPE double</span>
+</pre>
+
+The macro <b>MUP_BASETYPE</b> defines the underlying datatype used by muParser. This can be any 
+floating point value type (<code>float</code>,<code>double</code> or <code>long double</code>). 
+The macro defaults to <code>double</code>. Modify this value if you need higher precision or want 
+to use muParser seemless with client code that is using float as its data type.
+
+<pre>
+<span class="code_pp">#define MUP_MATH_EXCEPTIONS</span>
+</pre>
+
+When this option is set an exception is generated in case of a division by zero. By default this
+option is not set and division by zero is silently signalled with +/-inf.
+
+<a id="idCompilerSwitches_openMP"></a>
+<pre>
+<span class="code_pp">#define MUP_USE_OPENMP</span>
+</pre>
+If this option is set OpenMP is used for parallelization of the calculations performed in the bulk
+mode. By default this option is not set. According to my observations OpenMP does not bring any
+benefit when used with fully optimized code as produced by C++/VS2008 under Windows. It does however
+bring a significant performance increase when using the muParser dll from C#. I don't really have a good 
+explanation for this but my best guess is that C# has a significant overhead when muParser is using 
+callback functions implemented as C# delegates. OpenMP can spread this overhead amongst multiple 
+cores whilst it can't improve the C++ code since it is already highly optimized and the execution
+speed is finally limited by the memory bandwidth.
+
+<pre>
+<span class="code_pp">#define MUP_STRING_TYPE std::wstring</span>
+</pre>
+
+This definition determines the string type used by muParser. This can either be 
+<code>std::string</code> or <code>std::wstring</code>. This definition shouldn't be set directly. 
+It is defined to <code>std::wstring</code> if there is a preprocessor macro <code>_UNICODE</code> 
+present. (This definition is set by VS2008 accoring to the project settings.)
+
+<h2><a id="idHelp"></a>Where to ask for help</h2>
 
 If you find problems with either compilation, installation or usage
 of muParser, then you can ask in the muParser forum at:<br/>

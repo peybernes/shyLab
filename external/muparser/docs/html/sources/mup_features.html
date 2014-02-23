@@ -34,9 +34,11 @@ implementation. Here is the (incomplete) list of features:
       <li>You need only a <a href="mup_version.html#idExample">few lines of code</a> to evaluate en expression</li>
     </ul> 
   </li>
-  <li><b>Extremely fast</b>
+  <li><b>Optimized for speed</b>
     <ul>
-      <li><a href="mup_version.html#idBench">faster than similar commercial parsers</a></li>
+      <li><a href="mup_version.html#idBench">High parsing performance</a></li>
+      <li>if-then-else operator with <a href="http://en.wikipedia.org/wiki/Lazy_evaluation">lazy evaluation</a></li>
+      <li>Compute multiple comma separated subexpressions in a single evaluation. (i.e. "sin(x), x+y, x*x")</li>
     </ul> 
   </li>
 
@@ -80,8 +82,8 @@ implementation. Here is the (incomplete) list of features:
 
   <li><b>Default implementaion with many features</b> 
     <ul>
-      <li>26 <a href="#idDef1">predefined functions</a>.</li>
-      <li>15 <a href="#idDef2">predefined operators</a>.</li>
+      <li>25 <a href="#idDef1">predefined functions</a>.</li>
+      <li>14 <a href="#idDef2">predefined operators</a>.</li>
       <li>Supports numerical differentiation with respect to a given variable.</li>
       <li>Assignement operator is supported</li>
     </ul>
@@ -170,7 +172,6 @@ arguments and a brief description.
 <tr><td><code>sign</code></td>  <td align="center">1</td>     <td>sign function -1 if x&lt;0; 1 if x&gt;0</td></tr>
 <tr><td><code>rint</code></td>  <td align="center">1</td>     <td>round to nearest integer</td></tr>
 <tr><td><code>abs</code></td>   <td align="center">1</td>     <td>absolute value</td></tr>
-<tr><td><code>if</code></td>    <td align="center">3</td>     <td>if ... then ... else ...</td></tr>
 <tr><td><code>min</code></td>   <td align="center">var.</td>  <td>min of all arguments</td></tr>
 <tr><td><code>max</code></td>   <td align="center">var.</td>  <td>max of all arguments</td></tr>
 <tr><td><code>sum</code></td>   <td align="center">var.</td>  <td>sum of all arguments</td></tr>
@@ -187,27 +188,42 @@ The following table lists the default binary operators supported by the parser.
 
 <table border="1">
 	<thead>
-	  <tr><td><b>Operator</b></td>     <td><b>Meaning</b></td>             <td><b>Priority</b></td></tr>
+	  <tr><td><b>Operator</b></td>          <td><b>Meaning</b></td>             <td><b>Priority</b></td></tr>
 	</thead>
 
 	<tbody>
-	  <tr><td><code>=</code></td>      <td>assignement*</td>               <td>-1</td></tr>
-	  <tr><td><code>and</code></td>    <td>logical and</td>                <td>1</td></tr>
-	  <tr><td><code>or</code></td>     <td>logical or</td>                 <td>1</td></tr>
-	  <tr><td><code>xor</code></td>    <td>logical xor</td>                <td>1</td></tr>
-	  <tr><td><code>&lt;=</code></td>  <td>less or equal</td>              <td>2</td></tr>
-	  <tr><td><code>&gt;=</code></td>  <td>greater or equal</td>           <td>2</td></tr>
-	  <tr><td><code>!=</code></td>     <td>not equal</td>                  <td>2</td></tr>
-	  <tr><td><code>==</code></td>     <td>equal</td>                      <td>2</td></tr>
-	  <tr><td><code>&gt;</code></td>   <td>greater than</td>               <td>2</td></tr>
-	  <tr><td><code>&lt;</code></td>   <td>less than</td>                  <td>2</td></tr>
-	  <tr><td><code>+</code></td>      <td>addition</td>                   <td>3</td></tr>
-	  <tr><td><code>-</code></td>      <td>subtraction</td>                <td>3</td></tr>
-	  <tr><td><code>*</code></td>      <td>multiplication</td>             <td>4</td></tr>
-	  <tr><td><code>/</code></td>      <td>division</td>                   <td>4</td></tr>
-	  <tr><td><code>^</code></td>      <td>raise x to the power of y</td>  <td>5</td></tr>
+	  <tr><td><code>=</code></td>           <td>assignement</td>                <td>-1</td></tr>
+	  <tr><td><code>&amp;&amp;</code></td>  <td>logical and</td>                <td> 1</td></tr>
+	  <tr><td><code>||</code></td>          <td>logical or</td>                 <td> 2</td></tr>
+	  <tr><td><code>&lt;=</code></td>       <td>less or equal</td>              <td> 4</td></tr>
+	  <tr><td><code>&gt;=</code></td>       <td>greater or equal</td>           <td> 4</td></tr>
+	  <tr><td><code>!=</code></td>          <td>not equal</td>                  <td> 4</td></tr>
+	  <tr><td><code>==</code></td>          <td>equal</td>                      <td> 4</td></tr>
+	  <tr><td><code>&gt;</code></td>        <td>greater than</td>               <td> 4</td></tr>
+	  <tr><td><code>&lt;</code></td>        <td>less than</td>                  <td> 4</td></tr>
+	  <tr><td><code>+</code></td>           <td>addition</td>                   <td> 5</td></tr>
+	  <tr><td><code>-</code></td>           <td>subtraction</td>                <td> 5</td></tr>
+	  <tr><td><code>*</code></td>           <td>multiplication</td>             <td> 6</td></tr>
+	  <tr><td><code>/</code></td>           <td>division</td>                   <td> 6</td></tr>
+	  <tr><td><code>^</code></td>           <td>raise x to the power of y</td>  <td> 7</td></tr>
 	</tbody>
 </table>
 <small>*The assignment operator is special since it changes one of its
        arguments and can only by applied to variables.</small>
+
+<h4><a name="idDef4">Other operators</a></h4>
+<p>
+muParser has built in support for the if then else operator. It uses lazy evaluation in order
+to make sure only the necessary branch of the expression is evaluated.
+</p>
+
+<table border="1">
+	<thead>
+	  <tr><td><b>Operator</b></td>          <td><b>Meaning</b></td>             <td><b>Remarks</b></td></tr>
+	</thead>
+
+	<tbody>
+	  <tr><td><code>?:</code></td>          <td>if then else operator</td>      <td>C++ style syntax</td></tr>
+	</tbody>
+</table>
 

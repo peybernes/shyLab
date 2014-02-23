@@ -74,12 +74,17 @@ AC_DEFUN([AC_BAKEFILE_DEBUGOPT],
         dnl        and thus we must be careful to add it only to CXXFLAGS and not to CFLAGS
         dnl        (remember that CPPFLAGS is reserved for both C and C++ compilers while
         dnl         CFLAGS is intended as flags for C compiler only and CXXFLAGS for C++ only)
-        CXXFLAGS="$CXXFLAGS -g -O0 -Wall -Wundef -Wno-ctor-dtor-privacy"
-        CFLAGS="$CFLAGS -g -O0 -Wall -Wundef"
+        my_CXXFLAGS="$my_CXXFLAGS -g -O0 -Wall -Wundef -Wno-ctor-dtor-privacy"
+        my_CFLAGS="$my_CFLAGS -g -O0 -Wall -Wundef"
     else
-        CXXFLAGS="$CXXFLAGS -O2"
-        CFLAGS="$CFLAGS -O2"
+        my_CXXFLAGS="$my_CXXFLAGS -O2"
+        my_CFLAGS="$my_CFLAGS -O2"
     fi
+    # User-supplied CXXFLAGS must always take precedence.
+    # This still sucks because using `make CFLAGS=-foobar` kills
+    # the project-supplied flags again.
+    CXXFLAGS="$my_CXXFLAGS $CXXFLAGS"
+    CFLAGS="$my_CFLAGS $CFLAGS"
 ])
 
 dnl ---------------------------------------------------------------------------

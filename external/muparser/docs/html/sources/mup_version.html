@@ -16,34 +16,39 @@ a user defined functions named "<code>MyFunc</code>". When using the parser make
 </p>
 
 <pre>
-#include &lt;iostream&gt;
-#include "muParser.h"
+<span class="code_pp">#include &lt;iostream&gt;</span>
+<span class="code_pp">#include "muParser.h"</span>
 
-// Function callback
-double MyFunction(double a_fVal) 
+<span class="code_cmt">// Function callback</span>
+<span class="code_kw">double</span> MySqr(<span class="code_kw">double</span> a_fVal) 
 { 
-  return a_fVal*a_fVal; 
+  <span class="code_kw">return</span> a_fVal*a_fVal; 
 }
 
-// main program
-int main(int argc, char* argv[])
+<span class="code_cmt">// main program</span>
+<span class="code_kw">int</span> main(<span class="code_kw">int</span> argc, <span class="code_kw">char</span>* argv[])
 {
-  using namespace mu;
+  <span class="code_kw">using namespace</span> mu;
 
-  try
+  <span class="code_kw">try</span>
   {
-    double fVal = 1;
-    Parser p;
-    p.DefineVar("a", &amp;fVal); 
-    p.DefineFun("MyFunc", MyFunction); 
-    p.SetExpr("MyFunc(a)*_pi+min(10,a)");
-    std::cout &lt;&lt; p.Eval() &lt;&lt; std::endl;
+    <span class="code_kw">double</span> fVal = <span class="code_digit">1</span>;
+    <span class="code_kw_lib">Parser</span> p;
+    <span class="code_kw_lib">p.DefineVar</span>(<span class="code_str">"a"</span>, &amp;fVal); 
+    <span class="code_kw_lib">p.DefineFun</span>(<span class="code_str">"MySqr"</span>, MySqr); 
+    <span class="code_kw_lib">p.SetExpr</span>(<span class="code_str">"MySqr(a)*_pi+min(10,a)"</span>);
+
+    <span class="code_kw">for</span> (std::size_t a=<span class="code_digit">0</span>; a<100; ++a)
+    {
+      fVal = a;  <span class="code_cmt">// Change value of variable a</span>
+      std::cout &lt;&lt; <span class="code_kw_lib">p.Eval()</span> &lt;&lt; std::endl;
+    }
   }
-  catch (Parser::exception_type &amp;e)
+  <span class="code_kw">catch</span> (<span class="code_kw_lib">Parser::exception_type</span> &amp;e)
   {
-    std::cout &lt;&lt; e.GetMsg() &lt;&lt; std::endl;
+    std::cout &lt;&lt; <span class="code_kw_lib">e.GetMsg()</span> &lt;&lt; std::endl;
   }
-  return 0;
+  <span class="code_kw">return</span> <span class="code_digit">0</span>;
 }
 </pre>
 
@@ -79,139 +84,3 @@ multiple variables and constants. In order to smoothen the curves each point rep
 running average over 10 sample expressions. 
 </p>
 
-
-<!-- 
-//
-//
-//  
-//   History
-//
-//
-//
--->
-
-<hr/>
-<h2><a name="idRelNote"></a>Release Notes</h2>
-
-<h4>Rev 1.32: 30.01.2010</h4>
-This is a service release to fix problems with modern compilers.
-<ul>
-  <li><b>Changes</b>
-    <ul>
-      <li>Added a function for retrieving the Version number of muparser.</li>
-      <li>example3 renamed to example2</li>
-      <li>Project files for bcb and msvc6 removed (include the source directly into your projects)</li>
-      <li>Project files for msvc2003, msvc2005 and msvc2008 added</li>
-    </ul>
-  </li>
-
-  <li><b>Bugfixes</b>
-    <ul>
-      <li>Deprecated feature warnings removed for gcc</li>
-      <li>example1 changed to get rid of memory leaks. Added code for memory leak detection (VisualStudio only)</li>
-      <li>Changes to allow compilation with msvc10 beta2</li>
-      <li>gcc versions >4.0 were not able to run with a customized locale (resulted in std::bad_cast exception)</li>
-    </ul>
-  </li>
-</ul>
-<hr/>
-<h4>Rev 1.30: 09.06.2008</h4>
-This is a service release with minor extensions and bugfixes.
-
-<ul>
-  <li><b>Changes</b>
-    <ul>
-      <li>Epsilon of the numerical differentiation algorithm changed to allow greater accuracy.</li>
-    </ul>
-  </li>
-
-  <li><b>New features</b>
-    <ul>
-      <li>Setting thousands separator and decimal separator is now possible</li>
-    </ul>
-  </li>
-
-  <li><b>Bugfixes</b>
-    <ul>
-      <li>The dll interface did not provide a callback for functions without any arguments.</li>
-    </ul>
-  </li>
-</ul>
-<hr/>
-<h4>Rev 1.28: 02.07.2007</h4>
-
-<ul>
-  <li><b>Library changes</b>
-    <ul>
-      <li>Interface for the dynamic library changed and extended to create an interface using pure C functions only.</li>
-      <li>mupInit() removed</li>
-    </ul>
-  </li>
-
-  <li><b>New features</b>
-    <ul>
-      <li>Functions without parameters added</li>
-    </ul>
-  </li>
-
-  <li><b>Build system</b>
-    <ul>
-      <li>MSVC7 Project files removed in favor of MSVC8.</li>
-    </ul>
-  </li>
-
-  <li><b>Bugfixes</b>
-    <ul>
-      <li>The dynamic library did not build on other systems than linux due to a misplaced
-           preprocessor definition. This is fixed now.</li>
-    </ul>
-  </li>
-
-</ul>
-
-<hr/>
-<h4>Rev 1.2: 14.04.2005</h4>
-First of all the interface has changed so this version is not backwards compatible. 
-After receiving a couple of questions about it, this version features support for user defined binary operators. Consequently the built in operators can now be turned off, thus you can deactivate them and write complete customized parser subclasses that only contain the functionality you want. Other new feature is the introduction of callback functions taking string arguments, implicit generation of 
-variables and the Assignement operator. 
-
-<ul>
-  <li> <b>Functionality</b>
-  <ul>
-    <li><a href="mup_features.html#idDef3">New built in operator</a>: <code>xor</code>; Logical xor.</li>
-    <li>New built in operator: Assignement operator; Defining variables in terms of other 			       variables/constants</li> 
-    <li>New feature: <a href="mup_interface.html#idDefFun">Strings as arguments for callback functions</a></li>
-    <li>New feature: <a href="mup_interface.html#idDefOprt">User defined binary operators</a></li>
-    <li>New feature: <code>ParserInt</code> a class with a sample implementation for
-                     integer numbers.</li> 
-    <li>New feature: <a href="mup_interface.html#idDefConst2">Callbacks to value regognition functions.</a></li> 
-
-    <li>Removed:  all predefined postfix operators have been removed.</li> 
-    <li>New project file:  Now comes with a ready to use windows DLL.</li> 
-    <li>New project file:  Makefile for cygwin now included.</li> 
-    <li>New example:  Example3 shows usage of the DLL.</li> 
-  </ul>
-  </li>
-
-  <li> <b>Interface changes</b>
-  <ul>
-    <li><a href="mup_interface.html#idBinOp">New member function</a>: <code>DefineOprt</code> For 
-                                                    adding user defined binary operators.</li>
-    <li>New member function: <code>EnableBuiltInOprt(bool)</code>  Enables/Disables <a href="mup_features.html#idDef3">
-                             built in binary operators</a>.</li>
-    <li>New member function: <code>AddValIdent(...)</code> to add callbacks for custom value recognition functions.</li>
-    <li>Removed: <code>SetVar()</code>, <code>SetConst()</code>.</li> 
-    <li>Renamed: Most interface functions have been renamed</li>
-    <li>Changed:  The <a href="mup_interface.html#idDefFun">type for multiargument callbacks</a> <code>multfun_type</code> has changed. 
-                  It no longer takes a std::vector as input.</li>
-  </ul>
-  </li>
-  
-  <li> <b>Internal changes</b>
-  <ul>
-     <li>new class <i>muParserTokenReader.h</i> encapsulates the token identification and token assignement.</li>
-     <li>Internal handling of function callbacks unified as a result the performance of the bytecode evaluation 
-         increased.</li>
-  </ul>
-  </li>
-</ul>
