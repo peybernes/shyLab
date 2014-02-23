@@ -18,8 +18,8 @@ message(STATUS "Configuring Shy")
 
 set(LD_LIBRARY_PATH "${LD_LIBRARY_PATH}" "${CMAKE_SOURCE_DIR}/external/muparser/lib " "${CMAKE_SOURCE_DIR}/external/iaca-lin32/lib")
 
-set (CMAKE_C_COMPILER icpc)
-set (CMAKE_CXX_COMPILER icpc)
+set (CMAKE_C_COMPILER g++)
+set (CMAKE_CXX_COMPILER g++)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 

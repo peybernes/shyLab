@@ -5,8 +5,6 @@
 #include <iostream>
 #include <utility>
 
-#include <boost/functional/hash.hpp>
-
 #include "mesh_elements.hpp"
 
 const int num_buckets = 1024;

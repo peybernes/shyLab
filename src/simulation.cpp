@@ -99,11 +99,11 @@ void Simulation::Load(const std::string &filename) {
   ptree pt_file;
 
   try {
-    read_xml(filename, pt_file);
+    read_json(filename, pt_file);
   }
 
   catch (std::exception &e) {
-    std::cout << "Error while reading XML simulation file:\n\n"
+    std::cout << "Error while reading json simulation file:\n\n"
 	      << e.what() << "\n\n";
   }
 
@@ -290,7 +290,7 @@ void Simulation::Save(const std::string &filename) {
   pt_dump.put_child("Simulation", pt_simulation);
 
   // Write simulation in XML format.
-  write_xml(filename, pt_dump);
+  write_json(filename, pt_dump);
 }
 
 void Simulation::Init() {
@@ -458,7 +458,7 @@ void Simulation::Init() {
 
   // Goes from iteration 0 to iteration 1 ; simulation time remains 0;
 
-  this->Save("dump.xml");
+  this->Save("dump.json");
 
 }
 

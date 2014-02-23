@@ -1,0 +1,57 @@
+// -*- js -*- (for emacs users)
+{
+    "Simulation": {
+
+	"Clock": { "time": "0.0",
+		   "iteration": "0" },
+
+	"Timetable": { "iend": "249" },
+	
+	"Grid": { "nx": "100",
+		  "ny": "10",
+		  "xmin": "0.0",
+		  "xmax": "1.0",
+		  "ymin": "0.0",
+		  "ymax": "0.1" },
+
+    	"Events": {
+    	
+	    "InitVariable": { "name": "in_rho",
+    			      "expression": "0.125" }
+			      
+    	}
+    	
+    }
+}
+    // 	"Events": {
+    // 	    "InitVariable": [
+    // 		{
+    // 		    "name": "in_rho",
+    // 		    "expression": "((0.5 >= cell_centers_x) * 1.0) + ((cell_centers_x > 0.5) * 0.125)"
+    // 		},
+    // 		{
+    // 		    "name": "out_rho",
+    // 		    "expression": "((0.5 >= cell_centers_x) * 1.0) + ((cell_centers_x > 0.5) * 0.125)"
+    // 		},
+    // 		{
+    // 		    "name": "in_e",
+    // 		    "expression": "((0.5 >= cell_centers_x) * 2.5) + ((cell_centers_x > 0.5) * 2.0)"
+    // 		},
+    // 		{
+    // 		    "name": "out_e",
+    // 		    "expression": "((0.5 >= cell_centers_x) * 2.5) + ((cell_centers_x > 0.5) * 2.0)"
+    // 		},
+    // 		{
+    // 		    "name": "in_v",
+    // 		    "expression": "0.0"
+    // 		}
+    // 	    ],
+    // 	    "OutputSimulation": {
+    // 		"filename": "result/sim%i",
+    // 		"format": "binary",
+    // 		"Timetable": { "istep": "1" }
+    // 	    }
+    // 	}
+    // }
+//     }
+// }
