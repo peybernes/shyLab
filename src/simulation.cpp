@@ -236,6 +236,18 @@ void Simulation::Load(const std::string &filename) {
 
       event_ptr = boost::shared_ptr<Event>(os);
       events.push_back(event_ptr);
+    } else if (event_name == "OutputCartesianLine") {
+
+      std::string stream_name = pt_event.get<std::string>("filename");
+
+      const std::string direction = pt_event.get<std::string>("direction");
+      const int indice = pt_event.get<int>("indice");
+
+      OutputCartesianLine *os = 
+	new OutputCartesianLine(this, stream_name, event_timetable, direction, indice);
+
+      event_ptr = boost::shared_ptr<Event>(os);
+      events.push_back(event_ptr);
     }
   }
 

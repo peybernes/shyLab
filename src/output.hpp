@@ -9,6 +9,8 @@
 
 enum IoFormatType {ASCII, BINARY};
 
+enum Direction {X, Y, Z};
+
 class Output : public Event {
 public:
   Output(Simulation*, std::string&, const Timetable&);
@@ -62,6 +64,20 @@ private:
   std::string m_name2;
   RealType* var1;
   RealType* var2;
+};
+
+class OutputCartesianLine : public Output {
+public:
+  OutputCartesianLine(Simulation*, 
+		      std::string&,
+		      const Timetable&,
+		      const std::string&,
+		      int id);
+  void Execute();
+  void Save(ptree& pt);
+private:
+  Direction m_direction;
+  int m_indice;
 };
 
 #endif // OUTPUT_HPP

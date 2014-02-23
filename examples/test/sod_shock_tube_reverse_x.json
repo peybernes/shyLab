@@ -17,13 +17,13 @@
     	"Events": {
     	
 	    "InitVariable": { "name": "in_rho",
-    			      "expression": "(x < 0.5) ? 1.0 : 0.125" },
+    			      "expression": "(x > 0.5) ? 1.0 : 0.125" },
 
 	    "InitVariable": { "name": "out_rho",
     			      "expression": "in_rho" },
 
 	    "InitVariable": { "name": "in_e",
-    			      "expression": "(x < 0.5) ? 2.5 : 2.0" },
+    			      "expression": "(x > 0.5) ? 2.5 : 2.0" },
 
 	    "InitVariable": { "name": "out_e",
     			      "expression": "in_e" },

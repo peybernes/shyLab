@@ -7,23 +7,23 @@
 
 	"Timetable": { "iend": "999" },
 	
-	"Grid": { "nx": "200",
-		  "ny": "20",
+	"Grid": { "nx": "20",
+		  "ny": "200",
 		  "xmin": "0.0",
-		  "xmax": "1.0",
+		  "xmax": "0.1",
 		  "ymin": "0.0",
-		  "ymax": "0.1" },
+		  "ymax": "1.0" },
 
     	"Events": {
     	
 	    "InitVariable": { "name": "in_rho",
-    			      "expression": "(x < 0.5) ? 1.0 : 0.125" },
+    			      "expression": "(y > 0.5) ? 1.0 : 0.125" },
 
 	    "InitVariable": { "name": "out_rho",
     			      "expression": "in_rho" },
 
 	    "InitVariable": { "name": "in_e",
-    			      "expression": "(x < 0.5) ? 2.5 : 2.0" },
+    			      "expression": "(y > 0.5) ? 2.5 : 2.0" },
 
 	    "InitVariable": { "name": "out_e",
     			      "expression": "in_e" },
@@ -32,8 +32,8 @@
 	    			  "Timetable": {"istep": "100"}},
 
 	    "OutputCartesianLine": { "filename": "result/profile%i",
-	    			     "direction": "x",
-	    			     "indice": "4",
+	    			     "direction": "y",
+	    			     "indice": "9",
 	    			     "Timetable": {"istep": "200"}}
 
 			      

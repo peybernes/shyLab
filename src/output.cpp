@@ -657,3 +657,149 @@ void OutputNorms::Save(ptree &pt) {
   pt.put("variable1", m_name1);
   pt.put("variable2", m_name2);
 }
+
+ OutputCartesianLine::OutputCartesianLine(Simulation *sim_ptr, 
+					  std::string &stream_name, 
+					  const Timetable &timetable,
+					  const std::string& direction,
+					  int id):
+   Output(sim_ptr, stream_name, timetable), m_indice(id) {
+   
+   const int nx = m_sim_ptr->m_grid.nx();
+   const int ny = m_sim_ptr->m_grid.ny();
+
+   if ((direction == "x") || (direction == "X")) {
+     
+     m_direction = X;
+
+     std::cerr << "m_indice=" << m_indice << "\n";
+
+     if ((m_indice < 0) || (m_indice >= nx)) {
+       
+       std::cerr << "ERROR: in OutputCartesianLine, the number of the line is not between 0 and nx\n";
+       assert(0);
+
+     }
+
+
+   } else if ((direction == "y") || (direction == "Y")) {
+
+     m_direction = Y;
+
+     if ((m_indice < 0) || (m_indice >= ny)) {
+       
+       std::cerr << "ERROR: in OutputCartesianLine, the number of the line is not between 0 and ny\n";
+       assert(0);
+
+     }
+
+
+   } else {
+
+     std::cerr << "ERROR: in OutputCartesianLine, expected \"x\", \"X\", \"y\", \"Y\" for direction field, got " << direction << "\n";
+     assert(0);
+
+   }
+
+ };
+
+void OutputCartesianLine::Execute() {
+
+  std::string filename =  m_stream_name;
+
+  std::stringstream iter_stream;
+
+  iter_stream << std::setfill('0') << std::setw(4) 
+	      << m_sim_ptr->clock.iter();
+  
+  const std::string iter_string = iter_stream.str();
+  
+  const std::string search_string = "\%i";
+
+  std::string::size_type pos = 0;
+  while ((pos = filename.find(search_string, pos)) != std::string::npos) {
+    filename.replace(pos, search_string.size(), iter_string);
+    ++pos;
+  }
+
+  filename += ".txt";
+
+  std::ofstream stream(filename.c_str());
+
+
+  if (!stream.good())
+    std::cerr << "\nWARNING: could not write to file " << m_stream_name.c_str() << "\n";
+  
+  else {
+
+    stream << "# ";
+
+    for (int id_var = 0; id_var < NB_CELL_VALUES; ++id_var) {
+      
+      if (cell_variable_attributes[id_var] & WRITTEN)
+	stream << cell_variable_names[id_var] << " ";
+
+    }
+      
+    stream << "\n\n";
+
+    const int nx = m_sim_ptr->m_grid.nx();
+    const int ny = m_sim_ptr->m_grid.ny();
+
+    if (m_direction == X) {
+
+      for (int i = 0; i < nx; ++i) {
+
+	const int id = (nx * m_indice) + i;
+	
+	for (int id_var = 0; id_var < NB_CELL_VALUES; ++id_var) {
+
+	  if (cell_variable_attributes[id_var] & WRITTEN) {
+	    
+	    stream << m_sim_ptr->cell_variables(id_var)[id] << " ";
+	    
+	  }
+	  
+	}
+	
+	stream << "\n";
+
+      }
+
+    } else if (m_direction == Y) {
+
+      for (int j = 0; j < ny; ++j) {
+
+	const int id = (nx * j) + m_indice;
+
+	for (int id_var = 0; id_var < NB_CELL_VALUES; ++id_var) {
+
+	  if (cell_variable_attributes[id_var] & WRITTEN) {
+
+	    stream << m_sim_ptr->cell_variables(id_var)[id] << " ";
+	    
+	  }
+	
+	}
+
+	stream << "\n";
+
+      }
+
+      
+    } else {
+
+      assert(0);
+
+    }
+
+    stream.close();
+  }
+
+}
+
+void OutputCartesianLine::Save(ptree& pt) {
+
+  //assert(0);
+
+}
