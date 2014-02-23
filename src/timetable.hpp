@@ -18,6 +18,8 @@ public:
   void Load(ptree&);
   int istart();
   int istart() const;
+  int istep();
+  int istep() const;
 private:
   RealType m_start, m_end, m_step;
   int m_istart, m_iend, m_istep;

@@ -5,9 +5,9 @@
 	"Clock": { "time": "0.0",
 		   "iteration": "0" },
 
-	"Timetable": { "iend": "1" },
+	"Timetable": { "iend": "499" },
 	
-	"Grid": { "nx": "100",
+	"Grid": { "nx": "200",
 		  "ny": "10",
 		  "xmin": "0.0",
 		  "xmax": "1.0",
@@ -19,8 +19,17 @@
 	    "InitVariable": { "name": "in_rho",
     			      "expression": "(x < 0.5) ? 1.0 : 0.125" },
 
+	    "InitVariable": { "name": "out_rho",
+    			      "expression": "in_rho" },
+
+	    "InitVariable": { "name": "in_e",
+    			      "expression": "(x < 0.5) ? 2.5 : 2.0" },
+
+	    "InitVariable": { "name": "out_e",
+    			      "expression": "in_e" },
+
 	    "OutputSimulation": { "filename": "result/sim%i",
-	    			  "timetable": {"istep": "10"}}
+	    			  "Timetable": {"istep": "100"}}
 			      
     	}
     	

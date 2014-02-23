@@ -23,8 +23,10 @@ OutputSimulation::OutputSimulation(Simulation *sim_ptr,
 				   const Timetable & timetable):
 
   Output(sim_ptr, stream_name, timetable) {
-
+  
   m_name = "OutputSimulation";
+
+  std::cerr << "OutputSimulation event has istep=" << timetable.istep() << "\n";
 
   if (io_format_string == "binary")
     m_io_format = BINARY;
@@ -39,6 +41,8 @@ void OutputSimulation::Execute() {
   
   int nb_processes = 1;
   int process_rank = 0;
+
+  std::cerr << "Writing simulation results...\n";
 
 #ifdef HAVE_MPI
   MPI_Comm_size(MPI_COMM_WORLD, &nb_processes);

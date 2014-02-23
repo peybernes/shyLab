@@ -583,7 +583,6 @@ void Simulation::Run() {
       clock_gettime(CLOCK_REALTIME, &time2);
       time_compressible_euler_physical_to_conservative_0.push_back(diff(time1, time2));
 
-
       clock_gettime(CLOCK_REALTIME, &time1);
       CompressibleEulerFvUwKappa2dX(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_u, in_v, in_e, 
 				    predicted_rho, predicted_u, predicted_v, predicted_e);

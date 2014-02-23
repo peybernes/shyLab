@@ -75,3 +75,11 @@ int Timetable::istart() {
 int Timetable::istart() const {
   return m_istart;
 }
+
+int Timetable::istep() {
+  return m_istep;
+}
+
+int Timetable::istep() const {
+  return m_istep;
+}
