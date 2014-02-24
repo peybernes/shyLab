@@ -9,6 +9,7 @@ enum {IN_RHO,
       IN_W,
       IN_E,
       IN_P,
+      IN_CELL_MASS,
       PREDICTED_RHO,
       PREDICTED_U,
       PREDICTED_V, 
@@ -20,6 +21,7 @@ enum {IN_RHO,
       OUT_W,
       OUT_E,
       OUT_P,
+      OUT_CELL_MASS,
       OUT_TIMESTEP, 
       CELL_VOLUMES,
       CELL_CENTERS_X,
@@ -28,6 +30,8 @@ enum {IN_RHO,
       RHO_REF,
       U_REF,
       P_REF,
+      DIRECTIONAL_LAGRANGIAN_VOLUME,
+      DIRECTIONAL_LAGRANGIAN_DENSITY,
       NB_CELL_VALUES};
 
 // Default variable attributes. Can be overwritten with the parameter
@@ -39,6 +43,7 @@ static const unsigned int cell_variable_attributes[NB_CELL_VALUES] =
     PROTECTED |  WRITTEN | !COMMUNICATED |  INITIALIZABLE, // IN_W
     PROTECTED |  WRITTEN | !COMMUNICATED |  INITIALIZABLE, // IN_E
     PROTECTED |  WRITTEN | !COMMUNICATED |  INITIALIZABLE, // IN_P
+    PROTECTED |  WRITTEN | !COMMUNICATED |  INITIALIZABLE, // IN_CELL_MASS
     PROTECTED |  WRITTEN | !COMMUNICATED | !INITIALIZABLE, // PREDICTED_RHO
     !PROTECTED |  WRITTEN |  COMMUNICATED | !INITIALIZABLE, // PREDICTED_U
     !PROTECTED |  WRITTEN |  COMMUNICATED | !INITIALIZABLE, // PREDICTED_V
@@ -50,6 +55,7 @@ static const unsigned int cell_variable_attributes[NB_CELL_VALUES] =
     !PROTECTED |  WRITTEN |  COMMUNICATED | !INITIALIZABLE, // OUT_W
     !PROTECTED |  WRITTEN |  COMMUNICATED | !INITIALIZABLE, // OUT_E
     !PROTECTED |  WRITTEN |  COMMUNICATED | !INITIALIZABLE, // OUT_P
+    PROTECTED |  WRITTEN | !COMMUNICATED |  INITIALIZABLE, // OUT_CELL_MASS
     !PROTECTED |  WRITTEN | !COMMUNICATED | !INITIALIZABLE, // OUT_TIMESTEP
     !PROTECTED |  WRITTEN | !COMMUNICATED | !INITIALIZABLE, // CELL_VOLUMES
     !PROTECTED |  WRITTEN | !COMMUNICATED | !INITIALIZABLE, // CELL_CENTERS_X
@@ -57,6 +63,8 @@ static const unsigned int cell_variable_attributes[NB_CELL_VALUES] =
     !PROTECTED |  WRITTEN | !COMMUNICATED | !INITIALIZABLE, // CELL_CENTERS_Z
     !PROTECTED |  WRITTEN | !COMMUNICATED | INITIALIZABLE, // RHO_REF
     !PROTECTED |  WRITTEN | !COMMUNICATED | INITIALIZABLE, // U_REF
+    !PROTECTED |  WRITTEN | !COMMUNICATED | INITIALIZABLE, // P_REF
+    !PROTECTED |  WRITTEN | !COMMUNICATED | INITIALIZABLE, // P_REF    
     !PROTECTED |  WRITTEN | !COMMUNICATED | INITIALIZABLE // P_REF
   };
 
@@ -67,6 +75,7 @@ static const char* cell_variable_names[NB_CELL_VALUES] = {
   "in_w",
   "in_e",
   "in_p",
+  "in_cell_mass",
   "predicted_rho",
   "predicted_u",
   "predicted_v",
@@ -78,6 +87,7 @@ static const char* cell_variable_names[NB_CELL_VALUES] = {
   "out_w",
   "out_e",
   "out_p",
+  "out_cell_mass",
   "local_timestep",
   "cell_volumes",
   "cell_centers_x", 
@@ -85,7 +95,9 @@ static const char* cell_variable_names[NB_CELL_VALUES] = {
   "cell_centers_z",
   "rho_ref",
   "u_ref",
-  "p_ref"
+  "p_ref",
+  "directional_lagrangian_volume",
+  "directional_lagrangian_density"
 };
 
 enum {VELOCITY,
