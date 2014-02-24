@@ -384,7 +384,7 @@ void Simulation::Init() {
   // boundary_face_variables = VariableStore(NB_BOUNDARY_FACE_VALUES, 
   // 					  nb_boundary_faces, m_grid.nx(), m_grid.ny(), padding);
 
-  vertice_variables = VariableStore(NB_VERTICE_VALUES, nb_vertices, m_grid.nx(), m_grid.ny(), padding);
+  vertice_variables = VariableStore(NB_VERTICE_VALUES, nb_vertices, m_grid.nx() + 1, m_grid.ny() + 1, padding);
 
   std::cerr << "Allocation of simulation variables: " 
 	    << simulation_timer.elapsed() << "\n";
@@ -490,13 +490,16 @@ void Simulation::Run() {
   const int nb_faces = m_grid.nb_faces();
   const int nb_boundary_faces = 0;
   const int nb_interior_faces = 0;
+
+
+  const int nx = m_grid.nx();
+  const int ny = m_grid.ny();
+
   
   RealType* cell_volumes = cell_variables(CELL_VOLUMES);
    
   RealType* in_rho = cell_variables(IN_RHO);
   RealType* out_rho = cell_variables(OUT_RHO);
-  RealType* in_u = cell_variables(IN_U);
-  RealType* in_v = cell_variables(IN_V);
   RealType* in_cell_mass = cell_variables(IN_CELL_MASS);
   RealType* out_cell_mass = cell_variables(OUT_CELL_MASS);
 
@@ -504,13 +507,14 @@ void Simulation::Run() {
   RealType* directional_lagrangian_density = cell_variables(DIRECTIONAL_LAGRANGIAN_DENSITY);
 
   RealType* rho_ref = cell_variables(RHO_REF);
-  RealType* u_ref = cell_variables(U_REF);
   RealType* p_ref = cell_variables(P_REF);
+
+  RealType* in_u = vertice_variables(IN_U);
+  RealType* in_v = vertice_variables(IN_V);
+
+  RealType* u_ref = vertice_variables(U_REF);
   
   boost::timer simulation_timer = boost::timer();
-
-  const int nx = m_grid.nx();
-  const int ny = m_grid.ny();
 
   const RealType dx = (m_grid.xmax() - m_grid.xmin()) / nx;
   const RealType dy = (m_grid.ymax() - m_grid.ymin()) / ny;
@@ -524,9 +528,9 @@ void Simulation::Run() {
 
   const int nb_faces_y = nx * (ny + 1);
 
+  // Face variables.
   const int ALIGN_BYTES = 64;
 
-  // Face variables.
   RealType* volume_fluxes_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
   RealType* volume_fluxes_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
 
@@ -634,7 +638,7 @@ void Simulation::Run() {
       clock_gettime(CLOCK_REALTIME, &time2);
       time_compute_volume_fluxes_0.push_back(diff(time1, time2));
     
-      CheckFluxPeriodicalPropertyX(nx, ny, volume_fluxes_x);
+      //      CheckFluxPeriodicalPropertyX(nx, ny, volume_fluxes_x);
 
       clock_gettime(CLOCK_REALTIME, &time1);
       ReconstructMassFluxOrder1X(nx, ny, halo_width, volume_fluxes_x, directional_lagrangian_density, mass_flux_x);
@@ -653,31 +657,31 @@ void Simulation::Run() {
    
       std::swap(in_cell_mass, out_cell_mass);
 
-      // //Projection Y.
+      //Projection Y.
 
-      // clock_gettime(CLOCK_REALTIME, &time1);
-      // ComputeDirectionalLagrangianQuantitiesY(nx, ny, dt, dx, dy, in_v, in_cell_mass, volume_fluxes_y, directional_lagrangian_volume, directional_lagrangian_density);
-      // clock_gettime(CLOCK_REALTIME, &time2);
-      // time_compute_volume_fluxes_0.push_back(diff(time1, time2));
+      clock_gettime(CLOCK_REALTIME, &time1);
+      ComputeDirectionalLagrangianQuantitiesY(nx, ny, dt, dx, dy, in_v, in_cell_mass, volume_fluxes_y, directional_lagrangian_volume, directional_lagrangian_density);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_compute_volume_fluxes_0.push_back(diff(time1, time2));
     
-      // CheckFluxPeriodicalPropertyY(nx, ny, volume_fluxes_y);
+      //CheckFluxPeriodicalPropertyY(nx, ny, volume_fluxes_y);
 
-      // clock_gettime(CLOCK_REALTIME, &time1);
-      // ReconstructMassFluxOrder1Y(nx, ny, halo_width, volume_fluxes_y, directional_lagrangian_density, mass_flux_y);
-      // clock_gettime(CLOCK_REALTIME, &time2);
-      // time_reconstruct_0.push_back(diff(time1, time2));
+      clock_gettime(CLOCK_REALTIME, &time1);
+      ReconstructMassFluxOrder1Y(nx, ny, halo_width, volume_fluxes_y, directional_lagrangian_density, mass_flux_y);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_reconstruct_0.push_back(diff(time1, time2));
 
-      // clock_gettime(CLOCK_REALTIME, &time1);
-      // ReconstructMassFluxOrder1BoundaryY(nx, ny, halo_width, volume_fluxes_y, directional_lagrangian_density, mass_flux_y);
-      // clock_gettime(CLOCK_REALTIME, &time2);
-      // time_reconstruct_boundary_0.push_back(diff(time1, time2));
+      clock_gettime(CLOCK_REALTIME, &time1);
+      ReconstructMassFluxOrder1BoundaryY(nx, ny, halo_width, volume_fluxes_y, directional_lagrangian_density, mass_flux_y);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_reconstruct_boundary_0.push_back(diff(time1, time2));
 
-      // clock_gettime(CLOCK_REALTIME, &time1);
-      // ProjectMassY(nx, ny, in_cell_mass, mass_flux_y, out_cell_mass);
-      // clock_gettime(CLOCK_REALTIME, &time2);
-      // time_project_intensive_variable_0.push_back(diff(time1, time2));
+      clock_gettime(CLOCK_REALTIME, &time1);
+      ProjectMassY(nx, ny, in_cell_mass, mass_flux_y, out_cell_mass);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_project_intensive_variable_0.push_back(diff(time1, time2));
 
-      // std::swap(in_cell_mass, out_cell_mass);
+      std::swap(in_cell_mass, out_cell_mass);
 
       // // PREDICTION.
       // clock_gettime(CLOCK_REALTIME, &time1);
@@ -770,14 +774,14 @@ void Simulation::Run() {
 
       RealType* cell_centers_x = cell_variables(CELL_CENTERS_X);
 
-      RiemannAnalyticalSolver(rho_left, u_left, p_left,
-			      rho_right, u_right, p_right,
-			      p_star, u_star, 
-			      gamma,
-			      t, x0, 
-			      m_grid.nb_cells(),
-			      cell_centers_x,
-			      rho_ref, u_ref, p_ref);
+      // RiemannAnalyticalSolver(rho_left, u_left, p_left,
+      // 			      rho_right, u_right, p_right,
+      // 			      p_star, u_star, 
+      // 			      gamma,
+      // 			      t, x0, 
+      // 			      m_grid.nb_cells(),
+      // 			      cell_centers_x,
+      // 			      rho_ref, u_ref, p_ref);
 			      
 
       //assert(0);

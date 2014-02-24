@@ -155,7 +155,7 @@ void StructuredGrid::ComputeGeometricQuantities(VariableStore* cell_variables,
     for (int j = 0; j < NY + 1; ++j) {
       for (int i = 0; i < NX + 1; ++i) {
 
-	const int local_id = (NX * j) + i;
+	const int local_id = ((NX + 1) * j) + i;
 
 	vertices_x[local_id] = m_x_coordinates[i];
 	vertices_y[local_id] = m_y_coordinates[j];
