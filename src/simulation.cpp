@@ -23,6 +23,7 @@
 #include "serialize.hpp"
 #include "structured_grid.hpp"
 #include "variable_metadata.hpp"
+#include "euler_riemann_analytic_solver.hpp"
 
 #include <ctime>
 
@@ -512,6 +513,11 @@ void Simulation::Run() {
   RealType* out_w = cell_variables(OUT_W);
   RealType* out_e = cell_variables(OUT_E);
 
+  RealType* rho_ref = cell_variables(RHO_REF);
+  RealType* u_ref = cell_variables(U_REF);
+  RealType* p_ref = cell_variables(P_REF);
+  RealType* cell_centers_x = cell_variables(CELL_CENTERS_X);
+  
   boost::timer simulation_timer = boost::timer();
 
   std::vector<RealType> time_compressible_euler_physical_to_conservative_0;
@@ -659,6 +665,34 @@ void Simulation::Run() {
 	}
       }
 
+      // Compute analytical solution for the 1D Riemann problem.
+      const RealType rho_left = 1.0;
+      const RealType u_left = 0.0;
+      const RealType p_left = 1.0;
+
+      const RealType rho_right = 0.125;
+      const RealType u_right = 0.0;
+      const RealType p_right = 0.1;
+
+      const RealType gamma = 1.4;
+
+      const RealType p_star = 0.466294;
+      const RealType u_star = 1.36091;
+
+      const RealType x0 = 0.5;
+
+      const RealType t = clock.time();
+
+      RiemannAnalyticalSolver(rho_left, u_left, p_left,
+			      rho_right, u_right, p_right,
+			      p_star, u_star, 
+			      gamma,
+			      t, x0, 
+			      m_grid.nb_cells(),
+			      cell_centers_x,
+			      rho_ref, u_ref, p_ref);
+			      
+
       //assert(0);
 
     } else if (m_grid.dimension() == 3) {
@@ -671,6 +705,7 @@ void Simulation::Run() {
     std::swap(in_u, out_u);
     std::swap(in_v, out_v);
     std::swap(in_e, out_e);
+
 
     // // Unpack halo exchange data.
     // for (int i = 0; i < nb_processes; ++i)
@@ -705,10 +740,12 @@ void Simulation::Run() {
       }
 
     }
+   
     
+ 
   }
 
-
+  
   time = get_time() - time;
 
   std::cerr << "Elapsed time for simulation: " << time << "s\n";

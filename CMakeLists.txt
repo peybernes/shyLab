@@ -75,6 +75,7 @@ add_executable(
     src/numerical_params.cpp 
     src/output.cpp
     src/physical_params.cpp
+    src/euler_riemann_analytic_solver.cpp
     src/shy.cpp 
     src/simulation.cpp 
     src/structured_grid.cpp

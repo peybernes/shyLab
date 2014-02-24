@@ -26,6 +26,8 @@ enum {IN_RHO,
       CELL_CENTERS_Y,
       CELL_CENTERS_Z,
       RHO_REF,
+      U_REF,
+      P_REF,
       NB_CELL_VALUES};
 
 // Default variable attributes. Can be overwritten with the parameter
@@ -53,7 +55,9 @@ static const unsigned int cell_variable_attributes[NB_CELL_VALUES] =
     !PROTECTED |  WRITTEN | !COMMUNICATED | !INITIALIZABLE, // CELL_CENTERS_X
     !PROTECTED |  WRITTEN | !COMMUNICATED | !INITIALIZABLE, // CELL_CENTERS_Y
     !PROTECTED |  WRITTEN | !COMMUNICATED | !INITIALIZABLE, // CELL_CENTERS_Z
-    !PROTECTED |  WRITTEN | !COMMUNICATED | INITIALIZABLE // RHO_REF
+    !PROTECTED |  WRITTEN | !COMMUNICATED | INITIALIZABLE, // RHO_REF
+    !PROTECTED |  WRITTEN | !COMMUNICATED | INITIALIZABLE, // U_REF
+    !PROTECTED |  WRITTEN | !COMMUNICATED | INITIALIZABLE // P_REF
   };
 
 static const char* cell_variable_names[NB_CELL_VALUES] = {
@@ -79,7 +83,9 @@ static const char* cell_variable_names[NB_CELL_VALUES] = {
   "cell_centers_x", 
   "cell_centers_y",
   "cell_centers_z",
-  "rho_ref"
+  "rho_ref",
+  "u_ref",
+  "p_ref"
 };
 
 enum {VELOCITY,
