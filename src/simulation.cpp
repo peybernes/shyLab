@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <malloc.h>
 #ifdef HAVE_MPI
 #include <mpi.h>
 #endif // HAVE_MPI
@@ -490,28 +491,26 @@ void Simulation::Run() {
   const int nb_boundary_faces = 0;
   const int nb_interior_faces = 0;
   
-  RealType* cell_volumes = cell_variables(CELL_VOLUMES);
+  // RealType* cell_volumes = cell_variables(CELL_VOLUMES);
 
-  RealType* local_timestep = cell_variables(OUT_TIMESTEP);
+  // RealType* local_timestep = cell_variables(OUT_TIMESTEP);
+  // RealType* in_rho = cell_variables(IN_RHO);
+  // RealType* in_u = cell_variables(IN_U);
+  // RealType* in_v = cell_variables(IN_V);
+  // RealType* in_w = cell_variables(IN_W);
+  // RealType* in_e = cell_variables(IN_E);
 
+  // RealType* predicted_rho = cell_variables(PREDICTED_RHO);
+  // RealType* predicted_u = cell_variables(PREDICTED_U);
+  // RealType* predicted_v = cell_variables(PREDICTED_V);
+  // RealType* predicted_w = cell_variables(PREDICTED_W);
+  // RealType* predicted_e = cell_variables(PREDICTED_E);
 
-  RealType* in_rho = cell_variables(IN_RHO);
-  RealType* in_u = cell_variables(IN_U);
-  RealType* in_v = cell_variables(IN_V);
-  RealType* in_w = cell_variables(IN_W);
-  RealType* in_e = cell_variables(IN_E);
-
-  RealType* predicted_rho = cell_variables(PREDICTED_RHO);
-  RealType* predicted_u = cell_variables(PREDICTED_U);
-  RealType* predicted_v = cell_variables(PREDICTED_V);
-  RealType* predicted_w = cell_variables(PREDICTED_W);
-  RealType* predicted_e = cell_variables(PREDICTED_E);
-
-  RealType* out_rho = cell_variables(OUT_RHO);
-  RealType* out_u = cell_variables(OUT_U);
-  RealType* out_v = cell_variables(OUT_V);
-  RealType* out_w = cell_variables(OUT_W);
-  RealType* out_e = cell_variables(OUT_E);
+  // RealType* out_rho = cell_variables(OUT_RHO);
+  // RealType* out_u = cell_variables(OUT_U);
+  // RealType* out_v = cell_variables(OUT_V);
+  // RealType* out_w = cell_variables(OUT_W);
+  // RealType* out_e = cell_variables(OUT_E);
 
   RealType* rho_ref = cell_variables(RHO_REF);
   RealType* u_ref = cell_variables(U_REF);
@@ -520,12 +519,93 @@ void Simulation::Run() {
   
   boost::timer simulation_timer = boost::timer();
 
+  const int nx = m_grid.nx();
+  const int ny = m_grid.ny();
+
+  const RealType dx = (m_grid.xmax() - m_grid.xmin()) / nx;
+  const RealType dy = (m_grid.ymax() - m_grid.ymin()) / ny;
+  //const RealType dz = (m_grid.zmax() - m_grid.zmin()) / nz;
+  
+  const RealType length_x = m_grid.xmax() - m_grid.xmin();
+  const RealType length_y = m_grid.ymax() - m_grid.ymin();
+
+  const int nb_nodes = (nx + 1) * (ny + 1);
+
+  const int nb_faces_x = (nx + 1) * ny;
+
+  const int nb_faces_y = nx * (ny + 1);
+
+  const int ALIGN_BYTES = 64;
+
+  RealType* in_e = cell_variables(IN_E);
+  RealType* in_rho = cell_variables(IN_RHO);
+
+  // Cell variables.
+  RealType* cell_volumes = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* in_cell_mass = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* out_cell_mass = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  // RealType* in_rho = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* predicted_rho = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* out_rho = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* directional_lagrangian_volume = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* directional_lagrangian_density = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+
+  // Node variables.
+  RealType* in_u = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+  RealType* in_v = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+
+  // Face variables.
+  RealType* volume_fluxes_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
+  RealType* volume_fluxes_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
+
+  RealType* mass_flux_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
+  RealType* mass_flux_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
+
+  // INIT
+
+#pragma omp parallel for
+  for (int iy = 0; iy < ny; ++iy) {
+    for (int ix = 0; ix < nx; ++ix) {
+
+      const int cell_ooo = (nx * iy) + ix;
+
+      const RealType x = ix * dx;
+      const RealType y = iy * dy;
+
+      in_rho[cell_ooo] = (x < 0.5 * length_x ? 1.0 : 0.125);
+      //in_rho[cell_ooo] = (y < 0.5 * length_y ? 1.0 : 0.125);
+      cell_volumes[cell_ooo] = dx * dy;
+      in_cell_mass[cell_ooo] = in_rho[cell_ooo] * cell_volumes[cell_ooo];
+
+      predicted_rho[cell_ooo] = 0.0;
+      out_rho[cell_ooo] = 0.0;
+      out_cell_mass[cell_ooo] = 0.0;
+
+    }
+  }
+
+  for (int iy = 0; iy < ny + 1; ++iy) {
+    for (int ix = 0; ix < nx + 1; ++ix) {
+
+      const int node_ooo = ((nx + 1) * iy) + ix;
+
+      in_u[node_ooo] = 1.0;
+      in_v[node_ooo] = 1.0;
+
+    }
+  }
+
+
   std::vector<RealType> time_compressible_euler_physical_to_conservative_0;
   std::vector<RealType> time_compressible_euler_fv_uw_kappa_2d_x_0;
   std::vector<RealType> time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_x_0;
   std::vector<RealType> time_compressible_euler_fv_uw_kappa_2d_y_0;
   std::vector<RealType> time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_y_0;
-  std::vector<RealType> time_compressible_euler_conservative_to_physical_0;
+
+  std::vector<RealType> time_compute_volume_fluxes_0;
+  std::vector<RealType> time_reconstruct_0;
+  std::vector<RealType> time_reconstruct_boundary_0;
+  std::vector<RealType> time_project_intensive_variable_0;
   
   // Will hold the range of all simulation variables (including
   // temporaries for each time step).
@@ -573,7 +653,7 @@ void Simulation::Run() {
     const int ny = m_grid.ny();
     const int nz = m_grid.nz();
 
-    const int halo_width = 2;
+    const int halo_width = 1;
 
     assert(halo_width < nx);
     assert(halo_width < ny);
@@ -594,76 +674,135 @@ void Simulation::Run() {
 
     if (m_grid.dimension() == 2) {
 
-      // PREDICTION.
-      clock_gettime(CLOCK_REALTIME, &time1);
-      CompressibleEulerPhysicalToConservative(nx, ny, in_rho, in_u, in_v, in_e,
-					      predicted_rho, predicted_u, predicted_v, predicted_e);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_compressible_euler_physical_to_conservative_0.push_back(diff(time1, time2));
+      // Projection X.
 
       clock_gettime(CLOCK_REALTIME, &time1);
-      CompressibleEulerFvUwKappa2dX(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_u, in_v, in_e, 
-				    predicted_rho, predicted_u, predicted_v, predicted_e);
+      ComputeDirectionalLagrangianQuantitiesX(nx, ny, dt, dx, dy, in_u, in_cell_mass, volume_fluxes_x, directional_lagrangian_volume, directional_lagrangian_density);
       clock_gettime(CLOCK_REALTIME, &time2);
-      time_compressible_euler_fv_uw_kappa_2d_x_0.push_back(diff(time1, time2));
-
+      time_compute_volume_fluxes_0.push_back(diff(time1, time2));
+    
+      CheckFluxPeriodicalPropertyX(nx, ny, volume_fluxes_x);
 
       clock_gettime(CLOCK_REALTIME, &time1);
-      CompressibleEulerFvUwKappa2dBoundaryConditionsX(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_u, in_v, in_e, 
-      						      predicted_rho, predicted_u, predicted_v, predicted_e);
+      ReconstructMassFluxOrder1X(nx, ny, halo_width, volume_fluxes_x, directional_lagrangian_density, mass_flux_x);
       clock_gettime(CLOCK_REALTIME, &time2);
-      time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_x_0.push_back(diff(time1,time2));
-
+      time_reconstruct_0.push_back(diff(time1, time2));
 
       clock_gettime(CLOCK_REALTIME, &time1);
-      CompressibleEulerFvUwKappa2dY(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_v, in_u, in_e, 
-				    predicted_rho, predicted_v, predicted_u, predicted_e);
+      ReconstructMassFluxOrder1BoundaryX(nx, ny, halo_width, volume_fluxes_x, directional_lagrangian_density, mass_flux_x);
       clock_gettime(CLOCK_REALTIME, &time2);
-      time_compressible_euler_fv_uw_kappa_2d_y_0.push_back(diff(time1, time2));
+      time_reconstruct_boundary_0.push_back(diff(time1, time2));
 
       clock_gettime(CLOCK_REALTIME, &time1);
-      CompressibleEulerFvUwKappa2dBoundaryConditionsY(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_v, in_u, in_e, 
-      						      predicted_rho, predicted_v, predicted_u, predicted_e);
+      ProjectMassX(nx, ny, in_cell_mass, mass_flux_x, out_cell_mass);
       clock_gettime(CLOCK_REALTIME, &time2);
-      time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_y_0.push_back(diff(time1,time2));
+      time_project_intensive_variable_0.push_back(diff(time1, time2));
+   
+      std::swap(in_cell_mass, out_cell_mass);
+
+      //Projection Y.
 
       clock_gettime(CLOCK_REALTIME, &time1);
-      CompressibleEulerConservativeToPhysical(nx, ny, predicted_rho, predicted_u, predicted_v, predicted_e);
+      ComputeDirectionalLagrangianQuantitiesY(nx, ny, dt, dx, dy, in_v, in_cell_mass, volume_fluxes_y, directional_lagrangian_volume, directional_lagrangian_density);
       clock_gettime(CLOCK_REALTIME, &time2);
-      time_compressible_euler_conservative_to_physical_0.push_back(diff(time1,time2));
+      time_compute_volume_fluxes_0.push_back(diff(time1, time2));
+    
+      CheckFluxPeriodicalPropertyY(nx, ny, volume_fluxes_y);
 
-      // CORRECTION.
+      clock_gettime(CLOCK_REALTIME, &time1);
+      ReconstructMassFluxOrder1Y(nx, ny, halo_width, volume_fluxes_y, directional_lagrangian_density, mass_flux_y);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_reconstruct_0.push_back(diff(time1, time2));
 
-      CompressibleEulerPhysicalToConservative(nx, ny, predicted_rho, predicted_u, predicted_v, predicted_e,
-      					      out_rho, out_u, out_v, out_e);
+      clock_gettime(CLOCK_REALTIME, &time1);
+      ReconstructMassFluxOrder1BoundaryY(nx, ny, halo_width, volume_fluxes_y, directional_lagrangian_density, mass_flux_y);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_reconstruct_boundary_0.push_back(diff(time1, time2));
 
-      CompressibleEulerFvUwKappa2dX(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_u, predicted_v, predicted_e, 
-      				    out_rho, out_u, out_v, out_e);
+      clock_gettime(CLOCK_REALTIME, &time1);
+      ProjectMassY(nx, ny, in_cell_mass, mass_flux_y, out_cell_mass);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_project_intensive_variable_0.push_back(diff(time1, time2));
 
-      CompressibleEulerFvUwKappa2dBoundaryConditionsX(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_u, predicted_v, predicted_e, 
-      						      out_rho, out_u, out_v, out_e);
+      std::swap(in_cell_mass, out_cell_mass);
 
-      CompressibleEulerFvUwKappa2dY(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_v, predicted_u, predicted_e, 
-      				    out_rho, out_v, out_u, out_e);
+      for (int i = 0; i < nb_cells; ++i) {
 
-      CompressibleEulerFvUwKappa2dBoundaryConditionsY(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_v, predicted_u, predicted_e, 
-      						      out_rho, out_v, out_u, out_e);
+	in_e[i] = in_cell_mass[i];
+	
+      }
 
-      CompressibleEulerConservativeToPhysical(nx, ny, out_rho, out_u, out_v, out_e);
+
+      // // PREDICTION.
+      // clock_gettime(CLOCK_REALTIME, &time1);
+      // CompressibleEulerPhysicalToConservative(nx, ny, in_rho, in_u, in_v, in_e,
+      // 					      predicted_rho, predicted_u, predicted_v, predicted_e);
+      // clock_gettime(CLOCK_REALTIME, &time2);
+      // time_compressible_euler_physical_to_conservative_0.push_back(diff(time1, time2));
+
+      // clock_gettime(CLOCK_REALTIME, &time1);
+      // CompressibleEulerFvUwKappa2dX(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_u, in_v, in_e, 
+      // 				    predicted_rho, predicted_u, predicted_v, predicted_e);
+      // clock_gettime(CLOCK_REALTIME, &time2);
+      // time_compressible_euler_fv_uw_kappa_2d_x_0.push_back(diff(time1, time2));
+
+
+      // clock_gettime(CLOCK_REALTIME, &time1);
+      // CompressibleEulerFvUwKappa2dBoundaryConditionsX(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_u, in_v, in_e, 
+      // 						      predicted_rho, predicted_u, predicted_v, predicted_e);
+      // clock_gettime(CLOCK_REALTIME, &time2);
+      // time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_x_0.push_back(diff(time1,time2));
+
+
+      // clock_gettime(CLOCK_REALTIME, &time1);
+      // CompressibleEulerFvUwKappa2dY(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_v, in_u, in_e, 
+      // 				    predicted_rho, predicted_v, predicted_u, predicted_e);
+      // clock_gettime(CLOCK_REALTIME, &time2);
+      // time_compressible_euler_fv_uw_kappa_2d_y_0.push_back(diff(time1, time2));
+
+      // clock_gettime(CLOCK_REALTIME, &time1);
+      // CompressibleEulerFvUwKappa2dBoundaryConditionsY(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_v, in_u, in_e, 
+      // 						      predicted_rho, predicted_v, predicted_u, predicted_e);
+      // clock_gettime(CLOCK_REALTIME, &time2);
+      // time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_y_0.push_back(diff(time1,time2));
+
+      // clock_gettime(CLOCK_REALTIME, &time1);
+      // CompressibleEulerConservativeToPhysical(nx, ny, predicted_rho, predicted_u, predicted_v, predicted_e);
+      // clock_gettime(CLOCK_REALTIME, &time2);
+      // time_compressible_euler_conservative_to_physical_0.push_back(diff(time1,time2));
+
+      // // CORRECTION.
+
+      // CompressibleEulerPhysicalToConservative(nx, ny, predicted_rho, predicted_u, predicted_v, predicted_e,
+      // 					      out_rho, out_u, out_v, out_e);
+
+      // CompressibleEulerFvUwKappa2dX(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_u, predicted_v, predicted_e, 
+      // 				    out_rho, out_u, out_v, out_e);
+
+      // CompressibleEulerFvUwKappa2dBoundaryConditionsX(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_u, predicted_v, predicted_e, 
+      // 						      out_rho, out_u, out_v, out_e);
+
+      // CompressibleEulerFvUwKappa2dY(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_v, predicted_u, predicted_e, 
+      // 				    out_rho, out_v, out_u, out_e);
+
+      // CompressibleEulerFvUwKappa2dBoundaryConditionsY(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_v, predicted_u, predicted_e, 
+      // 						      out_rho, out_v, out_u, out_e);
+
+      // CompressibleEulerConservativeToPhysical(nx, ny, out_rho, out_u, out_v, out_e);
       
 	
-      for (int iy = 0; iy < ny; ++iy) {
-	for (int ix = 0; ix < nx; ++ix) {
+      // for (int iy = 0; iy < ny; ++iy) {
+      // 	for (int ix = 0; ix < nx; ++ix) {
 
-	  const int i = (nx * iy) + ix;
+      // 	  const int i = (nx * iy) + ix;
 
-	  out_rho[i] = 0.5 * (in_rho[i] + predicted_rho[i]);
-	  out_u[i] = 0.5 * (in_u[i] + predicted_u[i]);
-	  out_v[i] = 0.5 * (in_v[i] + predicted_v[i]);
-	  out_e[i] = 0.5 * (in_e[i] + predicted_e[i]);
+      // 	  out_rho[i] = 0.5 * (in_rho[i] + predicted_rho[i]);
+      // 	  out_u[i] = 0.5 * (in_u[i] + predicted_u[i]);
+      // 	  out_v[i] = 0.5 * (in_v[i] + predicted_v[i]);
+      // 	  out_e[i] = 0.5 * (in_e[i] + predicted_e[i]);
 
-	}
-      }
+      // 	}
+      // }
 
       // Compute analytical solution for the 1D Riemann problem.
       const RealType rho_left = 1.0;
@@ -701,10 +840,10 @@ void Simulation::Run() {
 
     }
 
-    std::swap(in_rho, out_rho);
-    std::swap(in_u, out_u);
-    std::swap(in_v, out_v);
-    std::swap(in_e, out_e);
+    // std::swap(in_rho, out_rho);
+    // std::swap(in_u, out_u);
+    // std::swap(in_v, out_v);
+    // std::swap(in_e, out_e);
 
 
     // // Unpack halo exchange data.
@@ -752,20 +891,25 @@ void Simulation::Run() {
 
   std::cerr << "\n-----------------------------------------------------------------------------------------\n\n";
 
-  PrintTimings(time_compressible_euler_physical_to_conservative_0, "CompressibleEulerPhysicalToConservative");
-  PrintTimings(time_compressible_euler_conservative_to_physical_0, "CompressibleEulerConservativeToPhysical");
+  PrintTimings(time_compute_volume_fluxes_0, "ComputeVolumeFluxes");
+  PrintTimings(time_reconstruct_0, "Reconstruct");
+  PrintTimings(time_reconstruct_boundary_0, "ReconstructBoundary");
+  PrintTimings(time_project_intensive_variable_0, "ProjectIntensiveVariable");
 
-  std::cerr << "\n";
+  // PrintTimings(time_compressible_euler_physical_to_conservative_0, "CompressibleEulerPhysicalToConservative");
+  // PrintTimings(time_compressible_euler_conservative_to_physical_0, "CompressibleEulerConservativeToPhysical");
 
-  PrintTimings(time_compressible_euler_fv_uw_kappa_2d_x_0, "CompressibleEulerFvUwKappa2dX");
-  PrintTimings(time_compressible_euler_fv_uw_kappa_2d_y_0, "CompressibleEulerFvUwKappa2dY");
+  // std::cerr << "\n";
 
-  std::cerr << "\n";
+  // PrintTimings(time_compressible_euler_fv_uw_kappa_2d_x_0, "CompressibleEulerFvUwKappa2dX");
+  // PrintTimings(time_compressible_euler_fv_uw_kappa_2d_y_0, "CompressibleEulerFvUwKappa2dY");
 
-  PrintTimings(time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_x_0, "CompressibleEulerFvUwKappaBoundaryConditionsX");
-  PrintTimings(time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_y_0, "CompressibleEulerFvUwKappaBoundaryConditionsY");
+  // std::cerr << "\n";
 
-  std::cerr << "\n-----------------------------------------------------------------------------------------\n\n";
+  // PrintTimings(time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_x_0, "CompressibleEulerFvUwKappaBoundaryConditionsX");
+  // PrintTimings(time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_y_0, "CompressibleEulerFvUwKappaBoundaryConditionsY");
+
+  // std::cerr << "\n-----------------------------------------------------------------------------------------\n\n";
 
   ofs.close();
 }
