@@ -122,19 +122,19 @@ inline index_t FaceYNodeP1(index_t face_oo, index_t iy, index_t nx) {
 
 inline index_t NodeCellM1M1(index_t node_oo, index_t iy, index_t nx) {
   
-  return node_oo -(nx+1+iy);
+  return node_oo - (nx + 1 + iy);
 
 }
 
 inline index_t NodeCellP1M1(index_t node_oo, index_t iy, index_t nx) {
   
-  return node_oo -(nx+iy);
+  return node_oo -(nx + iy);
 
 }
 
 inline index_t NodeCellM1P1(index_t node_oo, index_t iy, index_t nx) {
   
-  return node_oo -(iy+1);
+  return node_oo -(iy + 1);
 
 }
 
@@ -157,13 +157,13 @@ inline index_t NodeNodeP1O(index_t node_oo, index_t iy, index_t nx) {
 }
 inline index_t NodeNodeOM1(index_t node_oo, index_t iy, index_t nx) {
   
-  return node_oo + nx+ 1;
+  return node_oo - (nx+ 1);
 
 }
 
 inline index_t NodeNodeOP1(index_t node_oo, index_t iy, index_t nx) {
   
-  return node_oo -(nx+1);
+  return node_oo + (nx + 1);
 
 }
 
@@ -223,7 +223,7 @@ inline index_t NodeFaceYM1M1(index_t node_oo, index_t iy, index_t nx) {
 
 inline index_t NodeFaceYM1P1(index_t node_oo, index_t iy, index_t nx) {
 
-  return node_oo + nx -iy - 1;
+  return node_oo + nx - iy - 1;
 
 }
 

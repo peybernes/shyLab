@@ -13,6 +13,7 @@
 #include "serialize.hpp"
 #include "simulation.hpp"
 #include "variable_attribute.hpp"
+#include "vertice_variable_metadata.hpp"
 
 Output::Output(Simulation *sim_ptr, std::string &stream_name, const Timetable &timetable):
   Event(sim_ptr, timetable, POST), m_stream_name(stream_name) {}
@@ -330,7 +331,6 @@ void OutputSimulation::Execute() {
 
     const int nb_cells = m_sim_ptr->cell_variables.nb_elements();
 
-    //assert(nb_cells == m_sim_ptr->mesh.nb_cells());
     assert(nb_cells == m_sim_ptr->m_grid.nb_cells());
 
     for (int id_var = 0; id_var < NB_CELL_VALUES; ++id_var) {
@@ -368,6 +368,49 @@ void OutputSimulation::Execute() {
     }
 
     stream << "</CellData>\n";
+
+    stream << "<PointData>\n";
+
+    const int nb_vertices = m_sim_ptr->vertice_variables.nb_elements();
+
+    assert(nb_vertices == m_sim_ptr->m_grid.nb_vertices());
+
+    for (int id_var = 0; id_var < NB_VERTICE_VALUES; ++id_var) {
+
+      if (vertice_variable_attributes[id_var] & WRITTEN)
+    	WriteVtkXmlAsciiScalar(nb_vertices, 
+    			       m_sim_ptr->vertice_variables(id_var),
+    			       vertice_variable_names[id_var],
+    			       &stream);
+
+    }
+
+    for (int id_var = 0; id_var < NB_VERTICE_VECTOR_VALUES; ++id_var) {
+
+      const int x_coord_id =
+    	vertice_vector_variable_coordinates[id_var][0];
+      const int y_coord_id = 
+    	vertice_vector_variable_coordinates[id_var][1];
+      const int z_coord_id = 
+    	vertice_vector_variable_coordinates[id_var][2];
+
+      RealType* z_coords = NULL;
+
+      if (z_coord_id >= 0)
+  	z_coords = m_sim_ptr->vertice_variables(z_coord_id);
+
+      if (vertice_vector_variable_attributes[id_var] & WRITTEN)
+    	WriteVtkXmlAsciiVector(nb_vertices, 
+    			       m_sim_ptr->vertice_variables(x_coord_id),
+    			       m_sim_ptr->vertice_variables(y_coord_id),
+  			       z_coords,
+    			       vertice_vector_variable_names[id_var], 
+    			       &stream);
+    
+    }
+
+
+    stream << "</PointData>\n";
 
     m_sim_ptr->m_grid.WriteFooterVTKXmlAscii(&stream);
     //m_sim_ptr->mesh.WriteFooterVTKXmlAscii(&stream);

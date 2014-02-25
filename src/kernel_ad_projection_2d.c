@@ -565,6 +565,7 @@ void MassProjectIntensiveVariableX(index_t nx,
 				   //const RealType* RESTRICT mass_flux,
 				   const RealType* RESTRICT in_cell_variable,
 				   const RealType* RESTRICT in_variable_flux,
+				   const RealType* RESTRICT out_cell_mass,
 				   RealType* RESTRICT out_cell_variable) {
   
   //#pragma omp parallel for
@@ -587,6 +588,7 @@ void MassProjectIntensiveVariableX(index_t nx,
 
       /// mass and variable
       const RealType in_cell_mass_ooo = in_cell_mass[cell_ooo];
+      const RealType out_cell_mass_ooo = out_cell_mass[cell_ooo];
       
       const RealType in_cell_variable_ooo = in_cell_variable[cell_ooo];
       
@@ -597,7 +599,8 @@ void MassProjectIntensiveVariableX(index_t nx,
 	face_variable_prev -
         face_variable_next;
 
-      out_cell_variable[cell_ooo] = out_cell_variable_ooo; 
+      assert(0.0 < out_cell_mass_ooo);
+      out_cell_variable[cell_ooo] = out_cell_variable_ooo / out_cell_mass_ooo; 
       
     }
 
@@ -611,6 +614,7 @@ void MassProjectIntensiveVariableY(index_t nx,
 				   //const RealType* RESTRICT mass_flux,
 				   const RealType* RESTRICT in_cell_variable,
 				   const RealType* RESTRICT in_variable_flux,
+				   const RealType* RESTRICT out_cell_mass,
 				   RealType* RESTRICT out_cell_variable) {
 
   //#pragma omp parallel for
@@ -633,6 +637,7 @@ void MassProjectIntensiveVariableY(index_t nx,
 
       /// mass and variable
       const RealType in_cell_mass_ooo = in_cell_mass[cell_ooo];
+      const RealType out_cell_mass_ooo = out_cell_mass[cell_ooo];
       
       const RealType in_cell_variable_ooo = in_cell_variable[cell_ooo];
       
@@ -642,7 +647,8 @@ void MassProjectIntensiveVariableY(index_t nx,
 	face_variable_prev -
         face_variable_next;
 
-      out_cell_variable[cell_ooo] = out_cell_variable_ooo; 
+      assert(0.0 < out_cell_mass_ooo);
+      out_cell_variable[cell_ooo] = out_cell_variable_ooo / out_cell_mass_ooo; 
       
     }
 
@@ -657,7 +663,7 @@ void ProjectNodalIntensiveVariableX(index_t nx,
 				    const RealType* RESTRICT in_cell_mass,
 				    const RealType* RESTRICT in_vx,
 				    const RealType* RESTRICT mass_flux,
-				    RealType* RESTRICT out_moment) {
+				    RealType* RESTRICT out_vx) {
 
   //Boucle sur les noeuds
   //#pragma omp parallel for
@@ -683,7 +689,7 @@ void ProjectNodalIntensiveVariableX(index_t nx,
 
 #include "ad_nodal_projection_2d_X_data_load.h"
 
-      const RealType node_mass = 0.25 * (cell_mass_m1m1 + cell_mass_p1m1 + cell_mass_m1p1 +  cell_mass_p1p1);
+      const RealType node_mass_ooo = 0.25 * (cell_mass_m1m1 + cell_mass_p1m1 + cell_mass_m1p1 +  cell_mass_p1p1);
       
       const RealType prev_dual_mass_flux = 0.25 * (mass_flux_m1m1 + mass_flux_oom1 + mass_flux_m1p1 + mass_flux_oop1);
       
@@ -691,12 +697,14 @@ void ProjectNodalIntensiveVariableX(index_t nx,
       
 #include "reconstruct_dual_variable_computation.h"      
 
-      const RealType in_moment_ooo = node_mass * in_vx_oo; 
+      const RealType in_moment_ooo = node_mass_ooo * in_vx_oo; 
 
       const RealType out_moment_ooo = 
 	in_moment_ooo + moment_flux_prev - moment_flux_next;
 
-      out_moment[node_ooo] = out_moment_ooo; 
+      assert(0.0 < node_mass_ooo);
+
+      out_vx[node_ooo] = out_moment_ooo / node_mass_ooo; 
  
 
      // printf("INFO: nx=%d, ny=%d, iy=%d, prev_node=%d, next_node=%d, vx_prev=%lf, vx_next=%lf, volume_flux=%lf\n", 
@@ -713,7 +721,7 @@ void ProjectNodalIntensiveVariableY(index_t nx,
 				    const RealType* RESTRICT in_cell_mass,
 				    const RealType* RESTRICT in_vx,
 				    const RealType* RESTRICT mass_flux,
-				    RealType* RESTRICT out_moment) {
+				    RealType* RESTRICT out_vx) {
 
   //Boucle sur les noeuds
   //#pragma omp parallel for
@@ -739,7 +747,7 @@ void ProjectNodalIntensiveVariableY(index_t nx,
 
 #include "ad_nodal_projection_2d_Y_data_load.h"
 
-      const RealType node_mass = 0.25 * (cell_mass_m1m1 + cell_mass_p1m1 + cell_mass_m1p1 +  cell_mass_p1p1);
+      const RealType node_mass_ooo = 0.25 * (cell_mass_m1m1 + cell_mass_p1m1 + cell_mass_m1p1 +  cell_mass_p1p1);
       
       const RealType prev_dual_mass_flux = 0.25 * (mass_flux_m1m1 + mass_flux_p1m1 + mass_flux_m1oo + mass_flux_p1oo);
       
@@ -747,12 +755,14 @@ void ProjectNodalIntensiveVariableY(index_t nx,
       
 #include "reconstruct_dual_variable_computation.h"      
 
-      const RealType in_moment_ooo = node_mass * in_vx_oo; 
+      const RealType in_moment_ooo = node_mass_ooo * in_vx_oo; 
 
       const RealType out_moment_ooo = 
 	in_moment_ooo + moment_flux_prev - moment_flux_next;
 
-      out_moment[node_ooo] = out_moment_ooo; 
+      assert(0.0 < node_mass_ooo);
+
+      out_vx[node_ooo] = out_moment_ooo / node_mass_ooo; 
  
     }
   }  
@@ -765,14 +775,14 @@ void ProjectNodalIntensiveVariableBoundaryX(index_t nx,
 				    const RealType* RESTRICT in_cell_mass,
 				    const RealType* RESTRICT in_vx,
 				    const RealType* RESTRICT mass_flux,
-				    RealType* RESTRICT out_moment) {
+				    RealType* RESTRICT out_vx) {
 
   // xmin (xmax is deduced in periodic conditions)
 
   //Boucle sur les noeuds
   //#pragma omp parallel for
-  for (index_t iy = halo_width; iy < ny + 1 - halo_width; ++iy) {
-    for (index_t ix = 0; ix < halo_width; ++ix) {
+  for (index_t ix = 0; ix < halo_width; ++ix) {
+    for (index_t iy = halo_width; iy < ny + 1 - halo_width; ++iy) {
 
       const index_t node_ooo = ((nx + 1) * iy) + ix;
       const index_t node_sym = node_ooo + nx;
@@ -794,7 +804,7 @@ void ProjectNodalIntensiveVariableBoundaryX(index_t nx,
 
 #include "ad_nodal_projection_2d_X_data_load.h"
 
-      const RealType node_mass = 0.25 * (cell_mass_m1m1 + cell_mass_p1m1 + cell_mass_m1p1 +  cell_mass_p1p1);
+      const RealType node_mass_ooo = 0.25 * (cell_mass_m1m1 + cell_mass_p1m1 + cell_mass_m1p1 +  cell_mass_p1p1);
       
       const RealType prev_dual_mass_flux = 0.25 * (mass_flux_m1m1 + mass_flux_oom1 + mass_flux_m1p1 + mass_flux_oop1);
       
@@ -802,17 +812,85 @@ void ProjectNodalIntensiveVariableBoundaryX(index_t nx,
       
 #include "reconstruct_dual_variable_computation.h"      
 
-      const RealType in_moment_ooo = node_mass * in_vx_oo; 
+      const RealType in_moment_ooo = node_mass_ooo * in_vx_oo; 
 
       const RealType out_moment_ooo = 
 	in_moment_ooo + moment_flux_prev - moment_flux_next;
 
-      out_moment[node_ooo] = out_moment_ooo; 
+      assert(0.0 < node_mass_ooo);
 
-      out_moment[node_sym] = out_moment_ooo;
+      out_vx[node_ooo] = out_moment_ooo / node_mass_ooo; 
+
+      out_vx[node_sym] = out_moment_ooo / node_mass_ooo;
  
     }
   }  
+
+  for (index_t iy = 0; iy < halo_width; ++iy) {
+    for (index_t ix = halo_width; ix < nx + 1 - halo_width; ++ix) {
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+      const index_t node_sym = node_ooo + (nx + 1) * ny;
+
+      index_t node_m1o = NodeNodeM1O(node_ooo, iy, nx);
+      index_t node_p1o = NodeNodeP1O(node_ooo, iy, nx);
+      //      if (ix == 0) {
+      //	node_m1o = NodeNodeM1O(node_ooo + nx, iy, nx);
+      //      }
+      //      if (ix == (nx + 1)) {
+      //	node_p1o = NodeNodeP1O(node_ooo - nx, iy, nx);
+      //      }
+      
+      index_t cellm1m1 = NodeCellM1M1(node_sym, iy, nx);
+      index_t cellp1m1 = NodeCellP1M1(node_sym, iy, nx);
+      index_t cellm1p1 = NodeCellM1P1(node_ooo, iy, nx);
+      index_t cellp1p1 = NodeCellP1P1(node_ooo, iy, nx);
+      //      if (ix == 0) {
+      //	cellm1p1 = NodeCellM1P1(node_ooo + nx, iy, nx);
+      //	cellm1m1 = NodeCellM1M1(node_ooo + (nx + 1)*(ny + 1) - 1, iy, nx);
+      //      }
+      //      if (ix == (nx + 1)) {
+      //	cellp1p1 = NodeCellP1P1(node_ooo - nx, iy, nx);
+      //	cellp1m1 = NodeCellP1M1(node_ooo + (nx + 1)*(ny-1)+1, iy, nx);
+      //      }
+ 
+      const index_t facexm1m1 = NodeFaceXM1M1(node_sym, iy, nx);
+      const index_t facexoom1 = NodeFaceXOOM1(node_sym, iy, nx);
+      const index_t facexm1p1 = NodeFaceXM1P1(node_ooo, iy, nx);
+      const index_t facexoop1 = NodeFaceXOOP1(node_ooo, iy, nx);
+      const index_t facexp1p1 = NodeFaceXP1P1(node_ooo, iy, nx);
+      const index_t facexp1m1 = NodeFaceXP1M1(node_sym, iy, nx);
+
+#include "ad_nodal_projection_2d_X_data_load.h"
+
+      const RealType node_mass_ooo = 0.25 * (cell_mass_m1m1 + cell_mass_p1m1 + cell_mass_m1p1 +  cell_mass_p1p1);
+      
+      const RealType prev_dual_mass_flux = 0.25 * (mass_flux_m1m1 + mass_flux_oom1 + mass_flux_m1p1 + mass_flux_oop1);
+      
+      const RealType next_dual_mass_flux = 0.25 * (mass_flux_p1m1 + mass_flux_oom1 + mass_flux_p1p1 + mass_flux_oop1);  
+      
+#include "reconstruct_dual_variable_computation.h"      
+
+      const RealType in_moment_ooo = node_mass_ooo * in_vx_oo; 
+
+      const RealType out_moment_ooo = 
+	in_moment_ooo + moment_flux_prev - moment_flux_next;
+
+      assert(0.0 < node_mass_ooo);
+
+      out_vx[node_ooo] = out_moment_ooo / node_mass_ooo; 
+
+      out_vx[node_sym] = out_moment_ooo / node_mass_ooo;
+ 
+    }
+
+  }  
+
+  // TO DO : ATTENTION IL faut s'occuper des 4 coins du domaine, pour l'instant je mets ça 
+  out_vx[0] = out_vx[1];
+  out_vx[nx] = out_vx[0];
+  out_vx[(nx+1)*(ny)] = out_vx[(nx+1)*(ny)+1];
+  out_vx[(nx+1)*(ny+1) - 1] = out_vx[(nx+1)*(ny)];
 
 }
 
@@ -822,7 +900,7 @@ void ProjectNodalIntensiveVariableBoundaryY(index_t nx,
 				    const RealType* RESTRICT in_cell_mass,
 				    const RealType* RESTRICT in_vx,
 				    const RealType* RESTRICT mass_flux,
-				    RealType* RESTRICT out_moment) {
+				    RealType* RESTRICT out_vx) {
 
   // ymin (ymax is deduced in periodic conditions)
 
@@ -851,7 +929,7 @@ void ProjectNodalIntensiveVariableBoundaryY(index_t nx,
 
 #include "ad_nodal_projection_2d_Y_data_load.h"
 
-      const RealType node_mass = 0.25 * (cell_mass_m1m1 + cell_mass_p1m1 + cell_mass_m1p1 +  cell_mass_p1p1);
+      const RealType node_mass_ooo = 0.25 * (cell_mass_m1m1 + cell_mass_p1m1 + cell_mass_m1p1 +  cell_mass_p1p1);
       
       const RealType prev_dual_mass_flux = 0.25 * (mass_flux_m1m1 + mass_flux_p1m1 + mass_flux_m1oo + mass_flux_p1oo);
       
@@ -859,15 +937,66 @@ void ProjectNodalIntensiveVariableBoundaryY(index_t nx,
       
 #include "reconstruct_dual_variable_computation.h"      
 
-      const RealType in_moment_ooo = node_mass * in_vx_oo; 
+      const RealType in_moment_ooo = node_mass_ooo * in_vx_oo; 
 
       const RealType out_moment_ooo = 
 	in_moment_ooo + moment_flux_prev - moment_flux_next;
 
-      out_moment[node_ooo] = out_moment_ooo; 
+      assert(0.0 < node_mass_ooo);
+
+      out_vx[node_ooo] = out_moment_ooo / node_mass_ooo; 
  
-      out_moment[node_sym] = out_moment_ooo;
+      out_vx[node_sym] = out_moment_ooo / node_mass_ooo;
     }
   }  
+
+  for (index_t ix = 0; ix < halo_width; ++ix) {
+    for (index_t iy = halo_width; iy < ny + 1 - halo_width; ++iy) {
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+      const index_t node_sym = node_ooo + nx;
+
+      const index_t node_om1 = NodeNodeOM1(node_ooo, iy, nx);
+      const index_t node_op1 = NodeNodeOP1(node_ooo, iy, nx);
+      
+      const index_t cellm1m1 = NodeCellM1M1(node_sym, iy, nx);
+      const index_t cellp1m1 = NodeCellP1M1(node_ooo, iy, nx);
+      const index_t cellm1p1 = NodeCellM1P1(node_sym, iy, nx);
+      const index_t cellp1p1 = NodeCellP1P1(node_ooo, iy, nx);
+
+      const index_t faceym1m1 = NodeFaceYM1M1(node_sym, iy, nx);
+      const index_t faceym1oo = NodeFaceYM1OO(node_sym, iy, nx);
+      const index_t faceym1p1 = NodeFaceYM1P1(node_sym, iy, nx);
+      const index_t faceyp1p1 = NodeFaceYP1P1(node_ooo, iy, nx);
+      const index_t faceyp1oo = NodeFaceYP1OO(node_ooo, iy, nx);
+      const index_t faceyp1m1 = NodeFaceYP1M1(node_ooo, iy, nx);
+
+#include "ad_nodal_projection_2d_Y_data_load.h"
+
+      const RealType node_mass_ooo = 0.25 * (cell_mass_m1m1 + cell_mass_p1m1 + cell_mass_m1p1 +  cell_mass_p1p1);
+      
+      const RealType prev_dual_mass_flux = 0.25 * (mass_flux_m1m1 + mass_flux_p1m1 + mass_flux_m1oo + mass_flux_p1oo);
+      
+      const RealType next_dual_mass_flux = 0.25 * (mass_flux_p1oo + mass_flux_m1oo + mass_flux_p1p1 + mass_flux_m1p1);  
+      
+#include "reconstruct_dual_variable_computation.h"      
+
+      const RealType in_moment_ooo = node_mass_ooo * in_vx_oo; 
+
+      const RealType out_moment_ooo = 
+	in_moment_ooo + moment_flux_prev - moment_flux_next;
+
+      assert(0.0 < node_mass_ooo);
+
+      out_vx[node_ooo] = out_moment_ooo / node_mass_ooo; 
+ 
+      out_vx[node_sym] = out_moment_ooo / node_mass_ooo;
+    }
+  }  
+  // TO DO : ATTENTION IL faut s'occuper des 4 coins du domaine, pour l'instant je mets ça 
+  out_vx[0] = out_vx[1];
+  out_vx[nx] = out_vx[nx-1];
+  out_vx[(nx+1)*(ny)] = out_vx[0];
+  out_vx[(nx+1)*(ny+1) - 1] = out_vx[nx];
 
 }

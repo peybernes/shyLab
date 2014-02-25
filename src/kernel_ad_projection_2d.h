@@ -112,7 +112,7 @@ void ProjectNodalIntensiveVariableX(index_t nx,
 				    const RealType* in_cell_mass,
 				    const RealType* in_vx,
 				    const RealType*  mass_flux,
-				    RealType* out_moment);
+				    RealType* out_vx);
 
 void ProjectNodalIntensiveVariableY(index_t nx, 
 				    index_t ny, 
@@ -120,7 +120,7 @@ void ProjectNodalIntensiveVariableY(index_t nx,
 				    const RealType* in_cell_mass,
 				    const RealType* in_vx,
 				    const RealType*  mass_flux,
-				    RealType* out_moment);
+				    RealType* out_vx);
 
 void ProjectNodalIntensiveVariableBoundaryX(index_t nx, 
 				    index_t ny, 
@@ -128,7 +128,7 @@ void ProjectNodalIntensiveVariableBoundaryX(index_t nx,
 				    const RealType* in_cell_mass,
 				    const RealType* in_vx,
 				    const RealType*  mass_flux,
-				    RealType* out_moment);
+				    RealType* out_vx);
 
 void ProjectNodalIntensiveVariableBoundaryY(index_t nx, 
 				    index_t ny, 
@@ -136,22 +136,24 @@ void ProjectNodalIntensiveVariableBoundaryY(index_t nx,
 				    const RealType* in_cell_mass,
 				    const RealType* in_vx,
 				    const RealType*  mass_flux,
-				    RealType* out_moment);
+				    RealType* out_vx);
 
 void MassProjectIntensiveVariableX(index_t nx, 
 				   index_t ny, 
 				   const RealType* in_cell_mass,
-				   const RealType* mass_flux,
+				   //const RealType* mass_flux,
 				   const RealType* in_cell_variable,
 				   const RealType* in_face_variable,
+				   const RealType* out_cell_mass,
 				   RealType* out_cell_variable);
 
 void MassProjectIntensiveVariableY(index_t nx, 
 				   index_t ny, 
 				   const RealType* in_cell_mass,
-				   const RealType* mass_flux,
+				   //const RealType* mass_flux,
 				   const RealType* in_cell_variable,
 				   const RealType* in_face_variable,
+				   const RealType* out_cell_mass,
 				   RealType* out_cell_variable);
  
 

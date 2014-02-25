@@ -502,6 +502,8 @@ void Simulation::Run() {
   RealType* out_rho = cell_variables(OUT_RHO);
   RealType* in_cell_mass = cell_variables(IN_CELL_MASS);
   RealType* out_cell_mass = cell_variables(OUT_CELL_MASS);
+  RealType* in_e = cell_variables(IN_E);
+  RealType* out_e = cell_variables(OUT_E);
 
   RealType* directional_lagrangian_volume = cell_variables(DIRECTIONAL_LAGRANGIAN_VOLUME);
   RealType* directional_lagrangian_density = cell_variables(DIRECTIONAL_LAGRANGIAN_DENSITY);
@@ -511,6 +513,8 @@ void Simulation::Run() {
 
   RealType* in_u = vertice_variables(IN_U);
   RealType* in_v = vertice_variables(IN_V);
+  RealType* out_u = vertice_variables(OUT_U);
+  RealType* out_v = vertice_variables(OUT_V);
 
   RealType* u_ref = vertice_variables(U_REF);
   
@@ -536,6 +540,9 @@ void Simulation::Run() {
 
   RealType* mass_flux_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
   RealType* mass_flux_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
+
+  RealType* e_flux_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
+  RealType* e_flux_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
 
   // INIT
 
@@ -563,7 +570,10 @@ void Simulation::Run() {
   std::vector<RealType> time_reconstruct_0;
   std::vector<RealType> time_reconstruct_boundary_0;
   std::vector<RealType> time_project_intensive_variable_0;
-  
+  std::vector<RealType> time_mass_project_intensive_variable_0;
+  std::vector<RealType> time_project_nodal_intensive_variable_0;
+  std::vector<RealType> time_project_mass_0;
+ 
   // Will hold the range of all simulation variables (including
   // temporaries for each time step).
   std::stringstream sstream;
@@ -653,9 +663,28 @@ void Simulation::Run() {
       clock_gettime(CLOCK_REALTIME, &time1);
       ProjectMassX(nx, ny, in_cell_mass, mass_flux_x, out_cell_mass);
       clock_gettime(CLOCK_REALTIME, &time2);
-      time_project_intensive_variable_0.push_back(diff(time1, time2));
+      time_project_mass_0.push_back(diff(time1, time2));
    
+      clock_gettime(CLOCK_REALTIME, &time1);
+      ReconstructIntensiveVariableFluxOrder1X(nx, ny, halo_width, mass_flux_x, in_e, e_flux_x);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_project_intensive_variable_0.push_back(diff(time1, time2));
+      ReconstructIntensiveVariableFluxOrder1BoundaryX(nx, ny, halo_width, mass_flux_x, in_e, e_flux_x);
+
+      clock_gettime(CLOCK_REALTIME, &time1);
+      MassProjectIntensiveVariableX(nx, ny, in_cell_mass, in_e, e_flux_x, out_cell_mass, out_e);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_mass_project_intensive_variable_0.push_back(diff(time1, time2));
+
+      clock_gettime(CLOCK_REALTIME, &time1);
+      ProjectNodalIntensiveVariableX(nx, ny, halo_width, in_cell_mass, in_u, mass_flux_x, out_u);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_project_nodal_intensive_variable_0.push_back(diff(time1, time2));
+      ProjectNodalIntensiveVariableBoundaryX(nx, ny, halo_width, in_cell_mass, in_u, mass_flux_x, out_u);
+
       std::swap(in_cell_mass, out_cell_mass);
+      std::swap(in_e, out_e);
+      //     std::swap(in_u, out_u);
 
       //Projection Y.
 
@@ -679,9 +708,28 @@ void Simulation::Run() {
       clock_gettime(CLOCK_REALTIME, &time1);
       ProjectMassY(nx, ny, in_cell_mass, mass_flux_y, out_cell_mass);
       clock_gettime(CLOCK_REALTIME, &time2);
+      time_project_mass_0.push_back(diff(time1, time2));
+
+      clock_gettime(CLOCK_REALTIME, &time1);
+      ReconstructIntensiveVariableFluxOrder1Y(nx, ny, halo_width, mass_flux_y, in_e, e_flux_y);
+      clock_gettime(CLOCK_REALTIME, &time2);
       time_project_intensive_variable_0.push_back(diff(time1, time2));
+      ReconstructIntensiveVariableFluxOrder1BoundaryY(nx, ny, halo_width, mass_flux_y, in_e, e_flux_y);
+
+      clock_gettime(CLOCK_REALTIME, &time1);
+      MassProjectIntensiveVariableY(nx, ny, in_cell_mass, in_e, e_flux_y, out_cell_mass, out_e);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_mass_project_intensive_variable_0.push_back(diff(time1, time2));
+      
+      clock_gettime(CLOCK_REALTIME, &time1);
+      ProjectNodalIntensiveVariableY(nx, ny, halo_width, in_cell_mass, in_v, mass_flux_y, out_v);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_project_nodal_intensive_variable_0.push_back(diff(time1, time2));
+      ProjectNodalIntensiveVariableBoundaryY(nx, ny, halo_width, in_cell_mass, in_v, mass_flux_y, out_v);
 
       std::swap(in_cell_mass, out_cell_mass);
+      std::swap(in_e, out_e);
+      //      std::swap(in_v, out_v);
 
       // // PREDICTION.
       // clock_gettime(CLOCK_REALTIME, &time1);
@@ -846,7 +894,10 @@ void Simulation::Run() {
   PrintTimings(time_compute_volume_fluxes_0, "ComputeVolumeFluxes");
   PrintTimings(time_reconstruct_0, "Reconstruct");
   PrintTimings(time_reconstruct_boundary_0, "ReconstructBoundary");
+  PrintTimings(time_project_mass_0, "ProjectMass");
   PrintTimings(time_project_intensive_variable_0, "ProjectIntensiveVariable");
+  PrintTimings(time_project_nodal_intensive_variable_0, "ProjectNodalIntensiveVariable");
+  PrintTimings(time_mass_project_intensive_variable_0, "MassProjectIntensiveVariable");
 
   // PrintTimings(time_compressible_euler_physical_to_conservative_0, "CompressibleEulerPhysicalToConservative");
   // PrintTimings(time_compressible_euler_conservative_to_physical_0, "CompressibleEulerConservativeToPhysical");
