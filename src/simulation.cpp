@@ -765,23 +765,22 @@ void Simulation::Run() {
 
       const RealType gamma = 1.4;
 
-      const RealType p_star = 0.466294;
-      const RealType u_star = 1.36091;
+      const RealType p_star = 0.30313;
+      const RealType u_star = 0.927453;
 
       const RealType x0 = 0.5;
 
       const RealType t = clock.time();
-
+      
       RealType* cell_centers_x = cell_variables(CELL_CENTERS_X);
 
-      // RiemannAnalyticalSolver(rho_left, u_left, p_left,
-      // 			      rho_right, u_right, p_right,
-      // 			      p_star, u_star, 
-      // 			      gamma,
-      // 			      t, x0, 
-      // 			      m_grid.nb_cells(),
-      // 			      cell_centers_x,
-      // 			      rho_ref, u_ref, p_ref);
+      RiemannAnalyticalSolver(rho_left, u_left, p_left,
+      			      rho_right, u_right, p_right,
+      			      gamma,
+      			      t, x0, 
+      			      m_grid.nb_cells(),
+      			      cell_centers_x,
+      			      rho_ref, u_ref, p_ref);
 			      
 
       //assert(0);
