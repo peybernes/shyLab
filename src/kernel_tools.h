@@ -22,6 +22,9 @@ extern "C" {
 #endif
 
 
+static inline RealType EquationOfState (RealType rho, RealType e)
+  {return  (1.4-1.0)*rho*e; }
+
 static inline RealType EquationOfStatePerfectGas(RealType gamma, RealType rho, RealType ux, RealType uy, RealType total_energy) {
 
   const RealType one = 1.0;

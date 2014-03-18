@@ -1,0 +1,87 @@
+#ifndef KERNEL_LAGRANGE_2D_H
+#define KERNEL_LAGRANGE_2D_H
+
+typedef int index_t;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+void LagrangePressurePredicted(int nx,
+			       int ny,
+			       RealType dt,
+		 	       RealType dx,
+		       	       RealType dy,
+	       		       const RealType* in_mass,
+			       const RealType* in_enery,	 
+			       const RealType* in_velocity_x,
+		       	       const RealType* in_velocity_y,
+			       RealType* out_pressure,
+	       	      	       RealType* out_predicted_pressure,
+       			       RealType* out_pseudo_pressure);
+
+void LagrangeVelocityPredicted(int nx,
+			    int ny,
+			    RealType dt,
+			    RealType dx,
+			    RealType dy,
+			    const RealType* in_mass,
+			    const RealType* in_pressure,
+			    const RealType* in_pseudo_pressure,
+			    const RealType* in_velocity_x,
+			    const RealType* in_velocity_y,
+			    RealType* out_velocity_x,
+			    RealType* out_velocity_y);
+
+void LagrangeCorrection(int nx,
+			int ny,
+			RealType dt,
+			RealType dx,
+			RealType dy,
+			const RealType* in_mass,
+			const RealType* in_enery,
+			const RealType* in_pressure,
+			const RealType* in_pseudo_pressure,
+			const RealType* in_velocity_x,
+			const RealType* in_velocity_y,
+			RealType* out_enery);
+
+
+void LagrangeVelocityCorrection(int nx,
+				int ny,
+				const RealType*  in_velocity_x,
+				const RealType*  in_velocity_y,
+				const RealType*  predicted_velocity_x,
+				const RealType*  predicted_velocity_y,
+				RealType*  lagrangian_velocity_x,
+				RealType*  lagrangian_velocity_y);
+
+
+void PeriodicBoundaryCopy(int nx,
+			  int ny,
+			  RealType*  in_velocity_x,
+			  RealType*  in_velocity_y);
+
+
+
+
+void PeriodicBoundaryVelocityPrediction(int nx,
+					int ny,
+					RealType dt,
+					RealType dx,
+					RealType dy,
+					const RealType*  in_mass,
+					const RealType*  in_pressure,
+					const RealType*  in_pseudo_pressure,
+					const RealType*  in_velocity_x,
+					const RealType*  in_velocity_y,
+					RealType*  out_velocity_x,
+					RealType*  out_velocity_y);
+
+#ifdef __cplusplus
+}
+#endif
+
+
+#endif // KERNEL_LAGRANGE_2D_H
