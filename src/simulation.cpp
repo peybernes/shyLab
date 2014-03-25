@@ -764,9 +764,17 @@ void Simulation::Run() {
       time_project_nodal_intensive_variable_0.push_back(diff(time1, time2));
       ProjectNodalIntensiveVariableBoundaryX(nx, ny, halo_width, in_cell_mass, u_lag, mass_flux_x, out_u);
 
+     // /*    Projection X _ v.   (projection of mv, then back to v)   
+      clock_gettime(CLOCK_REALTIME, &time1);
+      ProjectNodalIntensiveVariableX(nx, ny, halo_width, in_cell_mass, v_lag, mass_flux_x, out_v);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_project_nodal_intensive_variable_0.push_back(diff(time1, time2));
+      ProjectNodalIntensiveVariableBoundaryX(nx, ny, halo_width, in_cell_mass, v_lag, mass_flux_x, out_v);
+
       std::swap(in_cell_mass, out_cell_mass);
       std::swap(e_lag, out_e);
       std::swap(in_u, out_u);
+      std::swap(in_v, out_v);
 
     /*========================*/
       // Projection Y.
@@ -809,6 +817,13 @@ void Simulation::Run() {
       
      // /*    Projection X _ u.   (projection of mu, then back to u)   
       clock_gettime(CLOCK_REALTIME, &time1);
+      ProjectNodalIntensiveVariableY(nx, ny, halo_width, in_cell_mass, u_lag, mass_flux_y, out_u);
+      clock_gettime(CLOCK_REALTIME, &time2);
+      time_project_nodal_intensive_variable_0.push_back(diff(time1, time2));
+      ProjectNodalIntensiveVariableBoundaryY(nx, ny, halo_width, in_cell_mass, u_lag, mass_flux_y, out_u);
+
+     // /*    Projection X _ v.   (projection of mu, then back to v)   
+      clock_gettime(CLOCK_REALTIME, &time1);
       ProjectNodalIntensiveVariableY(nx, ny, halo_width, in_cell_mass, v_lag, mass_flux_y, out_v);
       clock_gettime(CLOCK_REALTIME, &time2);
       time_project_nodal_intensive_variable_0.push_back(diff(time1, time2));
@@ -816,6 +831,7 @@ void Simulation::Run() {
 
       std::swap(in_cell_mass, out_cell_mass);
       std::swap(in_e, out_e);
+      std::swap(in_u, out_u);
       std::swap(in_v, out_v);
       //      std::swap(in_v, out_v);
 
