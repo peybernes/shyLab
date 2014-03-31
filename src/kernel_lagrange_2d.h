@@ -7,6 +7,16 @@ typedef int index_t;
 extern "C" {
 #endif
 
+RealType TimeStep(int nx,
+		  int ny,
+		  const RealType dx,
+		  const RealType dy,
+		  const RealType CFL,
+		  const RealType* density,
+		  const RealType* pressure,
+		  const RealType* in_velocity_x,
+		  const RealType* in_velocity_y);
+
 
 void LagrangePressurePredicted(int nx,
 			       int ny,

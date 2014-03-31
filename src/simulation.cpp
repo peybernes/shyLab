@@ -511,6 +511,9 @@ void Simulation::Run() {
   RealType* directional_lagrangian_volume = cell_variables(DIRECTIONAL_LAGRANGIAN_VOLUME);
   RealType* directional_lagrangian_density = cell_variables(DIRECTIONAL_LAGRANGIAN_DENSITY);
 
+  RealType* directional_lagrangian_volume_y = cell_variables(DIRECTIONAL_LAGRANGIAN_VOLUME);
+  RealType* directional_lagrangian_density_y = cell_variables(DIRECTIONAL_LAGRANGIAN_DENSITY);
+
   RealType* rho_ref = cell_variables(RHO_REF);
   RealType* p_ref = cell_variables(P_REF);
 
@@ -518,8 +521,8 @@ void Simulation::Run() {
   RealType* in_v = vertice_variables(IN_V);
   RealType* out_u = vertice_variables(OUT_U);
   RealType* out_v = vertice_variables(OUT_V);
-  RealType* predicted_u = vertice_variables(IN_U);
-  RealType* predicted_v = vertice_variables(IN_V);
+  RealType* predicted_u = vertice_variables(PREDICTED_U);
+  RealType* predicted_v = vertice_variables(PREDICTED_V);
 
   RealType* u_ref = vertice_variables(U_REF);
 
@@ -544,8 +547,8 @@ void Simulation::Run() {
   RealType* mass_flux_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
   RealType* mass_flux_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
 
-  RealType* e_flux_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
-  RealType* e_flux_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
+  RealType* energy_flux_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
+  RealType* energy_flux_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
 
   // Node local variables.
   RealType* u_lag = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
@@ -557,6 +560,7 @@ void Simulation::Run() {
   RealType* e_lag = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
 
   // INIT
+  RealType CFL = 0.3;
 
 #pragma omp parallel for
   for (int iy = 0; iy < ny; ++iy) {
@@ -566,8 +570,9 @@ void Simulation::Run() {
 
       const RealType x = ix * dx;
       const RealType y = iy * dy;
-
+      cell_volumes[cell_ooo] = dx * dy;
       in_cell_mass[cell_ooo] = in_rho[cell_ooo] * cell_volumes[cell_ooo];
+      in_p[cell_ooo] = 0.4 * in_rho[cell_ooo] * in_e[cell_ooo];
       cell_pseudo_pressure[cell_ooo] = 0.0;
       predicted_pressure[cell_ooo]=0.0;
       e_lag[cell_ooo]=0.0;
@@ -579,8 +584,8 @@ void Simulation::Run() {
 
       const int node_ooo = ((nx + 1) * iy) +ix;
 
-      u_lag[node_ooo] = in_u[node_ooo];
-      v_lag[node_ooo] = in_v[node_ooo];
+      u_lag[node_ooo] = 0.0;
+      v_lag[node_ooo] = 0.0;
 
     }
   }
@@ -660,251 +665,264 @@ void Simulation::Run() {
     const RealType dz = (m_grid.zmax() - m_grid.zmin()) / nz;
 
     // Arbitrary. Should be computed using CFL constraint,
-    const RealType dt = 0.1 * dx;
+    RealType dt;
 
     const RealType kappa = 1.0 / 3.0;
 
-    std::cerr << "dt=" << dt << ", dx=" << dx << ", dy=" << dy << "\n";
+    //std::cerr << "dt=" << dt << ", dx=" << dx << ", dy=" << dy << "\n";
 
     struct timespec time1;
     struct timespec time2;
 
     if (m_grid.dimension() == 2) {
 
+    dt = TimeStep(nx, ny, dx, dy, CFL, in_rho, in_p, in_u, in_v);
+    std::cerr << "          dt = " << dt << "\n";
+   
     /*========================*/
-    // Lagrange  2D.
+    // Lagrange 2nd order  2D.
     /*========================*/
+
     /*force periodic boundary conditions at each time step, is it needed ? */
-    clock_gettime(CLOCK_REALTIME, &time1);
+    /*  std::swap(e_lag,in_e); when skipping lagrangian step  for testing projection only
+	std::swap(u_lag,in_u);*/
+    
+      clock_gettime(CLOCK_REALTIME, &time1);
     PeriodicBoundaryCopy(nx, ny, in_u, in_v);
     clock_gettime(CLOCK_REALTIME, &time2);
     time_PeriodicBoundary.push_back(diff(time1, time2)); 
+    
 
-
+        
     clock_gettime(CLOCK_REALTIME, &time1);
     LagrangePressurePredicted(nx, ny, dt, dx, dy, in_cell_mass, in_e, in_u, in_v,
 			    in_p , predicted_pressure, cell_pseudo_pressure);
     clock_gettime(CLOCK_REALTIME, &time2);
     time_LagrangePressurePredicted.push_back(diff(time1, time2)); 
+   
 
-
-
-    clock_gettime(CLOCK_REALTIME, &time1);
+    
+     clock_gettime(CLOCK_REALTIME, &time1);
     LagrangeVelocityPredicted(nx, ny, dt, dx, dy, in_cell_mass, predicted_pressure,cell_pseudo_pressure, in_u, in_v,
 			   predicted_u , predicted_v);
     clock_gettime(CLOCK_REALTIME, &time2);
     time_LagrangeVelocityPredicted.push_back(diff(time1, time2)); 
-
-
-    clock_gettime(CLOCK_REALTIME, &time1);
+    
+    
+    
+clock_gettime(CLOCK_REALTIME, &time1);
     PeriodicBoundaryVelocityPrediction(nx, ny, dt, dx, dy, in_cell_mass, predicted_pressure,cell_pseudo_pressure, in_u, in_v,
 			   predicted_u , predicted_v);
     clock_gettime(CLOCK_REALTIME, &time2);
     time_PeriodicBoundary.push_back(diff(time1, time2));
-
-
+    
+    
+    
    clock_gettime(CLOCK_REALTIME, &time1);
-   LagrangeCorrection(nx, ny, dt, dx, dy, in_cell_mass, in_e, predicted_pressure,cell_pseudo_pressure, predicted_u, predicted_v,e_lag);
+   LagrangeCorrection(nx, ny, dt, dx, dy, in_cell_mass, in_e, predicted_pressure,cell_pseudo_pressure, predicted_u, predicted_v,
+				     e_lag);
     clock_gettime(CLOCK_REALTIME, &time2);
     time_LagrangeCorrection.push_back(diff(time1, time2)); 
-
-
+    
+    
     clock_gettime(CLOCK_REALTIME, &time1);
     LagrangeVelocityCorrection(nx, ny, in_u, in_v, predicted_u, predicted_v,
-			       u_lag, v_lag);
+ u_lag, v_lag);
     clock_gettime(CLOCK_REALTIME, &time2);
     time_LagrangeVelocityCorrection.push_back(diff(time1, time2)); 
 
 
-    /*========================*/
-      // Projection X.
-    /*========================*/
-
-    // /*    Projection X _mass .
-
-      clock_gettime(CLOCK_REALTIME, &time1);
-      ComputeDirectionalLagrangianQuantitiesX(nx, ny, dt, dx, dy, predicted_u, in_cell_mass, volume_fluxes_x, directional_lagrangian_volume, directional_lagrangian_density);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_compute_volume_fluxes_0.push_back(diff(time1, time2));
+    //========================
+    //    Projection X _mass .
+    //========================
     
-      //      CheckFluxPeriodicalPropertyX(nx, ny, volume_fluxes_x);
+    /*  
+     clock_gettime(CLOCK_REALTIME, &time1);
+     ComputeDirectionalLagrangianQuantitiesX(nx, ny, dt, dx, dy, predicted_u,
+					     in_cell_mass,
+					     volume_fluxes_x, directional_lagrangian_volume, directional_lagrangian_density);
+     clock_gettime(CLOCK_REALTIME, &time2);
+     time_compute_volume_fluxes_0.push_back(diff(time1, time2));
+    
+     //     CheckFluxPeriodicalPropertyX(nx, ny, volume_fluxes_x);
+
+     clock_gettime(CLOCK_REALTIME, &time1);
+     ReconstructMassFluxOrder1X(nx, ny, halo_width, volume_fluxes_x, directional_lagrangian_density, mass_flux_x);
+     clock_gettime(CLOCK_REALTIME, &time2);
+     // time_reconstruct_Mass.push_back(diff(time1, time2));
+
+     clock_gettime(CLOCK_REALTIME, &time1);
+     ReconstructMassFluxOrder1BoundaryX(nx, ny, halo_width, volume_fluxes_x, directional_lagrangian_density, mass_flux_x);
+     clock_gettime(CLOCK_REALTIME, &time2);
+     // time_PeriodicBoundary.push_back(diff(time1, time2));
+
+     // CheckFluxPeriodicalPropertyX(nx, ny, mass_flux_x);
+
+     clock_gettime(CLOCK_REALTIME, &time1);
+     ProjectMassX(nx, ny, in_cell_mass, mass_flux_x, out_cell_mass);
+     clock_gettime(CLOCK_REALTIME, &time2);
+     // time_project_Mass.push_back(diff(time1, time2));
+    
+        
+     // ========================
+     //     Projection X _ e. (projection of mass*energy then back to e )
+     // ========================
+     
+     clock_gettime(CLOCK_REALTIME, &time1);
+     ReconstructIntensiveVariableFluxOrder1X(nx, ny, halo_width, mass_flux_x, e_lag,
+					    energy_flux_x);
+     clock_gettime(CLOCK_REALTIME, &time2);
+     // time_reconstructEnergy.push_back(diff(time1, time2));
+
+     clock_gettime(CLOCK_REALTIME, &time1);
+     ReconstructIntensiveVariableFluxOrder1BoundaryX(nx, ny, halo_width, mass_flux_x, e_lag,
+						     energy_flux_x );
+     clock_gettime(CLOCK_REALTIME, &time2);
+     // time_PeriodicBoundary.push_back(diff(time1, time2));
+
+     clock_gettime(CLOCK_REALTIME, &time1);
+     MassProjectIntensiveVariableX(nx, ny , in_cell_mass,e_lag, energy_flux_x, out_cell_mass,
+				   out_e);
+     clock_gettime(CLOCK_REALTIME, &time2);
+     // time_projectEnergy.push_back(diff(time1, time2));
+     
+     
+     // ========================
+     //     Projection X _ u.   (projection of mu, then back to u)   
+     // ========================
+        
+        clock_gettime(CLOCK_REALTIME, &time1);
+	ProjectNodalIntensiveVariableX(nx,ny,halo_width,in_cell_mass,out_cell_mass, u_lag, mass_flux_x,
+				    out_u);
+     clock_gettime(CLOCK_REALTIME, &time2);
+     // time_projectNodalVelocity.push_back(diff(time1, time2));
 
       clock_gettime(CLOCK_REALTIME, &time1);
-      ReconstructMassFluxOrder1X(nx, ny, halo_width, volume_fluxes_x, directional_lagrangian_density, mass_flux_x);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_reconstruct_0.push_back(diff(time1, time2));
+      ProjectNodalIntensiveVariableBoundaryX(nx,ny,halo_width,in_cell_mass, out_cell_mass,u_lag, mass_flux_x,
+					    out_u);
+     clock_gettime(CLOCK_REALTIME, &time2);
+     // time_PeriodicBoundary.push_back(diff(time1, time2));
+
+
+     // ========================
+     //     Projection X _ v.   (projection of mv, then back to v)   
+     // ========================
+        
+        clock_gettime(CLOCK_REALTIME, &time1);
+	ProjectNodalIntensiveVariableX(nx,ny,halo_width,in_cell_mass,out_cell_mass, v_lag, mass_flux_x,
+				    out_v);
+     clock_gettime(CLOCK_REALTIME, &time2);
+     // time_projectNodalVelocity.push_back(diff(time1, time2));
 
       clock_gettime(CLOCK_REALTIME, &time1);
-      ReconstructMassFluxOrder1BoundaryX(nx, ny, halo_width, volume_fluxes_x, directional_lagrangian_density, mass_flux_x);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_reconstruct_boundary_0.push_back(diff(time1, time2));
+      ProjectNodalIntensiveVariableBoundaryX(nx,ny,halo_width,in_cell_mass, out_cell_mass,v_lag, mass_flux_x,
+					    out_v);
+     clock_gettime(CLOCK_REALTIME, &time2);
+     // time_PeriodicBoundary.push_back(diff(time1, time2));
+     
 
-      clock_gettime(CLOCK_REALTIME, &time1);
-      ProjectMassX(nx, ny, in_cell_mass, mass_flux_x, out_cell_mass);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_project_mass_0.push_back(diff(time1, time2));
+     std::swap(in_cell_mass, out_cell_mass);
+     std::swap(u_lag, out_u);
+     std::swap(v_lag, out_v);
+     std::swap(e_lag, out_e);
+*/
+     //===================
+    // //Projection Y.
+    //===================
+     
+
+    //==============
+    // mass Y
+    //==============
+
+     clock_gettime(CLOCK_REALTIME, &time1);
+     ComputeDirectionalLagrangianQuantitiesY(nx, ny, dt, dx, dy, predicted_v,
+					     in_cell_mass,
+					     volume_fluxes_y, directional_lagrangian_volume_y, directional_lagrangian_density_y);
+     clock_gettime(CLOCK_REALTIME, &time2);
+     // time_compute_volume_fluxes_0.push_back(diff(time1, time2));
+    
+     //     CheckFluxPeriodicalPropertyY(nx, ny, volume_fluxes_y);
+
+     clock_gettime(CLOCK_REALTIME, &time1);
+     ReconstructMassFluxOrder1Y(nx, ny, halo_width, volume_fluxes_y, directional_lagrangian_density_y, mass_flux_y);
+     clock_gettime(CLOCK_REALTIME, &time2);
+     //time_reconstruct_Mass.push_back(diff(time1, time2));
+
+     clock_gettime(CLOCK_REALTIME, &time1);
+     ReconstructMassFluxOrder1BoundaryY(nx, ny, halo_width, volume_fluxes_y, directional_lagrangian_density_y, mass_flux_y);
+     clock_gettime(CLOCK_REALTIME, &time2);
+     //time_PeriodicBoundary.push_back(diff(time1, time2));
+
+     // CheckFluxPeriodicalPropertyY(nx, ny, mass_flux_y);
+
+     clock_gettime(CLOCK_REALTIME, &time1);
+     ProjectMassY(nx, ny, in_cell_mass, mass_flux_y, out_cell_mass);
+     clock_gettime(CLOCK_REALTIME, &time2);
+     // time_project_Mass.push_back(diff(time1, time2));
+
    
-     // /*    Projection X _ e. (projection of me then back to e)
+    //==============
+    //energy Y
+    //==============
 
-      clock_gettime(CLOCK_REALTIME, &time1);
-      ReconstructIntensiveVariableFluxOrder1X(nx, ny, halo_width, mass_flux_x, e_lag, e_flux_x);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_project_intensive_variable_0.push_back(diff(time1, time2));
-      ReconstructIntensiveVariableFluxOrder1BoundaryX(nx, ny, halo_width, mass_flux_x, e_lag, e_flux_x);
+    clock_gettime(CLOCK_REALTIME, &time1);
+    ReconstructIntensiveVariableFluxOrder1Y(nx, ny, halo_width, mass_flux_y, e_lag,
+					    energy_flux_y);
+    clock_gettime(CLOCK_REALTIME, &time2);
+    //time_reconstructEnergy.push_back(diff(time1, time2));
 
-      clock_gettime(CLOCK_REALTIME, &time1);
-      MassProjectIntensiveVariableX(nx, ny, in_cell_mass, e_lag, e_flux_x, out_cell_mass, out_e);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_mass_project_intensive_variable_0.push_back(diff(time1, time2));
+    clock_gettime(CLOCK_REALTIME, &time1);
+    ReconstructIntensiveVariableFluxOrder1BoundaryY(nx, ny, halo_width, mass_flux_y, e_lag,
+						    energy_flux_y);
+    clock_gettime(CLOCK_REALTIME, &time2);
+    //time_PeriodicBoundary.push_back(diff(time1, time2));
 
-     // /*    Projection X _ u.   (projection of mu, then back to u)   
-      clock_gettime(CLOCK_REALTIME, &time1);
-      ProjectNodalIntensiveVariableX(nx, ny, halo_width, in_cell_mass, u_lag, mass_flux_x, out_u);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_project_nodal_intensive_variable_0.push_back(diff(time1, time2));
-      ProjectNodalIntensiveVariableBoundaryX(nx, ny, halo_width, in_cell_mass, u_lag, mass_flux_x, out_u);
+    clock_gettime(CLOCK_REALTIME, &time1);
+    MassProjectIntensiveVariableY(nx, ny , in_cell_mass,e_lag, energy_flux_y, out_cell_mass,
+				  out_e);
+    clock_gettime(CLOCK_REALTIME, &time2);
+    //time_projectEnergy.push_back(diff(time1, time2));
 
-     // /*    Projection X _ v.   (projection of mv, then back to v)   
-      clock_gettime(CLOCK_REALTIME, &time1);
-      ProjectNodalIntensiveVariableX(nx, ny, halo_width, in_cell_mass, v_lag, mass_flux_x, out_v);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_project_nodal_intensive_variable_0.push_back(diff(time1, time2));
-      ProjectNodalIntensiveVariableBoundaryX(nx, ny, halo_width, in_cell_mass, v_lag, mass_flux_x, out_v);
+    //==============
+    // velocity Y   (u)
+    //==============
 
-      std::swap(in_cell_mass, out_cell_mass);
-      std::swap(e_lag, out_e);
-      std::swap(in_u, out_u);
-      std::swap(in_v, out_v);
+    clock_gettime(CLOCK_REALTIME, &time1);
+    ProjectNodalIntensiveVariableY(nx,ny,halo_width,in_cell_mass,out_cell_mass, u_lag, mass_flux_y,
+				   out_u);
+    clock_gettime(CLOCK_REALTIME, &time2);
+    //time_projectNodalVelocity.push_back(diff(time1, time2));
 
-    /*========================*/
-      // Projection Y.
-    /*========================*/
+    clock_gettime(CLOCK_REALTIME, &time1);
+    ProjectNodalIntensiveVariableBoundaryY(nx,ny,halo_width,in_cell_mass, out_cell_mass,u_lag, mass_flux_y,
+					   out_u);
+    clock_gettime(CLOCK_REALTIME, &time2);
+    //time_PeriodicBoundary.push_back(diff(time1, time2)); 
+  
+    //==============
+    // velocity Y   (v)
+    //==============
 
-    // /*    Projection X _mass .
-      clock_gettime(CLOCK_REALTIME, &time1);
-      ComputeDirectionalLagrangianQuantitiesY(nx, ny, dt, dx, dy, predicted_v, in_cell_mass, volume_fluxes_y, directional_lagrangian_volume, directional_lagrangian_density);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_compute_volume_fluxes_0.push_back(diff(time1, time2));
-    
-      //CheckFluxPeriodicalPropertyY(nx, ny, volume_fluxes_y);
+    clock_gettime(CLOCK_REALTIME, &time1);
+    ProjectNodalIntensiveVariableY(nx,ny,halo_width,in_cell_mass,out_cell_mass, v_lag, mass_flux_y,
+				   out_v);
+    clock_gettime(CLOCK_REALTIME, &time2);
+    //time_projectNodalVelocity.push_back(diff(time1, time2));
 
-      clock_gettime(CLOCK_REALTIME, &time1);
-      ReconstructMassFluxOrder1Y(nx, ny, halo_width, volume_fluxes_y, directional_lagrangian_density, mass_flux_y);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_reconstruct_0.push_back(diff(time1, time2));
-
-      clock_gettime(CLOCK_REALTIME, &time1);
-      ReconstructMassFluxOrder1BoundaryY(nx, ny, halo_width, volume_fluxes_y, directional_lagrangian_density, mass_flux_y);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_reconstruct_boundary_0.push_back(diff(time1, time2));
-
-      clock_gettime(CLOCK_REALTIME, &time1);
-      ProjectMassY(nx, ny, in_cell_mass, mass_flux_y, out_cell_mass);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_project_mass_0.push_back(diff(time1, time2));
-
-     // /*    Projection X _ e. (projection of me then back to e)
-      clock_gettime(CLOCK_REALTIME, &time1);
-      ReconstructIntensiveVariableFluxOrder1Y(nx, ny, halo_width, mass_flux_y, e_lag, e_flux_y);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_project_intensive_variable_0.push_back(diff(time1, time2));
-      ReconstructIntensiveVariableFluxOrder1BoundaryY(nx, ny, halo_width, mass_flux_y, e_lag, e_flux_y);
-
-      clock_gettime(CLOCK_REALTIME, &time1);
-      MassProjectIntensiveVariableY(nx, ny, in_cell_mass, e_lag, e_flux_y, out_cell_mass, out_e);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_mass_project_intensive_variable_0.push_back(diff(time1, time2));
-      
-     // /*    Projection X _ u.   (projection of mu, then back to u)   
-      clock_gettime(CLOCK_REALTIME, &time1);
-      ProjectNodalIntensiveVariableY(nx, ny, halo_width, in_cell_mass, u_lag, mass_flux_y, out_u);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_project_nodal_intensive_variable_0.push_back(diff(time1, time2));
-      ProjectNodalIntensiveVariableBoundaryY(nx, ny, halo_width, in_cell_mass, u_lag, mass_flux_y, out_u);
-
-     // /*    Projection X _ v.   (projection of mu, then back to v)   
-      clock_gettime(CLOCK_REALTIME, &time1);
-      ProjectNodalIntensiveVariableY(nx, ny, halo_width, in_cell_mass, v_lag, mass_flux_y, out_v);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_project_nodal_intensive_variable_0.push_back(diff(time1, time2));
-      ProjectNodalIntensiveVariableBoundaryY(nx, ny, halo_width, in_cell_mass, v_lag, mass_flux_y, out_v);
-
-      std::swap(in_cell_mass, out_cell_mass);
-      std::swap(in_e, out_e);
-      std::swap(in_u, out_u);
-      std::swap(in_v, out_v);
-      //      std::swap(in_v, out_v);
-
-      // // PREDICTION.
-      // clock_gettime(CLOCK_REALTIME, &time1);
-      // CompressibleEulerPhysicalToConservative(nx, ny, in_rho, in_u, in_v, in_e,
-      // 					      predicted_rho, predicted_u, predicted_v, predicted_e);
-      // clock_gettime(CLOCK_REALTIME, &time2);
-      // time_compressible_euler_physical_to_conservative_0.push_back(diff(time1, time2));
-
-      // clock_gettime(CLOCK_REALTIME, &time1);
-      // CompressibleEulerFvUwKappa2dX(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_u, in_v, in_e, 
-      // 				    predicted_rho, predicted_u, predicted_v, predicted_e);
-      // clock_gettime(CLOCK_REALTIME, &time2);
-      // time_compressible_euler_fv_uw_kappa_2d_x_0.push_back(diff(time1, time2));
+    clock_gettime(CLOCK_REALTIME, &time1);
+    ProjectNodalIntensiveVariableBoundaryY(nx,ny,halo_width,in_cell_mass, out_cell_mass,v_lag, mass_flux_y,
+					   out_v);
+    clock_gettime(CLOCK_REALTIME, &time2);
+    //time_PeriodicBoundary.push_back(diff(time1, time2)); 
+ 
+  std::swap(in_cell_mass, out_cell_mass); 
+  std::swap(in_u, out_u); 
+  std::swap(in_v, out_v);
+  std::swap(in_e, out_e);
 
 
-      // clock_gettime(CLOCK_REALTIME, &time1);
-      // CompressibleEulerFvUwKappa2dBoundaryConditionsX(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_u, in_v, in_e, 
-      // 						      predicted_rho, predicted_u, predicted_v, predicted_e);
-      // clock_gettime(CLOCK_REALTIME, &time2);
-      // time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_x_0.push_back(diff(time1,time2));
-
-
-      // clock_gettime(CLOCK_REALTIME, &time1);
-      // CompressibleEulerFvUwKappa2dY(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_v, in_u, in_e, 
-      // 				    predicted_rho, predicted_v, predicted_u, predicted_e);
-      // clock_gettime(CLOCK_REALTIME, &time2);
-      // time_compressible_euler_fv_uw_kappa_2d_y_0.push_back(diff(time1, time2));
-
-      // clock_gettime(CLOCK_REALTIME, &time1);
-      // CompressibleEulerFvUwKappa2dBoundaryConditionsY(nx, ny, halo_width, dt, dy, dx, kappa, in_rho, in_v, in_u, in_e, 
-      // 						      predicted_rho, predicted_v, predicted_u, predicted_e);
-      // clock_gettime(CLOCK_REALTIME, &time2);
-      // time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_y_0.push_back(diff(time1,time2));
-
-      // clock_gettime(CLOCK_REALTIME, &time1);
-      // CompressibleEulerConservativeToPhysical(nx, ny, predicted_rho, predicted_u, predicted_v, predicted_e);
-      // clock_gettime(CLOCK_REALTIME, &time2);
-      // time_compressible_euler_conservative_to_physical_0.push_back(diff(time1,time2));
-
-      // // CORRECTION.
-
-      // CompressibleEulerPhysicalToConservative(nx, ny, predicted_rho, predicted_u, predicted_v, predicted_e,
-      // 					      out_rho, out_u, out_v, out_e);
-
-      // CompressibleEulerFvUwKappa2dX(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_u, predicted_v, predicted_e, 
-      // 				    out_rho, out_u, out_v, out_e);
-
-      // CompressibleEulerFvUwKappa2dBoundaryConditionsX(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_u, predicted_v, predicted_e, 
-      // 						      out_rho, out_u, out_v, out_e);
-
-      // CompressibleEulerFvUwKappa2dY(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_v, predicted_u, predicted_e, 
-      // 				    out_rho, out_v, out_u, out_e);
-
-      // CompressibleEulerFvUwKappa2dBoundaryConditionsY(nx, ny, halo_width, dt, dy, dx, kappa, predicted_rho, predicted_v, predicted_u, predicted_e, 
-      // 						      out_rho, out_v, out_u, out_e);
-
-      // CompressibleEulerConservativeToPhysical(nx, ny, out_rho, out_u, out_v, out_e);
-      
-	
-      // for (int iy = 0; iy < ny; ++iy) {
-      // 	for (int ix = 0; ix < nx; ++ix) {
-
-      // 	  const int i = (nx * iy) + ix;
-
-      // 	  out_rho[i] = 0.5 * (in_rho[i] + predicted_rho[i]);
-      // 	  out_u[i] = 0.5 * (in_u[i] + predicted_u[i]);
-      // 	  out_v[i] = 0.5 * (in_v[i] + predicted_v[i]);
-      // 	  out_e[i] = 0.5 * (in_e[i] + predicted_e[i]);
-
-      // 	}
-      // }
+      //  for output
 
   for (int iy = 0; iy < ny; ++iy) {
     for (int ix = 0; ix < nx; ++ix) {
@@ -1006,7 +1024,7 @@ void Simulation::Run() {
 
   std::cerr << "\n-----------------------------------------------------------------------------------------\n\n";
 
-  PrintTimings(time_LagrangePressurePredicted,  "LagrangePressurePredicted_");
+  /* PrintTimings(time_LagrangePressurePredicted,  "LagrangePressurePredicted_");
   PrintTimings(time_LagrangeVelocityPredicted,  "LagrangeVelocityPredicted_");
   PrintTimings(time_LagrangeCorrection,         "LagrangeCorrection________");
   PrintTimings(time_LagrangeVelocityCorrection, "LagrangeVelocityCorrection");
@@ -1017,7 +1035,7 @@ void Simulation::Run() {
   PrintTimings(time_project_intensive_variable_0, "ProjectIntensiveVariable");
   PrintTimings(time_project_nodal_intensive_variable_0, "ProjectNodalIntensiveVariable");
   PrintTimings(time_mass_project_intensive_variable_0, "MassProjectIntensiveVariable");
-
+  */
   // PrintTimings(time_compressible_euler_physical_to_conservative_0, "CompressibleEulerPhysicalToConservative");
   // PrintTimings(time_compressible_euler_conservative_to_physical_0, "CompressibleEulerConservativeToPhysical");
 

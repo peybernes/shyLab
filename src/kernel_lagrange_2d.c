@@ -2,7 +2,49 @@
 #include "cartesian_connectivity.h"
 #include "kernel_tools.h"
 
+#include <cassert>
 #include <cstdio>
+
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
+
+
+RealType TimeStep(int nx,
+		  int ny,
+		  const RealType dx,
+		  const RealType dy,
+		  const RealType CFL,
+		  const RealType* RESTRICT density,
+		  const RealType* RESTRICT pressure,
+		  const RealType* RESTRICT in_velocity_x,
+		  const RealType* RESTRICT in_velocity_y) {
+  RealType max_velocity = 0.0;
+  const RealType GAMMA = 1.4;
+  
+   for (int iy = 0; iy < ny + 1; ++iy) {
+     for (int ix = 0; ix < nx + 1; ++ix) {
+       max_velocity =  MAX(max_velocity,in_velocity_x[iy * (nx + 1) + ix]);
+     }
+   }
+   for (int iy = 0; iy < ny + 1; ++iy) {
+     for (int ix = 0; ix < nx + 1; ++ix) {
+       max_velocity =  MAX(max_velocity,in_velocity_y[iy * (nx + 1) + ix]);
+     }
+   }
+
+   RealType speed_of_sound, p_ooo, rho_ooo;
+   for (int iy = 0; iy < ny; ++iy) {
+     for (int ix = 0; ix < nx; ++ix) {
+       p_ooo = pressure[iy * nx + ix];
+       rho_ooo =  density[iy * nx + ix];
+       speed_of_sound = sqrt(GAMMA*p_ooo/rho_ooo);
+       max_velocity =  MAX(max_velocity,speed_of_sound);
+     }
+   }
+
+   RealType dt = CFL * MIN(dx,dy)/max_velocity;
+   return dt;
+}
 
 void LagrangePressurePredicted(int nx,
 			       int ny,
@@ -21,10 +63,6 @@ void LagrangePressurePredicted(int nx,
 
   //#pragma omp parallel for
   for (int iy = 0; iy < ny; ++iy) {
-    // nothing specific at the border since velocity variable are
-    // defined at nodes
-    // in nx+1*ny+1 array and pressure at the center of cells in nx*ny array
-    // This may change in higher order scheme or with other variable positionning
     for (int ix = 0; ix < nx; ++ix) { 
 
       //DATA LOAD
@@ -47,11 +85,10 @@ void LagrangePressurePredicted(int nx,
 
       const RealType mass_ooo = in_mass[cell_ooo];
 
-      const RealType one_over_mass_ooo = 1.0 / mass_ooo;
       const RealType e_ooo = in_energy[cell_ooo];
       const RealType rho_ooo = mass_ooo / (dx * dy);
       const RealType p_ooo = EquationOfState( rho_ooo, e_ooo);
-      
+                                              
       const RealType delta_vol = 0.5 * dt * 0.5 * (u_x_se + u_x_ne - u_x_sw - u_x_nw) * dy + 
 	0.5 *  dt * 0.5 * (u_y_nw + u_y_ne - u_y_sw - u_y_se) * dx;
 
@@ -59,7 +96,7 @@ void LagrangePressurePredicted(int nx,
       	+ 0.5 * (u_y_nw + u_y_ne - u_y_sw - u_y_se);
 
       // for perfect gas law
-      const RealType cs2 = gamma * p_ooo * one_over_mass_ooo * dx * dy;
+      const RealType cs2 = gamma * p_ooo / rho_ooo;
       const RealType cs =sqrt(cs2);// std::sqrt(gamma * p_ooo * one_over_mass_ooo * dx * dy); // not vectorized on Gcc-- not tested on icc -- 
       
      // viscous pressure  -- one possible formulation with both linear 
@@ -70,11 +107,11 @@ void LagrangePressurePredicted(int nx,
 	1.0 * rho_ooo * delta_v_neg * delta_v_neg; 
       
       const RealType div_u_ooo = 
-	1.0 / dx * (0.5 * (u_x_se + u_x_ne - u_x_sw - u_x_nw)) +
-	1.0 / dy * (0.5 * (u_y_nw + u_y_ne - u_y_sw - u_y_se));
+	1.0 / dx * 0.5 * (u_x_se + u_x_ne - u_x_sw - u_x_nw) +
+	1.0 / dy * 0.5 * (u_y_nw + u_y_ne - u_y_sw - u_y_se);
       
       const RealType e_lag_ooo = e_ooo 
-	- 0.5 * dt * (p_ooo + q_ooo) * div_u_ooo * one_over_mass_ooo * dx * dy;
+	- 0.5 * dt * (p_ooo + q_ooo) * div_u_ooo / mass_ooo * dx * dy;
 
 
       const RealType out_predicted_p_ooo = EquationOfState(mass_ooo / (dx * dy + delta_vol), e_lag_ooo);
@@ -119,7 +156,7 @@ void LagrangeVelocityPredicted(int nx,
 
       out_velocity_x[node_ooo] = out_u_x;
       out_velocity_y[node_ooo] = out_u_y;
-
+        
     }
   }
 }
@@ -164,7 +201,6 @@ void LagrangeCorrection(int nx,
 
       const RealType mass_ooo = in_mass[cell_ooo];
 
-      const RealType one_over_mass_ooo = 1.0 / mass_ooo;
       const RealType e_ooo = in_energy[cell_ooo];
       const RealType p_ooo = in_pressure[cell_ooo];
       const RealType q_ooo = in_pseudo_pressure[cell_ooo];
@@ -174,7 +210,7 @@ void LagrangeCorrection(int nx,
 	1.0 / dy * (0.5 * (u_y_nw + u_y_ne - u_y_sw - u_y_se));
       
       const RealType e_lag_ooo = e_ooo 
-	- dt * (p_ooo + q_ooo) * div_u_ooo * one_over_mass_ooo * dx * dy;
+	- dt * (p_ooo + q_ooo) * div_u_ooo / mass_ooo * dx * dy;
       
 
       out_energy[cell_ooo] = e_lag_ooo;
@@ -266,10 +302,10 @@ for (int ix = 1 ; ix < nx; ++ix){
 
 #include "kernel_lagrange_velocity.h"
 
-  out_velocity_x [pos_bottom_border] = out_u_x; 
-  out_velocity_x [pos_top_border] = out_u_x;
-  out_velocity_y [pos_bottom_border] = out_u_y;
-  out_velocity_y [pos_top_border] = out_u_y;
+  out_velocity_x[pos_bottom_border] = out_u_x; 
+  out_velocity_x[pos_top_border] = out_u_x;
+  out_velocity_y[pos_bottom_border] = out_u_y;
+  out_velocity_y[pos_top_border] = out_u_y;
   // printf("INFO : ix  %d - postop %d, SW %d SE %d NW %d NE %d \n",ix,pos_top_border,cell_SW,cell_SE,cell_NW,cell_NE);
  }
 
@@ -293,13 +329,12 @@ for (int ix = 1 ; ix < nx; ++ix){
 }
 
 // corners
- { int ix = 0;
-   int iy = 0;
-   const int node_ooo = iy * (nx + 1) + ix;
-   
-   const int cell_SW  = nx * ny - 1;
-   const int cell_SE  = (ny - 1) * nx;
-   const int cell_NW  = nx;
+ { 
+   const int node_ooo = 0;
+ 
+   const int cell_SW  = ny * nx -1;
+   const int cell_SE  = (ny - 1) * nx ;
+   const int cell_NW  = nx - 1;
    const int cell_NE  = 0;
 
 #include "kernel_lagrange_velocity.h"

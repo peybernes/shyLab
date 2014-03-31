@@ -14,12 +14,12 @@
   const RealType p_ne = in_pressure[cell_NE];
   const RealType q_ne = in_pseudo_pressure[cell_NE];
 
-  const RealType one_over_mass_ooo = 4.0/(m_sw + m_se + m_nw + m_ne );
+  const RealType nodal_mass_ooo = 0.25 * (m_sw + m_se + m_nw + m_ne );
 
   RealType delta_p_x = 0.5 * ((p_se + q_se + p_ne + q_ne   )
 				   -(p_sw + q_sw + p_nw + q_nw));
   RealType delta_p_y = 0.5 * ((p_nw + q_nw + p_ne + q_ne   )
 				   -(p_sw + q_sw + p_se + q_se));
 
-  RealType out_u_x  = in_velocity_x[node_ooo] -0.5*dt*delta_p_x *one_over_mass_ooo*dy; 
-  RealType out_u_y  = in_velocity_y[node_ooo] -0.5*dt*delta_p_y *one_over_mass_ooo*dx;
+  RealType out_u_x  = in_velocity_x[node_ooo] - 0.5 * dt * delta_p_x / nodal_mass_ooo * dy; 
+  RealType out_u_y  = in_velocity_y[node_ooo] - 0.5 * dt * delta_p_y / nodal_mass_ooo  * dx;
