@@ -16,6 +16,7 @@ public:
   VariableEntry(int id, VariableSupport support,
 		int attribute, VariableRegion region);
   inline bool written() { return m_attribute & WRITTEN; }
+  inline bool written() const { return m_attribute & WRITTEN; }
   inline bool communicated() { return m_attribute & COMMUNICATED; }
   inline bool initializable() { return m_attribute & INITIALIZABLE; }
   inline bool checkpointed() { return m_attribute & PROTECTED; }

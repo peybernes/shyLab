@@ -27,8 +27,6 @@ OutputSimulation::OutputSimulation(Simulation *sim_ptr,
   
   m_name = "OutputSimulation";
 
-  std::cerr << "OutputSimulation event has istep=" << timetable.istep() << "\n";
-
   if (io_format_string == "binary")
     m_io_format = BINARY;
 
@@ -103,12 +101,16 @@ void OutputSimulation::Execute() {
 
     meta_stream << "<PCellData>\n";
 
-    for (int id_var = 0; id_var < NB_CELL_VALUES; ++id_var) {
+    for (VariableDatabase::const_iterator it = m_sim_ptr->variables_database.begin();
+	 it != m_sim_ptr->variables_database.end(); ++it) {
 
-      if (cell_variable_attributes[id_var] & WRITTEN) {
+      const std::string variable_name = it->first;
+      const VariableEntry current_entry = it->second;
+      
+      if (current_entry.written() && current_entry.support() == CELL) {
 
 	meta_stream << "<PDataArray ";
-	WriteVtkXmlScalarHeader(cell_variable_names[id_var], &meta_stream);
+	WriteVtkXmlScalarHeader(variable_name, &meta_stream);
 	meta_stream << "/>\n";
 
       }
@@ -333,14 +335,19 @@ void OutputSimulation::Execute() {
 
     assert(nb_cells == m_sim_ptr->m_grid.nb_cells());
 
-    for (int id_var = 0; id_var < NB_CELL_VALUES; ++id_var) {
+    for (VariableDatabase::const_iterator it = m_sim_ptr->variables_database.begin();
+	 it != m_sim_ptr->variables_database.end(); ++it) {
 
-      if (cell_variable_attributes[id_var] & WRITTEN)
+      const std::string variable_name = it->first;
+      const VariableEntry current_entry = it->second;
+      
+      if (current_entry.written() && current_entry.support() == CELL) {
     	WriteVtkXmlAsciiScalar(nb_cells, 
-    			       m_sim_ptr->cell_variables(id_var),
-    			       cell_variable_names[id_var],
+    			       m_sim_ptr->cell_variables(current_entry.id()),
+    			       variable_name,
     			       &stream);
 
+      }
     }
 
     for (int id_var = 0; id_var < NB_CELL_VECTOR_VALUES; ++id_var) {
@@ -375,14 +382,19 @@ void OutputSimulation::Execute() {
 
     assert(nb_vertices == m_sim_ptr->m_grid.nb_vertices());
 
-    for (int id_var = 0; id_var < NB_VERTICE_VALUES; ++id_var) {
+    for (VariableDatabase::const_iterator it = m_sim_ptr->variables_database.begin();
+	 it != m_sim_ptr->variables_database.end(); ++it) {
 
-      if (vertice_variable_attributes[id_var] & WRITTEN)
+      const std::string variable_name = it->first;
+      const VariableEntry current_entry = it->second;
+      
+      if (current_entry.written() && current_entry.support() == VERTICE) {
     	WriteVtkXmlAsciiScalar(nb_vertices, 
-    			       m_sim_ptr->vertice_variables(id_var),
-    			       vertice_variable_names[id_var],
+    			       m_sim_ptr->vertice_variables(current_entry.id()),
+			       variable_name,
     			       &stream);
 
+      }
     }
 
     for (int id_var = 0; id_var < NB_VERTICE_VECTOR_VALUES; ++id_var) {
