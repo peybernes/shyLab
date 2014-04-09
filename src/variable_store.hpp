@@ -3,14 +3,7 @@
 
 #include <string>
 
-//#include <Eigen/Core>
-
 #include "variable_database.hpp"
-
-//typedef Eigen::Array<RealType, Eigen::Dynamic, Eigen::Dynamic> Container2D;
-//typedef Eigen::Array<RealType, 1, Eigen::Dynamic> ScalarVariable;
-
-//typedef RealType __attribute__ ((aligned(16)))* Container2D;
 
 /// A very thin wrapper around a linear array representing mesh values
 /// stored in a "struct of arrays" fashion.
@@ -29,9 +22,11 @@ public:
   inline int nb_elements() const {return m_nb_elements;}
   inline int padding() {return m_padding;}
   inline int padding() const {return m_padding;}
+  void Validate();
+  void Transpose(int variable_id);
   void DeAllocate();
   RealType* GetVariable(VariableDatabase& db,
-			std::string& variable_name);
+			const std::string& variable_name);
 protected:
   RealType* m_data;
 private:

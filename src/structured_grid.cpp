@@ -254,6 +254,8 @@ void StructuredGrid::ComputeGeometricQuantities(VariableStore* cell_variables,
 
 void StructuredGrid::Load(const ptree& pt) {
 
+  m_name = pt.get<std::string>("name");
+
   m_nx = pt.get<int>("nx", 0);
   m_ny = pt.get<int>("ny", 0);
 

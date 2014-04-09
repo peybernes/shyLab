@@ -7,12 +7,48 @@
 
 	"Timetable": { "iend": "999" },
 	
-	"Grid": { "nx": "200",
+	"Grid": { "name": "grid",
+		  "nx": "200",
 		  "ny": "20",
 		  "xmin": "0.0",
 		  "xmax": "1.0",
 		  "ymin": "0.0",
 		  "ymax": "0.1" },
+
+	"Variables": {
+
+	    "directional_lagrangian_volume_y"  : {"support": "cell"},
+	    "directional_lagrangian_density_y"  : {"support": "cell"},
+
+	    "in_rho"  : {"support": "cell"},
+	    "out_rho" : {"support": "cell"},
+
+	    "in_cell_mass"  : {"support": "cell"},
+	    "out_cell_mass" : {"support": "cell"},
+
+	    "in_e"  : {"support": "cell"},
+	    "out_e" : {"support": "cell"},
+
+	    "in_pressure"  : {"support": "cell"},
+
+	    "rho_ref" : {"support": "cell"},
+	    "p_ref" : {"support": "cell"},
+
+	    "lagrangian_u"  : {"support": "vertice"},
+	    "lagrangian_v"  : {"support": "vertice"},
+
+	    "in_u"  : {"support": "vertice"},
+	    "in_v"  : {"support": "vertice"},
+
+	    "predicted_u"  : {"support": "vertice"},
+	    "predicted_v"  : {"support": "vertice"},
+
+	    "out_u" : {"support": "vertice"},
+	    "out_v" : {"support": "vertice"},
+
+	    "u_ref" : {"support": "vertice"}
+
+	},
 
     	"Events": {
     	

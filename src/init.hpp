@@ -7,6 +7,9 @@
 #include "serialize_fwd.hpp"
 #include "variable_database.hpp"
 
+// Row major layout : C/C++. Column major : Fortran.
+typedef enum {ROW_MAJOR, COLUMN_MAJOR} LayoutType;
+
 class InitVariable : public Event {
 public:
   InitVariable(Simulation*, const Timetable&);
@@ -21,6 +24,7 @@ private:
   std::string m_expression;
   std::string m_stream_name;
   std::string m_var_name;
+  LayoutType m_layout;
 };
 
 #endif // INIT_HPP

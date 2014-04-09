@@ -24,6 +24,7 @@ void ReadTxtAsciiScalar(int n, std::istream *is_ptr, RealType* tab) {
   std::string line = "";
   
   int cnt = 0;
+
   while (getline(*is_ptr, line)) {
 
     if (line.substr(0, 2) == std::string("//")) // ignore comments
@@ -36,7 +37,7 @@ void ReadTxtAsciiScalar(int n, std::istream *is_ptr, RealType* tab) {
       getline(isstream, token);
 	
       if (!ParseToken<RealType>(token, &value))
-	std::cerr << "Bad input: " << token << "\n";
+	std::cerr << "Bad input: \"" << token << "\", expected a floating point number\n";
 
       tab[cnt] = value;
     }
@@ -44,50 +45,25 @@ void ReadTxtAsciiScalar(int n, std::istream *is_ptr, RealType* tab) {
     ++cnt;
   }
 
-  assert(n == cnt);
-}
+  if (n != cnt) {
 
-#ifdef CATALINA2
-void ReadBCFile(const std::ifstream& ifs, 
-		std::vector<RealType>* times_ptr, 
-		std::vector <RealType>* values_ptr) {
+    std::cerr << "ERROR: n=" << n << ", cnt=" << cnt << "\n";
 
-  if (ifs.bad())
-    std::cerr << "Could not read from file. Aborting...\n";
+    assert(n == cnt);
 
-  std::string line;
-  RealType value;
-
-  int cnt = 0;
-  while (getline(ifs, line)) {
-
-    if (line.substr(0, 2) == std::string("#")) // ignore comments
-      {}
-
-    else {
-      std::istringstream isstream(line);
-      std::string token;
-      getline(isstream, token, ' ');
-	
-      if (!ParseToken<RealType>(token, &value))
-	std::cerr << "Bad input: " << token << "\n";
-
-      times_ptr->push_back(value);
-
-      getline(isstream, token, ' ');
-	
-      if (!ParseToken<RealType>(value, token))
-	std::cerr << "Bad input: " << token << "\n";
-
-      values_ptr->push_back(value);
-
-    }
-
-    ++cnt;
   }
-}
-#endif // CATALINA2
 
+}
+
+void WriteTxtAsciiScalar(int n, const RealType* tab, std::ostream* os_ptr) {
+
+  if (os_ptr->bad())
+    std::cerr << "Could not write to file. Aborting...\n";
+  
+  for (int i = 0; i < n; ++i)
+    *os_ptr << tab[i] << "\n";
+
+}
 
 void WriteVTKAsciiTab(int n, const RealType* v,
 		      const std::string& variable_name,

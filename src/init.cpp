@@ -12,6 +12,7 @@ InitVariable::InitVariable(Simulation *sim_ptr, const Timetable &timetable):
   Event(sim_ptr, timetable, PRE) {
  
   m_name = "InitVariable";
+  m_layout = ROW_MAJOR;
 
 }
 
@@ -35,8 +36,10 @@ void InitVariable::Execute() {
 
   const int id_variable = m_variable_entry.id();
 
-  if (!m_expression.empty()) {
+  std::cerr << "InitVariable::Execute, id=" << id_variable << "\n";
 
+  if (!m_expression.empty()) {
+    
     std::cerr << "Initialising variable " << m_var_name 
 	      << " with mathematical expression: \""
 	      << m_expression << "\"\n";
@@ -113,6 +116,13 @@ void InitVariable::Execute() {
     
     ReadTxtAsciiScalar(nb_cells, &ifs, m_sim_ptr->cell_variables(id_variable));
 
+    if (m_layout == COLUMN_MAJOR) {
+
+      std::cerr << "variable_id=" << id_variable << "\n";
+      m_sim_ptr->cell_variables.Transpose(id_variable);
+
+    }
+
     ifs.close();
   }
 }
@@ -128,6 +138,20 @@ void InitVariable::Save(ptree &pt) {
   pt.put_child("Timetable", pt_timetable);
   pt.put("expression", m_expression);
   pt.put("filename", m_stream_name);
+
+  if (m_layout == ROW_MAJOR) {
+
+    pt.put("layout", "row_major");
+
+  } else if (m_layout == COLUMN_MAJOR) {
+
+    pt.put("layout", "column_major");
+
+  } else {
+
+    assert(0);
+
+  }
   
 }
 
@@ -142,14 +166,41 @@ void InitVariable::Load(ptree &pt) {
 
     std::cerr << "ERROR: the variable " << var_name 
 	      << " has not been declared in the simulation.\n";
+    assert(0);
 
   }
 
   m_expression = pt.get<std::string>("expression", "");
   m_stream_name = pt.get<std::string>("filename", "");
   m_var_name = var_name;
+
   m_variable_entry = m_sim_ptr->variables_database[var_name];
+  std::cerr << "InitVariable::Load, variable " << var_name << ", id=" << m_variable_entry.id() << "\n";
   
   assert((!m_expression.empty()) || (!m_stream_name.empty()));
 
+  const std::string layout_name = pt.get<std::string>("layout", "");
+
+  if (layout_name == "row_major") {
+
+    m_layout = ROW_MAJOR;
+
+  } else if (layout_name == "column_major") {
+
+    m_layout = COLUMN_MAJOR;
+
+  } else {
+
+    if (!m_stream_name.empty()) {
+
+      std::cerr << "ERROR: in InitVariable, expected \"row_major\" or \"column_major\", got \"" 
+		<< layout_name << "\"\n";
+      assert(0);
+
+    }
+
+  }
+
 }
+
+

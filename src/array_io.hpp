@@ -6,11 +6,7 @@
 
 void ReadTxtAsciiScalar(int n, std::istream* is_ptr, RealType* tab);
 
-#ifdef CATALINA2
-void ReadBCFile(const std::ifstream& ifs, 
-		std::vector<RealType>* times_ptr, 
-		std::vector <RealType>* values_ptr);
-#endif // CATALINA2
+void WriteTxtAsciiScalar(int n, const RealType* tab, std::ostream* os_ptr);
 
 void WriteVTKAsciiTab(int n, const RealType* tab,
 		      const std::string& variable_name, 

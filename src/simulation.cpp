@@ -91,10 +91,6 @@ void Simulation::CreateVariableDatabase() {
 /// Load simulation from an XML file.
 void Simulation::Load(const std::string &filename) {
 
-  CreateVariableDatabase();
-
-  std::cerr << variables_database.size() << " variables\n";
-
   // Create an empty property tree object
   ptree empty_ptree;
 
@@ -132,20 +128,91 @@ void Simulation::Load(const std::string &filename) {
   ptree pt_numerical_params;
   pt_numerical_params = pt_simulation.get_child("NumericalParams", empty_ptree);
   numerical_params.load(pt_numerical_params);
-  
-  math_parser.RegisterSimulationVariables(variables_database);
-
-  math_parser.SetParameters(physical_params, numerical_params);
-
-  // Load the mesh.
-  // ptree pt_mesh;
-  // pt_mesh = pt_simulation.get_child("Mesh", empty_ptree);
-  // mesh.Load(pt_mesh);
-  // std::cerr << "Mesh filename: " << mesh.filename() << "\n";
 
   ptree pt_grid;
   pt_grid = pt_simulation.get_child("Grid", empty_ptree);
   m_grid.Load(pt_grid);
+  
+  // Register variables statically defined in header.
+  CreateVariableDatabase();
+
+  ptree pt_variables;
+  pt_variables = pt_simulation.get_child("Variables", empty_ptree);
+  
+  BOOST_FOREACH(ptree::value_type &v, pt_variables) {
+
+    VariableEntry current_entry;
+    
+    std::string variable_name = v.first;
+    ptree pt_variable = v.second;
+
+    std::cerr << "new variable: \"" << variable_name << "\"\n";
+
+    const std::string support_name = pt_variable.get<std::string>("support");
+
+    VariableSupport support;
+
+    if (support_name == "cell") {
+     
+      support = CELL;
+ 
+    } else if (support_name == "facet") {
+
+      support = FACET;
+
+    } else if (support_name == "vertice") { 
+
+      support = VERTICE;
+
+    } else {
+
+      std::cerr << "ERROR: " << "wrong support for variable \"" << variable_name 
+		<< "\", expected \"cell\", \"facet\" or \"vertice\", got \"" 
+		<< support_name << "\"\n";
+
+      assert(0);
+      
+    }
+
+    // Id de la variable dans le variable_store (trie par support).
+    int current_variable_id = -1;
+    
+    switch (support) {
+
+    case CELL:
+      current_variable_id =  NumberOfCellVariables(variables_database);
+      break;
+      
+    case VERTICE:
+      current_variable_id =  NumberOfVerticeVariables(variables_database);
+      break;
+
+    case FACET:
+      current_variable_id =  NumberOfFacetVariables(variables_database);
+      break;
+      
+
+    default:
+      assert(0);
+
+    }
+
+    std::cerr << "Current variable id=" << current_variable_id << "\n";
+
+    const int default_attribute = PROTECTED | WRITTEN | COMMUNICATED | INITIALIZABLE;
+    VariableRegion default_region = TOTAL;
+
+    VariableEntry variable_entry(current_variable_id, support, default_attribute, default_region);
+
+    AddVariableInDatabase(variable_name, variable_entry, &variables_database);
+
+  }
+
+  std::cerr << variables_database.size() << " variables created in database\n";
+
+  math_parser.RegisterSimulationVariables(variables_database);
+
+  math_parser.SetParameters(physical_params, numerical_params);
 
   // Load all mathematical expressions.
   ptree pt_math_expressions = 
@@ -361,8 +428,6 @@ void Simulation::Init() {
   
   simulation_timer.restart();
 
-  const int padding = 0;
-  
   const int nb_cells = m_grid.nb_cells();
   assert(0 <= nb_cells);
 
@@ -375,16 +440,16 @@ void Simulation::Init() {
   const int nb_vertices = m_grid.nb_vertices();
   assert(0 <= nb_vertices);
 
-  //assert(0);
+  const int padding = 0;
 
-  cell_variables = VariableStore(NB_CELL_VALUES, nb_cells, m_grid.nx(), m_grid.ny(), padding);
+  const int nb_cell_variables = NumberOfCellVariables(variables_database);
+  cell_variables = VariableStore(nb_cell_variables, nb_cells, m_grid.nx(), m_grid.ny(), padding);
 
-  face_variables = VariableStore(NB_FACE_VALUES, nb_faces, m_grid.nx(), m_grid.ny(), padding);
+  const int nb_facet_variables = NumberOfFacetVariables(variables_database);
+  face_variables = VariableStore(nb_facet_variables, nb_faces, m_grid.nx() + 1, m_grid.ny() + 1, padding);
 
-  // boundary_face_variables = VariableStore(NB_BOUNDARY_FACE_VALUES, 
-  // 					  nb_boundary_faces, m_grid.nx(), m_grid.ny(), padding);
-
-  vertice_variables = VariableStore(NB_VERTICE_VALUES, nb_vertices, m_grid.nx() + 1, m_grid.ny() + 1, padding);
+  const int nb_vertice_variables = NumberOfVerticeVariables(variables_database);
+  vertice_variables = VariableStore(nb_vertice_variables, nb_vertices, m_grid.nx() + 1, m_grid.ny() + 1, padding);
 
   std::cerr << "Allocation of simulation variables: " 
 	    << simulation_timer.elapsed() << "\n";
@@ -395,10 +460,6 @@ void Simulation::Init() {
 				    &face_variables, 
 				    &vertice_variables);
   
-  // mesh.ComputeGeometricQuantities(&cell_variables, 
-  // 				  &face_variables, 
-  // 				  &vertice_variables);
-
   std::cerr << "mesh geometrical quantities: "
 	    << simulation_timer.elapsed() << "\n";
 
@@ -412,8 +473,8 @@ void Simulation::Init() {
   // mesh.WriteMeshBandwith(ofs2);
   // ofs2.close();
 
-  std::cerr << "Mesh face reordering and Cell->face connectivity: " 
-	    << simulation_timer.elapsed() << "\n";
+  // std::cerr << "Mesh face reordering and Cell->face connectivity: " 
+  // 	    << simulation_timer.elapsed() << "\n";
 
   simulation_timer.restart();
 
@@ -486,45 +547,46 @@ void Simulation::Run() {
   MPI_Comm_rank(MPI_COMM_WORLD, &process_rank);
 #endif // HAVE_MPI
 
-  const int ALIGN_BYTES = 64;
-
   const int nb_cells = m_grid.nb_cells();
   const int nb_faces = m_grid.nb_faces();
   const int nb_boundary_faces = 0;
   const int nb_interior_faces = 0;
 
-
   const int nx = m_grid.nx();
   const int ny = m_grid.ny();
 
-  
-  RealType* cell_volumes = cell_variables(CELL_VOLUMES);
+  RealType* cell_volumes = cell_variables.GetVariable(variables_database, "cell_volumes");
+
+  RealType* directional_lagrangian_volume_y = cell_variables.GetVariable(variables_database, "directional_lagrangian_volume_y");
+  RealType* directional_lagrangian_density_y = cell_variables.GetVariable(variables_database, "directional_lagrangian_density_y");
    
-  RealType* in_rho = cell_variables(IN_RHO);
-  RealType* out_rho = cell_variables(OUT_RHO);
-  RealType* in_cell_mass = cell_variables(IN_CELL_MASS);
-  RealType* out_cell_mass = cell_variables(OUT_CELL_MASS);
-  RealType* in_e = cell_variables(IN_E);
-  RealType* out_e = cell_variables(OUT_E);
-  RealType* in_p = cell_variables(IN_P);
+  RealType* in_rho = cell_variables.GetVariable(variables_database, "in_rho");
+  RealType* out_rho = cell_variables.GetVariable(variables_database, "out_rho");
 
-  RealType* directional_lagrangian_volume = cell_variables(DIRECTIONAL_LAGRANGIAN_VOLUME);
-  RealType* directional_lagrangian_density = cell_variables(DIRECTIONAL_LAGRANGIAN_DENSITY);
+  RealType* in_cell_mass = cell_variables.GetVariable(variables_database, "in_cell_mass");
+  RealType* out_cell_mass = cell_variables.GetVariable(variables_database, "out_cell_mass");
 
-  RealType* directional_lagrangian_volume_y = cell_variables(DIRECTIONAL_LAGRANGIAN_VOLUME);
-  RealType* directional_lagrangian_density_y = cell_variables(DIRECTIONAL_LAGRANGIAN_DENSITY);
+  RealType* in_e = cell_variables.GetVariable(variables_database, "in_e");
+  RealType* out_e = cell_variables.GetVariable(variables_database, "out_e");
 
-  RealType* rho_ref = cell_variables(RHO_REF);
-  RealType* p_ref = cell_variables(P_REF);
+  RealType* in_p = cell_variables.GetVariable(variables_database, "in_pressure");
 
-  RealType* in_u = vertice_variables(IN_U);
-  RealType* in_v = vertice_variables(IN_V);
-  RealType* out_u = vertice_variables(OUT_U);
-  RealType* out_v = vertice_variables(OUT_V);
-  RealType* predicted_u = vertice_variables(PREDICTED_U);
-  RealType* predicted_v = vertice_variables(PREDICTED_V);
+  RealType* rho_ref = cell_variables.GetVariable(variables_database, "rho_ref");
+  RealType* p_ref = cell_variables.GetVariable(variables_database, "p_ref");
 
-  RealType* u_ref = vertice_variables(U_REF);
+  RealType* u_lag = vertice_variables.GetVariable(variables_database, "lagrangian_u");
+  RealType* v_lag = vertice_variables.GetVariable(variables_database, "lagrangian_v");
+
+  RealType* in_u = vertice_variables.GetVariable(variables_database, "in_u");
+  RealType* in_v = vertice_variables.GetVariable(variables_database, "in_v");
+
+  RealType* predicted_u = vertice_variables.GetVariable(variables_database, "predicted_u");
+  RealType* predicted_v = vertice_variables.GetVariable(variables_database, "predicted_v");
+
+  RealType* out_u = vertice_variables.GetVariable(variables_database, "out_u");
+  RealType* out_v = vertice_variables.GetVariable(variables_database, "out_v");
+
+  RealType* u_ref = vertice_variables.GetVariable(variables_database, "u_ref");
 
   boost::timer simulation_timer = boost::timer();
 
@@ -541,6 +603,8 @@ void Simulation::Run() {
   const int nb_faces_y = nx * (ny + 1);
 
   // Face local variables.
+  const int ALIGN_BYTES = 64;
+
   RealType* volume_fluxes_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
   RealType* volume_fluxes_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
 
@@ -550,9 +614,6 @@ void Simulation::Run() {
   RealType* energy_flux_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
   RealType* energy_flux_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
 
-  // Node local variables.
-  RealType* u_lag = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
-  RealType* v_lag = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
 
   // Cell local variables.
   RealType* predicted_pressure = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));

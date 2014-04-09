@@ -32,6 +32,19 @@ private:
 
 typedef std::map<std::string, VariableEntry> VariableDatabase;
 
+void AddVariableInDatabase(const std::string& variable_name, 
+			   const VariableEntry& variable_entry, 
+			   VariableDatabase* database_ptr);
+
 void InitVariableDatabase(VariableDatabase* database_ptr);
+
+int NumberOfVariableOfGivenSupport(VariableSupport support, const VariableDatabase& database);
+
+int NumberOfCellVariables(const VariableDatabase& database);
+
+int NumberOfVerticeVariables(const VariableDatabase& database);
+
+int NumberOfFacetVariables(const VariableDatabase& database);
+
 
 #endif // VARIABLE_DATABASE_HPP
