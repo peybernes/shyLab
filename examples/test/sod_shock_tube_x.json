@@ -5,11 +5,11 @@
 	"Clock": { "time": "0.0",
 		   "iteration": "0" },
 
-	"Timetable": { "iend": "999" },
+	"Timetable": { "iend": "800" },
 	
 	"Grid": { "name": "grid",
-		  "nx": "200",
-		  "ny": "20",
+		  "nx": "800",
+		  "ny": "80",
 		  "xmin": "0.0",
 		  "xmax": "1.0",
 		  "ymin": "0.0",
@@ -17,6 +17,8 @@
 
 	"Variables": {
 
+	    "directional_lagrangian_volume"  : {"support": "cell"},
+	    "directional_lagrangian_density"  : {"support": "cell"},
 	    "directional_lagrangian_volume_y"  : {"support": "cell"},
 	    "directional_lagrangian_density_y"  : {"support": "cell"},
 

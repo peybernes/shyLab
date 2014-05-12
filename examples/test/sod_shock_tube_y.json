@@ -8,8 +8,8 @@
 	"Timetable": { "iend": "999" },
 	
 	"Grid": { "name": "grid",
-		  "nx": "20",
-		  "ny": "200",
+		  "nx": "80",
+		  "ny": "800",
 		  "xmin": "0.0",
 		  "xmax": "0.1",
 		  "ymin": "0.0",
@@ -17,6 +17,8 @@
 
 	"Variables": {
 
+	    "directional_lagrangian_volume"  : {"support": "cell"},
+	    "directional_lagrangian_density"  : {"support": "cell"},
 	    "directional_lagrangian_volume_y"  : {"support": "cell"},
 	    "directional_lagrangian_density_y"  : {"support": "cell"},
 
