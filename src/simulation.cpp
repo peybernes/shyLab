@@ -557,6 +557,8 @@ void Simulation::Run() {
 
   RealType* cell_volumes = cell_variables.GetVariable(variables_database, "cell_volumes");
 
+  RealType* directional_lagrangian_volume = cell_variables.GetVariable(variables_database, "directional_lagrangian_volume");
+  RealType* directional_lagrangian_density = cell_variables.GetVariable(variables_database, "directional_lagrangian_density");
   RealType* directional_lagrangian_volume_y = cell_variables.GetVariable(variables_database, "directional_lagrangian_volume_y");
   RealType* directional_lagrangian_density_y = cell_variables.GetVariable(variables_database, "directional_lagrangian_density_y");
    
@@ -797,7 +799,7 @@ clock_gettime(CLOCK_REALTIME, &time1);
     //    Projection X _mass .
     //========================
     
-    /*  
+      
      clock_gettime(CLOCK_REALTIME, &time1);
      ComputeDirectionalLagrangianQuantitiesX(nx, ny, dt, dx, dy, predicted_u,
 					     in_cell_mass,
@@ -880,13 +882,13 @@ clock_gettime(CLOCK_REALTIME, &time1);
 					    out_v);
      clock_gettime(CLOCK_REALTIME, &time2);
      // time_PeriodicBoundary.push_back(diff(time1, time2));
-     
+         
 
      std::swap(in_cell_mass, out_cell_mass);
      std::swap(u_lag, out_u);
      std::swap(v_lag, out_v);
      std::swap(e_lag, out_e);
-*/
+     
      //===================
     // //Projection Y.
     //===================
@@ -976,12 +978,12 @@ clock_gettime(CLOCK_REALTIME, &time1);
 					   out_v);
     clock_gettime(CLOCK_REALTIME, &time2);
     //time_PeriodicBoundary.push_back(diff(time1, time2)); 
- 
+       
   std::swap(in_cell_mass, out_cell_mass); 
   std::swap(in_u, out_u); 
   std::swap(in_v, out_v);
   std::swap(in_e, out_e);
-
+     
 
       //  for output
 
