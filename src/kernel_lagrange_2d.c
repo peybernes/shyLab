@@ -4,9 +4,9 @@
 
 #include <cassert>
 #include <cstdio>
+#include <algorithm>
 
-#define MIN(a,b) (((a)<(b))?(a):(b))
-#define MAX(a,b) (((a)>(b))?(a):(b))
+
 
 
 RealType TimeStep(int nx,
@@ -21,29 +21,37 @@ RealType TimeStep(int nx,
   RealType max_velocity = 0.0;
   const RealType GAMMA = 1.4;
   
-   for (int iy = 0; iy < ny + 1; ++iy) {
-     for (int ix = 0; ix < nx + 1; ++ix) {
-       max_velocity =  MAX(max_velocity,in_velocity_x[iy * (nx + 1) + ix]);
-     }
-   }
-   for (int iy = 0; iy < ny + 1; ++iy) {
-     for (int ix = 0; ix < nx + 1; ++ix) {
-       max_velocity =  MAX(max_velocity,in_velocity_y[iy * (nx + 1) + ix]);
-     }
-   }
+  #pragma omp parallel 
+  {
+    #pragma omp for reduction(max:max_velocity) nowait
+    for (int iy = 0; iy < ny + 1; ++iy) {
+      for (int ix = 0; ix < nx + 1; ++ix) {
+	max_velocity = std::max(max_velocity,in_velocity_x[iy * (nx + 1) + ix]);
+      }
+    }
 
-   RealType speed_of_sound, p_ooo, rho_ooo;
-   for (int iy = 0; iy < ny; ++iy) {
-     for (int ix = 0; ix < nx; ++ix) {
-       p_ooo = pressure[iy * nx + ix];
-       rho_ooo =  density[iy * nx + ix];
-       speed_of_sound = sqrt(GAMMA*p_ooo/rho_ooo);
-       max_velocity =  MAX(max_velocity,speed_of_sound);
-     }
-   }
 
-   RealType dt = CFL * MIN(dx,dy)/max_velocity;
-   return dt;
+    #pragma omp for reduction(max:max_velocity) nowait
+    for (int iy = 0; iy < ny + 1; ++iy) {
+      for (int ix = 0; ix < nx + 1; ++ix) {
+	max_velocity =  std::max(max_velocity,in_velocity_y[iy * (nx + 1) + ix]);
+      }
+    }
+
+    
+    #pragma omp for reduction(max:max_velocity) nowait
+    for (int iy = 0; iy < ny; ++iy) {
+      for (int ix = 0; ix < nx; ++ix) {
+	const RealType	p_ooo = pressure[iy * nx + ix];
+	const RealType rho_ooo =  density[iy * nx + ix];
+	const RealType speed_of_sound = std::sqrt(GAMMA*p_ooo/rho_ooo);
+	max_velocity =  std::max(max_velocity,speed_of_sound);
+      }
+    }
+  }
+
+  RealType dt = CFL * std::min(dx,dy)/max_velocity;
+  return dt;
 }
 
 void LagrangePressurePredicted(int nx,
@@ -61,9 +69,9 @@ void LagrangePressurePredicted(int nx,
 
   const double gamma = 1.4;
 
-  //#pragma omp parallel for
+#pragma omp parallel for
   for (int iy = 0; iy < ny; ++iy) {
-    for (int ix = 0; ix < nx; ++ix) { 
+    for (int ix = 0; ix < nx; ++ix) {  // sqrt fction vectorization with icpc but not with gcc
 
       //DATA LOAD
       const int cell_ooo = nx * iy + ix; 
@@ -97,11 +105,11 @@ void LagrangePressurePredicted(int nx,
 
       // for perfect gas law
       const RealType cs2 = gamma * p_ooo / rho_ooo;
-      const RealType cs =sqrt(cs2);// std::sqrt(gamma * p_ooo * one_over_mass_ooo * dx * dy); // not vectorized on Gcc-- not tested on icc -- 
+      const RealType cs  = std::sqrt(cs2);  
       
-     // viscous pressure  -- one possible formulation with both linear 
-	 // and quadratic coefficient equals to 1.0 ; 
-	 // using negative part of delta_v --  -0.5*(delta_v-abs(delta_v)) for vectorisation*/
+      // viscous pressure  -- one possible formulation with both linear 
+      // and quadratic coefficient equals to 1.0 ; 
+      // using negative part of delta_v --  -0.5*(delta_v-abs(delta_v)) for vectorisation*/
       const RealType delta_v_neg = -0.5 * (delta_v - fabs(delta_v));
       const RealType q_ooo   = 1.0 * rho_ooo * cs * delta_v_neg + 
 	1.0 * rho_ooo * delta_v_neg * delta_v_neg; 
@@ -140,9 +148,8 @@ void LagrangeVelocityPredicted(int nx,
 			       RealType* RESTRICT out_velocity_y)
 {
 
- //#pragma omp parallel for
+#pragma omp parallel for
   for (int iy = 1; iy < ny; ++iy) {
-
     for (int ix = 1; ix < nx; ++ix) {
 
       const int node_ooo = (nx + 1) * iy + ix; 
@@ -152,7 +159,7 @@ void LagrangeVelocityPredicted(int nx,
       const int cell_NW = NodeCellM1P1(node_ooo, iy, nx);
       const int cell_NE = NodeCellP1P1(node_ooo, iy, nx);
 
-    #include "kernel_lagrange_velocity.h"
+#include "kernel_lagrange_velocity.h"
 
       out_velocity_x[node_ooo] = out_u_x;
       out_velocity_y[node_ooo] = out_u_y;
@@ -176,9 +183,8 @@ void LagrangeCorrection(int nx,
 			const RealType* RESTRICT in_velocity_y,
 			RealType* RESTRICT out_energy) {
 
- //#pragma omp parallel for
+#pragma omp parallel for
   for (int iy = 0; iy < ny; ++iy) {
-
     for (int ix = 0; ix < nx ; ++ix) {
 
       //DATA LOAD
@@ -229,9 +235,8 @@ void LagrangeVelocityCorrection(int nx,
 				RealType* RESTRICT lagrangian_velocity_x,
 				RealType* RESTRICT lagrangian_velocity_y)
 {
-//#pragma omp parallel for
+#pragma omp parallel for
   for (int iy = 0; iy < ny+1; ++iy) {
-
     for (int ix = 0; ix < nx+1 ; ++ix) {
       const int node_ooo = iy * (nx + 1) + ix;
       RealType in_u = in_velocity_x[node_ooo];
@@ -257,13 +262,13 @@ void PeriodicBoundaryCopy(int nx,
 			  RealType* RESTRICT in_velocity_x,
 			  RealType* RESTRICT in_velocity_y)
 {
-  for (int ix = 0; ix < nx + 1; ++ix){
+  for (int ix = 0; ix < nx + 1; ++ix){  // not vectorized 
     
     const int pos_bottom_border = ix;
     const int pos_top_border    = ny * (nx + 1) + ix;
     in_velocity_x[pos_top_border] =  in_velocity_x[pos_bottom_border];
     in_velocity_y[pos_top_border] =  in_velocity_y[pos_bottom_border];
- }				   
+  }				   
 
   for (int iy = 0; iy < ny + 1; ++iy){ // not vectorized 
 
@@ -271,7 +276,7 @@ void PeriodicBoundaryCopy(int nx,
     const int pos_right_border = (iy + 1) * (nx + 1) - 1;
     in_velocity_x[pos_right_border] =  in_velocity_x[pos_lefft_border];
     in_velocity_y[pos_right_border] =  in_velocity_y[pos_lefft_border];
- }
+  }
 }
 
 
@@ -289,46 +294,47 @@ void PeriodicBoundaryVelocityPrediction(int nx,
 					RealType* RESTRICT out_velocity_x,
 					RealType* RESTRICT out_velocity_y)
 {
-for (int ix = 1 ; ix < nx; ++ix){
-  //bottom -- top computation
-  const int pos_bottom_border = ix;
-  const int pos_top_border    = ny * (nx + 1) + ix;
-  const int node_ooo = pos_bottom_border;
 
-  const int cell_SW  = NodeCellM1M1(pos_top_border, ny, nx);
-  const int cell_SE  = NodeCellP1M1(pos_top_border, ny, nx);
-  const int cell_NW  = NodeCellM1P1(pos_bottom_border, 0, nx);
-  const int cell_NE  = NodeCellP1P1(pos_bottom_border, 0, nx);
+  for (int ix = 1 ; ix < nx; ++ix){ // not verctorized
+    //bottom -- top computation
+    const int pos_bottom_border = ix;
+    const int pos_top_border    = ny * (nx + 1) + ix;
+    const int node_ooo = pos_bottom_border;
+
+    const int cell_SW  = NodeCellM1M1(pos_top_border, ny, nx);
+    const int cell_SE  = NodeCellP1M1(pos_top_border, ny, nx);
+    const int cell_NW  = NodeCellM1P1(pos_bottom_border, 0, nx);
+    const int cell_NE  = NodeCellP1P1(pos_bottom_border, 0, nx);
 
 #include "kernel_lagrange_velocity.h"
 
-  out_velocity_x[pos_bottom_border] = out_u_x; 
-  out_velocity_x[pos_top_border] = out_u_x;
-  out_velocity_y[pos_bottom_border] = out_u_y;
-  out_velocity_y[pos_top_border] = out_u_y;
-  // printf("INFO : ix  %d - postop %d, SW %d SE %d NW %d NE %d \n",ix,pos_top_border,cell_SW,cell_SE,cell_NW,cell_NE);
+    out_velocity_x[pos_bottom_border] = out_u_x; 
+    out_velocity_x[pos_top_border] = out_u_x;
+    out_velocity_y[pos_bottom_border] = out_u_y;
+    out_velocity_y[pos_top_border] = out_u_y;
+  
+  }
+
+  for (int iy = 1; iy < ny; ++iy){  // not verctorized
+    //left -- right computation 
+    const int pos_lefft_border = iy * (nx + 1);
+    const int pos_right_border = (iy + 1) * (nx + 1) - 1;
+    const int node_ooo = pos_lefft_border;
+
+    const int cell_SW  = NodeCellM1M1(pos_right_border, iy , nx);
+    const int cell_SE  = NodeCellP1M1(pos_lefft_border, iy , nx);
+    const int cell_NW  = NodeCellM1P1(pos_right_border, iy, nx);
+    const int cell_NE  = NodeCellP1P1(pos_lefft_border, iy, nx);
+ 
+#include "kernel_lagrange_velocity.h"
+
+    out_velocity_x [pos_lefft_border] = out_u_x; 
+    out_velocity_x [pos_right_border] = out_u_x;
+    out_velocity_y [pos_lefft_border] = out_u_y;
+    out_velocity_y [pos_right_border] = out_u_y;
  }
 
- for (int iy = 1; iy < ny; ++iy){  // not verctorized
-  //left -- right computation 
-  const int pos_lefft_border = iy * (nx + 1);
-  const int pos_right_border = (iy + 1) * (nx + 1) - 1;
-  const int node_ooo = pos_lefft_border;
-
-  const int cell_SW  = NodeCellM1M1(pos_right_border, iy , nx);
-  const int cell_SE  = NodeCellP1M1(pos_lefft_border, iy , nx);
-  const int cell_NW  = NodeCellM1P1(pos_right_border, iy, nx);
-  const int cell_NE  = NodeCellP1P1(pos_lefft_border, iy, nx);
-  // printf("INFO : iy  %d - right %d, SW %d SE %d NW %d NE %d \n",pos_lefft_border,pos_right_border,cell_SW,cell_SE,cell_NW,cell_NE);
-#include "kernel_lagrange_velocity.h"
-
-  out_velocity_x [pos_lefft_border] = out_u_x; 
-  out_velocity_x [pos_right_border] = out_u_x;
-  out_velocity_y [pos_lefft_border] = out_u_y;
-  out_velocity_y [pos_right_border] = out_u_y;
-}
-
-// corners
+ // corners
  { 
    const int node_ooo = 0;
  
@@ -350,4 +356,16 @@ for (int ix = 1 ; ix < nx; ++ix){
  }
  
 
+}
+
+void CopyVelocity(int nx,
+		  int ny,
+		  const RealType* RESTRICT in_u,
+		  RealType* RESTRICT out_u) {
+  for (int iy = 0; iy < ny + 1; ++iy) { //not vectorised (seems unefficent)
+    for (int ix = 0; ix < nx + 1; ++ix) {
+      const int node_o = iy * (nx + 1) + ix;
+      out_u[node_o] = in_u[node_o];
+    }
+  }
 }

@@ -14,6 +14,8 @@ extern "C" {
 #include "kernel_advection_fv_uw_kappa_3d.h"
 #include "kernel_advection_fv_central_compact_explicit_2d.h"
 #include "kernel_compressible_euler_fv_uw_kappa_2d.h"
+
+// Lagrange Remap kernels
 #include "kernel_ad_projection_2d.h"
 #include "kernel_lagrange_2d.h"
 

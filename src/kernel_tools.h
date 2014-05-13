@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <xmmintrin.h>
+#include <algorithm> 
 
 #define RESTRICT __restrict
 
@@ -21,9 +22,64 @@
 extern "C" {
 #endif
 
+  static inline RealType LimiterMinmod (RealType a, RealType b)
+  {return (a < 0 ? -1.0 : 1.0 ) * (a * b > 0) * std::min(fabs(a),fabs(b));}
+
+
+
 
 static inline RealType EquationOfState (RealType rho, RealType e)
   {return  (1.4-1.0)*rho*e; }
+
+
+static inline RealType MySign(RealType x) {
+
+  return (x > 0.0) - (x < 0.0);
+
+}
+
+static inline RealType MySqrt(RealType z) {
+
+  union
+  {
+    int tmp;
+    float f;
+  } u;
+
+  u.f     = z;
+  u.tmp  -= 1 << 23;          /* Subtract 2^m. */
+  u.tmp >>= 1;                /* Divide by 2. */
+  u.tmp  += 1 << 29;          /* Add ((b + 1) / 2) * 2^m. */
+
+  return u.f;
+
+  /* float r; */
+
+  /* _mm_store_ss(&r, _mm_rsqrt_ss(_mm_load_ss(&x))); */
+
+  /* r *= ((3.0 - r * r * x) * 0.5); */
+  /* r *= ((3.0 - r * r * x) * 0.5); */
+  /* r *= ((3.0 - r * r * x) * 0.5); */
+
+  /* return r * x; */
+
+
+  /* RealType r; */
+
+  /* __m128 in = _mm_load_ss(&x); */
+  /* _mm_store_ss(&r, _mm_mul_ss(in, _mm_rsqrt_ss( in ) ) ); */
+
+  /* /\* float r; *\/ */
+
+  /* /\* _mm_store_ss( & r, _mm_rsqrt_ss( _mm_load_ss( & x ) ) ); *\/ */
+  /* /\* r *= ((3.0f - r * r * x) * 0.5f); *\/ */
+    
+  /* /\* return r; *\/ */
+
+  /* return r; */
+
+  //return std::sqrt(z);
+}
 
 static inline RealType EquationOfStatePerfectGas(RealType gamma, RealType rho, RealType ux, RealType uy, RealType total_energy) {
 

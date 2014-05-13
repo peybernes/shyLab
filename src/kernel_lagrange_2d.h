@@ -89,6 +89,11 @@ void PeriodicBoundaryVelocityPrediction(int nx,
 					RealType*  out_velocity_x,
 					RealType*  out_velocity_y);
 
+void CopyVelocity(int nx,
+		  int ny,
+		  const RealType* in_u,
+		  RealType* out_u);
+
 #ifdef __cplusplus
 }
 #endif
