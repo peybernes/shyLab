@@ -73,7 +73,10 @@ void PeriodicBoundaryCopy(int nx,
 			  RealType*  in_velocity_x,
 			  RealType*  in_velocity_y);
 
-
+void RtBoundaryCopy(int nx,
+		    int ny,
+		    RealType* in_velocity_x,
+		    RealType* in_velocity_y);
 
 
 void PeriodicBoundaryVelocityPrediction(int nx,

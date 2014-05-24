@@ -279,6 +279,25 @@ void PeriodicBoundaryCopy(int nx,
   }
 }
 
+void RtBoundaryCopy(int nx,
+			  int ny,
+			  RealType* RESTRICT in_velocity_x,
+			  RealType* RESTRICT in_velocity_y)
+{
+  for (int ix = 0; ix < nx + 1; ++ix){  // not vectorized 
+    
+    const int pos_bottom_border = ix;
+    const int pos_top_border    = ny * (nx + 1) + ix;
+  }				   
+
+  for (int iy = 0; iy < ny + 1; ++iy){ // not vectorized 
+
+    const int pos_lefft_border = iy * (nx + 1);
+    const int pos_right_border = (iy + 1) * (nx + 1) - 1;
+    in_velocity_x[pos_right_border] =  in_velocity_x[pos_lefft_border];
+    in_velocity_y[pos_right_border] =  in_velocity_y[pos_lefft_border];
+  }
+}
 
 
 void PeriodicBoundaryVelocityPrediction(int nx,
