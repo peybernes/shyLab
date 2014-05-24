@@ -89,6 +89,19 @@ void PeriodicBoundaryVelocityPrediction(int nx,
 					RealType*  out_velocity_x,
 					RealType*  out_velocity_y);
 
+void RtBoundaryVelocityPrediction(int nx,
+				  int ny,
+				  RealType dt,
+				  RealType dx,
+				  RealType dy,
+				  const RealType* in_mass,
+				  const RealType* in_pressure,
+				  const RealType* in_pseudo_pressure,
+				  const RealType* in_velocity_x,
+				  const RealType* in_velocity_y,
+				  RealType* out_velocity_x,
+				  RealType* out_velocity_y);
+
 void CopyVelocity(int nx,
 		  int ny,
 		  const RealType* in_u,

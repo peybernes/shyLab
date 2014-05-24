@@ -70,6 +70,7 @@ add_executable(
     src/kernel_compressible_euler_fv_uw_kappa_2d.c
     src/kernel_ad_projection_2d.c
     src/kernel_lagrange_2d.c
+    src/kernel_ad_projection_2d_boundary_conditions.c
     src/math_parser.cpp
     src/mesh.cpp
     src/mpi_boundary_condition.cpp

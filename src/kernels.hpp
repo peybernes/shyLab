@@ -18,7 +18,7 @@ extern "C" {
 // Lagrange Remap kernels
 #include "kernel_ad_projection_2d.h"
 #include "kernel_lagrange_2d.h"
-
+#include "kernel_ad_projection_2d_boundary_conditions.h"
 
 #ifdef __cplusplus
 }
