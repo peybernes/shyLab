@@ -23,5 +23,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
+#include "kernel_ad_projection_2d_boundary_interface.hpp"
 #endif // KERNELS_HPP_

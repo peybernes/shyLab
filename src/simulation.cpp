@@ -769,7 +769,9 @@ void Simulation::Run() {
       clock_gettime(CLOCK_REALTIME, &time2);
       time_time_step.push_back(diff(time1, time2)); 
 
-      
+  std::cerr << "type of Boundary Conditions : " << numerical_params.BoundaryConditions << "\n";      
+
+  std::cerr << "CFL : " << numerical_params.CFL << "\n"; 
 std::cerr << "          dt = " << dt << "\n";
    
     /*========================*/
@@ -781,7 +783,7 @@ std::cerr << "          dt = " << dt << "\n";
 	std::swap(u_lag,in_u);*/
     
       clock_gettime(CLOCK_REALTIME, &time1);
-    PeriodicBoundaryCopy(nx, ny, in_u, in_v);
+      BoundaryCopy(numerical_params.BoundaryConditions, nx, ny, in_u, in_v);
     //RtBoundaryCopy(nx, ny, in_u, in_v);
     clock_gettime(CLOCK_REALTIME, &time2);
     time_periodic_boundary.push_back(diff(time1, time2)); 
@@ -805,7 +807,7 @@ std::cerr << "          dt = " << dt << "\n";
     
     
 clock_gettime(CLOCK_REALTIME, &time1);
-    PeriodicBoundaryVelocityPrediction(nx, ny, dt, dx, dy, in_cell_mass, predicted_pressure,cell_pseudo_pressure, in_u, in_v,
+ BoundaryVelocityPrediction(numerical_params.BoundaryConditions, nx, ny, dt, dx, dy, in_cell_mass, predicted_pressure,cell_pseudo_pressure, in_u, in_v,
 			   predicted_u , predicted_v);
     //RtBoundaryVelocityPrediction(nx, ny, dt, dx, dy, in_cell_mass, predicted_pressure,cell_pseudo_pressure, in_u, in_v,predicted_u , predicted_v);
     clock_gettime(CLOCK_REALTIME, &time2);
@@ -855,14 +857,14 @@ clock_gettime(CLOCK_REALTIME, &time1);
      // CheckFluxPeriodicalPropertyX(nx, ny, mass_flux_x);
 
 
- clock_gettime(CLOCK_REALTIME, &time1);
+     clock_gettime(CLOCK_REALTIME, &time1);
     ReconstructGradientX(nx, ny, dx, dy, volume_fluxes_x, directional_lagrangian_density,
 			 density_gradient);
     clock_gettime(CLOCK_REALTIME, &time2);
     time_gradient_X.push_back(diff(time1, time2));
 
     clock_gettime(CLOCK_REALTIME, &time1);
-    ReconstructGradientXPeriodicBoundary(nx, ny, dx, dy, volume_fluxes_x, directional_lagrangian_density,
+    ReconstructGradientXBoundary(numerical_params.BoundaryConditions, nx, ny, dx, dy, volume_fluxes_x, directional_lagrangian_density,
 				 density_gradient);
     //ReconstructGradientXBoundaryRt(nx, ny, dx, dy, volume_fluxes_x, directional_lagrangian_density,density_gradient);
     clock_gettime(CLOCK_REALTIME, &time2);
@@ -877,7 +879,7 @@ clock_gettime(CLOCK_REALTIME, &time1);
     time_mass_reconstruct_o2_X.push_back(diff(time1, time2));
  
     clock_gettime(CLOCK_REALTIME, &time1);
-    ReconstructMassFluxOrder2XPeriodicBoundary(nx,  ny,  halo_width, dx, dy, volume_fluxes_x,
+    ReconstructMassFluxOrder2XBoundary(numerical_params.BoundaryConditions, nx,  ny,  halo_width, dx, dy, volume_fluxes_x,
 				       directional_lagrangian_density,density_gradient,
 				       mass_flux_x);
     //ReconstructMassFluxOrder2XBoundaryRt(nx,  ny,  halo_width, dx, dy, volume_fluxes_x,directional_lagrangian_density,density_gradient,mass_flux_x);
@@ -915,7 +917,7 @@ clock_gettime(CLOCK_REALTIME, &time1);
     time_gradient_X.push_back(diff(time1, time2));
 
     clock_gettime(CLOCK_REALTIME, &time1);
-    ReconstructGradientXPeriodicBoundary(nx, ny, dx, dy, volume_fluxes_x,
+    ReconstructGradientXBoundary(numerical_params.BoundaryConditions, nx, ny, dx, dy, volume_fluxes_x,
 				 e_lag,
 				 energy_gradient);
     //ReconstructGradientXBoundaryRt(nx, ny, dx, dy, volume_fluxes_x,e_lag,energy_gradient);
@@ -930,7 +932,7 @@ clock_gettime(CLOCK_REALTIME, &time1);
     time_reconstruct_energy_o2_X.push_back(diff(time1, time2));
 
     clock_gettime(CLOCK_REALTIME, &time1);
-    ReconstructIntensiveVariableFluxOrder2XPeriodicBoundary(nx, ny, halo_width, dx, dy, volume_fluxes_x, mass_flux_x, e_lag,
+    ReconstructIntensiveVariableFluxOrder2XBoundary(numerical_params.BoundaryConditions, nx, ny, halo_width, dx, dy, volume_fluxes_x, mass_flux_x, e_lag,
 						    energy_gradient,
 						    energy_flux_x);
     //ReconstructIntensiveVariableFluxOrder2XBoundaryRt(nx, ny, halo_width, dx, dy, volume_fluxes_x, mass_flux_x, e_lag,energy_gradient,energy_flux_x);
@@ -968,7 +970,7 @@ clock_gettime(CLOCK_REALTIME, &time1);
     time_gradient_nodal_X.push_back(diff(time1, time2));
      
     clock_gettime(CLOCK_REALTIME, &time1);
-    ReconstructGradientNodalXPeriodicBoundary( nx, ny, dx, dt, predicted_u,  u_lag,  gradient_u);
+    ReconstructGradientNodalXBoundary(numerical_params.BoundaryConditions, nx, ny, dx, dt, predicted_u,  u_lag,  gradient_u);
     //ReconstructGradientNodalXBoundaryRt( nx, ny, dx, dt, predicted_u,  u_lag,  gradient_u);
     clock_gettime(CLOCK_REALTIME, &time2);
     time_periodic_boundary.push_back(diff(time1, time2));
@@ -980,7 +982,7 @@ clock_gettime(CLOCK_REALTIME, &time1);
     time_project_nodal_velocity_X.push_back(diff(time1, time2));
 
     clock_gettime(CLOCK_REALTIME, &time1);
-    ProjectNodalIntensiveVariableOrder2XPeriodicBoundary(nx,  ny,  halo_width, dx, dt, in_cell_mass, out_cell_mass, predicted_u, u_lag, gradient_u, mass_flux_x,
+    ProjectNodalIntensiveVariableOrder2XBoundary(numerical_params.BoundaryConditions, nx,  ny,  halo_width, dx, dt, in_cell_mass, out_cell_mass, predicted_u, u_lag, gradient_u, mass_flux_x,
 						 out_u);
     //ProjectNodalIntensiveVariableOrder2XBoundaryRt(nx,  ny,  halo_width, dx, dt, in_cell_mass, out_cell_mass, predicted_u, u_lag, gradient_u, mass_flux_x,out_u);
     clock_gettime(CLOCK_REALTIME, &time2);
@@ -1009,7 +1011,7 @@ clock_gettime(CLOCK_REALTIME, &time1);
     time_gradient_nodal_X.push_back(diff(time1, time2));
     
     clock_gettime(CLOCK_REALTIME, &time1);
-    ReconstructGradientNodalXPeriodicBoundary( nx, ny, dx, dt, predicted_u,  v_lag,  gradient_v);
+    ReconstructGradientNodalXBoundary(numerical_params.BoundaryConditions, nx, ny, dx, dt, predicted_u,  v_lag,  gradient_v);
     //ReconstructGradientNodalXBoundaryRt( nx, ny, dx, dt, predicted_u,  v_lag,  gradient_v);
     clock_gettime(CLOCK_REALTIME, &time2);
     time_periodic_boundary.push_back(diff(time1, time2));
@@ -1021,7 +1023,7 @@ clock_gettime(CLOCK_REALTIME, &time1);
     time_project_nodal_velocity_X.push_back(diff(time1, time2));
 
     clock_gettime(CLOCK_REALTIME, &time1);
-    ProjectNodalIntensiveVariableOrder2XPeriodicBoundary(nx,  ny,  halo_width, dx, dt, in_cell_mass, out_cell_mass, predicted_u, v_lag, gradient_v, mass_flux_x,
+    ProjectNodalIntensiveVariableOrder2XBoundary(numerical_params.BoundaryConditions, nx,  ny,  halo_width, dx, dt, in_cell_mass, out_cell_mass, predicted_u, v_lag, gradient_v, mass_flux_x,
 					 out_v);
     //ProjectNodalIntensiveVariableOrder2XBoundaryRt(nx,  ny,  halo_width, dx, dt, in_cell_mass, out_cell_mass, predicted_u, v_lag, gradient_v, mass_flux_x,out_v);
     clock_gettime(CLOCK_REALTIME, &time2);
@@ -1071,7 +1073,7 @@ clock_gettime(CLOCK_REALTIME, &time1);
     time_gradient_Y.push_back(diff(time1, time2));
 
     clock_gettime(CLOCK_REALTIME, &time1);
-    ReconstructGradientYPeriodicBoundary(nx, ny, dx, dy, volume_fluxes_y, directional_lagrangian_density_y,
+    ReconstructGradientYBoundary(numerical_params.BoundaryConditions, nx, ny, dx, dy, volume_fluxes_y, directional_lagrangian_density_y,
 				 density_gradient);
     //ReconstructGradientYBoundaryRt(nx, ny, dx, dy, volume_fluxes_y, directional_lagrangian_density_y,density_gradient);
     clock_gettime(CLOCK_REALTIME, &time2);
@@ -1086,7 +1088,7 @@ clock_gettime(CLOCK_REALTIME, &time1);
     time_mass_reconstruct_o2_Y.push_back(diff(time1, time2));
  
     clock_gettime(CLOCK_REALTIME, &time1);
-    ReconstructMassFluxOrder2YPeriodicBoundary(nx,  ny,  halo_width, dx, dy, volume_fluxes_y,
+    ReconstructMassFluxOrder2YBoundary(numerical_params.BoundaryConditions, nx,  ny,  halo_width, dx, dy, volume_fluxes_y,
 				       directional_lagrangian_density_y,density_gradient,
 				       mass_flux_y);
     //ReconstructMassFluxOrder2YBoundaryRt(nx,  ny,  halo_width, dx, dy, volume_fluxes_y,directional_lagrangian_density_y,density_gradient,mass_flux_y);
@@ -1123,7 +1125,7 @@ clock_gettime(CLOCK_REALTIME, &time1);
     time_gradient_Y.push_back(diff(time1, time2));
     
     clock_gettime(CLOCK_REALTIME, &time1);
-    ReconstructGradientYPeriodicBoundary(nx, ny, dx, dy, volume_fluxes_y,
+    ReconstructGradientYBoundary(numerical_params.BoundaryConditions, nx, ny, dx, dy, volume_fluxes_y,
 				 e_lag,
 				 energy_gradient);
     //ReconstructGradientYBoundaryRt(nx, ny, dx, dy, volume_fluxes_y,e_lag,energy_gradient);
@@ -1138,7 +1140,7 @@ clock_gettime(CLOCK_REALTIME, &time1);
     time_reconstruct_energy_o2_Y.push_back(diff(time1, time2));
     
     clock_gettime(CLOCK_REALTIME, &time1);
-    ReconstructIntensiveVariableFluxOrder2YPeriodicBoundary(nx, ny, halo_width, dx, dy, volume_fluxes_y, mass_flux_y, e_lag,
+    ReconstructIntensiveVariableFluxOrder2YBoundary(numerical_params.BoundaryConditions, nx, ny, halo_width, dx, dy, volume_fluxes_y, mass_flux_y, e_lag,
 						    energy_gradient,
 						    energy_flux_y);
     //ReconstructIntensiveVariableFluxOrder2YBoundaryRt(nx, ny, halo_width, dx, dy, volume_fluxes_y, mass_flux_y, e_lag,energy_gradient,energy_flux_y);
@@ -1174,7 +1176,7 @@ clock_gettime(CLOCK_REALTIME, &time1);
     time_gradient_nodal_Y.push_back(diff(time1, time2));
      
     clock_gettime(CLOCK_REALTIME, &time1);
-    ReconstructGradientNodalYPeriodicBoundary( nx, ny, dy, dt, predicted_v,  u_lag,  gradient_u);
+    ReconstructGradientNodalYBoundary(numerical_params.BoundaryConditions,  nx, ny, dy, dt, predicted_v,  u_lag,  gradient_u);
     //ReconstructGradientNodalYBoundaryRt( nx, ny, dy, dt, predicted_v,  u_lag,  gradient_u);
     clock_gettime(CLOCK_REALTIME, &time2);
     time_periodic_boundary.push_back(diff(time1, time2));
@@ -1186,7 +1188,7 @@ clock_gettime(CLOCK_REALTIME, &time1);
     time_project_nodal_velocity_Y.push_back(diff(time1, time2));
 
     clock_gettime(CLOCK_REALTIME, &time1);
-    ProjectNodalIntensiveVariableOrder2YPeriodicBoundary(nx, ny, halo_width, dy, dt, in_cell_mass, out_cell_mass, predicted_v, u_lag, gradient_u, mass_flux_y,
+    ProjectNodalIntensiveVariableOrder2YBoundary(numerical_params.BoundaryConditions, nx, ny, halo_width, dy, dt, in_cell_mass, out_cell_mass, predicted_v, u_lag, gradient_u, mass_flux_y,
 						 out_u);
     //ProjectNodalIntensiveVariableOrder2YBoundaryRt(nx, ny, halo_width, dy, dt, in_cell_mass, out_cell_mass, predicted_v, u_lag, gradient_u, mass_flux_y,out_u);
     clock_gettime(CLOCK_REALTIME, &time2);
@@ -1216,7 +1218,7 @@ clock_gettime(CLOCK_REALTIME, &time1);
     time_gradient_nodal_Y.push_back(diff(time1, time2));
 
     clock_gettime(CLOCK_REALTIME, &time1);
-    ReconstructGradientNodalYPeriodicBoundary( nx, ny, dy, dt, predicted_v,  v_lag,  gradient_v);
+    ReconstructGradientNodalYBoundary(numerical_params.BoundaryConditions,  nx, ny, dy, dt, predicted_v,  v_lag,  gradient_v);
     //ReconstructGradientNodalYBoundaryRt( nx, ny, dy, dt, predicted_v,  v_lag,  gradient_v);
     clock_gettime(CLOCK_REALTIME, &time2);
     time_periodic_boundary.push_back(diff(time1, time2));
@@ -1228,7 +1230,7 @@ clock_gettime(CLOCK_REALTIME, &time1);
     time_project_nodal_velocity_Y.push_back(diff(time1, time2));
 
     clock_gettime(CLOCK_REALTIME, &time1);
-    ProjectNodalIntensiveVariableOrder2YPeriodicBoundary(nx,  ny,  halo_width, dx, dt, in_cell_mass, out_cell_mass, predicted_v, v_lag, gradient_v, mass_flux_y,
+    ProjectNodalIntensiveVariableOrder2YBoundary(numerical_params.BoundaryConditions, nx,  ny,  halo_width, dx, dt, in_cell_mass, out_cell_mass, predicted_v, v_lag, gradient_v, mass_flux_y,
 						 out_v);
     //ProjectNodalIntensiveVariableOrder2YBoundaryRt(nx,  ny,  halo_width, dx, dt, in_cell_mass, out_cell_mass, predicted_v, v_lag, gradient_v, mass_flux_y,out_v);
     clock_gettime(CLOCK_REALTIME, &time2);

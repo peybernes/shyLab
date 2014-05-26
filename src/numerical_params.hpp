@@ -29,6 +29,8 @@ struct NumericalParams {
   RealType beta;
   //! Value of water height for dry cells.
   RealType dry_height;
+  //! Type of Boundary Conditions
+  std::string BoundaryConditions;
   NumericalParams();
   void save(ptree &pt);
   void load(ptree &pt);
