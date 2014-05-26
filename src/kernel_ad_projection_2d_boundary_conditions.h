@@ -6,6 +6,7 @@ typedef int index_t;
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include <string.h>
 
   // Periodic conditions
 
