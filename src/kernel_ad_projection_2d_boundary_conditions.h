@@ -277,9 +277,92 @@ void ProjectNodalIntensiveVariableOrder2YBoundaryRt(index_t nx,
 						  const RealType* mass_flux,
 						  RealType* out_variable);
 
+
+  //Wall conditions
+
+void ReconstructMassFluxOrder2XWallBoundary(index_t nx, 
+					index_t ny, 
+					index_t halo_width,
+					const RealType dx,
+					const RealType dy,
+					const RealType*  volume_fluxes,
+					const RealType*  cell_density,
+					const RealType*  cell_mass_gradient,
+					RealType*  mass_flux);
+
+void ReconstructIntensiveVariableFluxOrder2XWallBoundary(index_t nx, 
+						     index_t ny, 
+						     index_t halo_width,
+						     const RealType dx,
+						     const RealType dy,
+						     const RealType*  volume_fluxes,
+						     const RealType*  mass_flux,
+						     const RealType*  cell_variable,
+						     const RealType*  cell_variable_gradient,
+						     RealType*  variable_flux);
+
+void ProjectNodalIntensiveVariableUxXWallBoundary(index_t nx, 
+					    index_t ny, 
+					    index_t halo_width,
+					    const RealType* lag_cell_mass,
+					    const RealType* out_cell_mass,  
+					    const RealType* in_vx,
+					    const RealType* mass_flux,
+					    RealType* out_vx);
+
+void ProjectNodalIntensiveVariableUyXWallBoundary(index_t nx, 
+					    index_t ny, 
+					    index_t halo_width,
+					    const RealType* lag_cell_mass,
+					    const RealType* out_cell_mass,  
+					    const RealType* in_vx,
+					    const RealType* mass_flux,
+					    RealType* out_vx);
+
+void ReconstructMassFluxOrder2YWallBoundary(index_t nx, 
+					index_t ny, 
+					index_t halo_width,
+					const RealType dx,
+					const RealType dy,
+					const RealType*  volume_fluxes,
+					const RealType*  cell_density,
+					const RealType*  cell_mass_gradient,
+					RealType*  mass_flux);
+
+void ReconstructIntensiveVariableFluxOrder2YWallBoundary(index_t nx, 
+						     index_t ny, 
+						     index_t halo_width,
+						     const RealType dx,
+						     const RealType dy,
+						     const RealType*  volume_fluxes,
+						     const RealType*  mass_flux,
+						     const RealType*  cell_variable,
+						     const RealType*  cell_variable_gradient,
+						     RealType*  variable_flux);
+
+void ProjectNodalIntensiveVariableUxYWallBoundary(index_t nx, 
+					    index_t ny, 
+					    index_t halo_width,
+					    const RealType* lag_cell_mass,
+					    const RealType* out_cell_mass,
+					    const RealType* in_vy,
+					    const RealType* mass_flux,
+					    RealType* out_vy);
+
+void ProjectNodalIntensiveVariableUyYWallBoundary(index_t nx, 
+					    index_t ny, 
+					    index_t halo_width,
+					    const RealType* lag_cell_mass,
+					    const RealType* out_cell_mass,
+					    const RealType* in_vy,
+					    const RealType* mass_flux,
+					    RealType* out_vy);
+
 #ifdef __cplusplus
 }
 #endif
 
 
 #endif // BOUNDARY_RAYLEIGH_TAYLOR_CONDITIONS_H
+
+

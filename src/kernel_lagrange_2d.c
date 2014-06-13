@@ -299,7 +299,6 @@ void RtBoundaryCopy(int nx,
   }
 }
 
-
 void PeriodicBoundaryVelocityPrediction(int nx,
 					int ny,
 					RealType dt,
@@ -369,9 +368,9 @@ void PeriodicBoundaryVelocityPrediction(int nx,
    out_velocity_x[nx]  = out_u_x; 
    out_velocity_y[nx]  = out_u_y;
    out_velocity_x[ny * (nx + 1)]  = out_u_x; 
-   out_velocity_y[ny * (ny + 1)]  = out_u_y;
+   out_velocity_y[ny * (nx + 1)]  = out_u_y;
    out_velocity_x[(ny + 1) * (nx + 1) - 1]  = out_u_x; 
-   out_velocity_y[(ny + 1) * (ny + 1) - 1 ]  = out_u_y; 
+   out_velocity_y[(ny + 1) * (nx + 1) - 1 ]  = out_u_y; 
  }
  
 
@@ -430,9 +429,117 @@ void RtBoundaryVelocityPrediction(int nx,
    out_velocity_x[nx]  = 0.; 
    out_velocity_y[nx]  = 0.;
    out_velocity_x[ny * (nx + 1)]  = 0.; 
-   out_velocity_y[ny * (ny + 1)]  = 0.;
+   out_velocity_y[ny * (nx + 1)]  = 0.;
    out_velocity_x[(ny + 1) * (nx + 1) - 1]  = 0.; 
-   out_velocity_y[(ny + 1) * (ny + 1) - 1 ]  = 0.; 
+   out_velocity_y[(ny + 1) * (nx + 1) - 1 ]  = 0.; 
+ }
+ 
+
+}
+
+void WallBoundaryVelocityPrediction(int nx,
+					int ny,
+					RealType dt,
+					RealType dx,
+					RealType dy,
+					const RealType* RESTRICT in_mass,
+					const RealType* RESTRICT in_pressure,
+					const RealType* RESTRICT in_pseudo_pressure,
+					const RealType* RESTRICT in_velocity_x,
+					const RealType* RESTRICT in_velocity_y,
+					RealType* RESTRICT out_velocity_x,
+					RealType* RESTRICT out_velocity_y)
+{
+
+  for (int ix = 1 ; ix < nx; ++ix){ // not verctorized
+    //bottom computation for ux
+    const int node_ooo = ix;
+
+    const int cell_NW  = NodeCellM1P1(node_ooo, 0, nx);
+    const int cell_NE  = NodeCellP1P1(node_ooo, 0, nx);
+    const int cell_SW  = cell_NW;
+    const int cell_SE  = cell_NE;
+
+#include "kernel_lagrange_velocity.h"
+
+    out_velocity_x[node_ooo] = out_u_x; 
+
+  }
+
+  for (int ix = 1 ; ix < nx; ++ix){ // not verctorized
+    //top computation for ux
+    const int node_ooo =  ny * (nx + 1) + ix;
+
+    const int cell_SW  = NodeCellM1M1(node_ooo, ny, nx);
+    const int cell_SE  = NodeCellP1M1(node_ooo, ny, nx);
+    const int cell_NW  = cell_SW;
+    const int cell_NE  = cell_SE;
+
+#include "kernel_lagrange_velocity.h"
+
+    out_velocity_x[node_ooo] = out_u_x; 
+
+  }
+
+  for (int ix = 1 ; ix < nx; ++ix){ // not verctorized
+    //bottom - top computation for uy
+    const int pos_bottom_border = ix;
+    const int pos_top_border    = ny * (nx + 1) + ix;
+
+    out_velocity_y[pos_bottom_border] = 0.;
+    out_velocity_y[pos_top_border] = 0.;
+
+  }
+
+
+  for (int iy = 1; iy < ny; ++iy){  // not verctorized
+    //left  computation for uy
+    const int node_ooo = iy * (nx + 1);
+
+    const int cell_SE  = NodeCellP1M1(node_ooo, iy , nx);
+    const int cell_NE  = NodeCellP1P1(node_ooo, iy, nx);
+    const int cell_SW  = cell_SE;
+    const int cell_NW  = cell_NE;
+
+#include "kernel_lagrange_velocity.h"
+
+    out_velocity_y [node_ooo] = out_u_y;
+ }
+
+  for (int iy = 1; iy < ny; ++iy){  // not verctorized
+    //right  computation for uy
+    const int node_ooo = (iy + 1) * (nx + 1) - 1;
+
+    const int cell_SW  = NodeCellM1M1(node_ooo, iy, nx);
+    const int cell_NW  = NodeCellM1P1(node_ooo, iy, nx);
+    const int cell_SE  = cell_SW;
+    const int cell_NE  = cell_NW;
+
+#include "kernel_lagrange_velocity.h"
+
+    out_velocity_y [node_ooo] = out_u_y;
+ }
+
+  for (int iy = 1; iy < ny; ++iy){  // not verctorized
+    //left -- right computation for ux
+    const int pos_lefft_border = iy * (nx + 1);
+    const int pos_right_border = (iy + 1) * (nx + 1) - 1;
+
+    out_velocity_x [pos_lefft_border] = 0.;
+    out_velocity_x [pos_right_border] = 0.;
+ }
+
+ // corners
+ { 
+
+   out_velocity_x[0]  = 0.; 
+   out_velocity_y[0]  = 0.;
+   out_velocity_x[nx]  = 0.; 
+   out_velocity_y[nx]  = 0.;
+   out_velocity_x[ny * (nx + 1)]  = 0.; 
+   out_velocity_y[ny * (nx + 1)]  = 0.;
+   out_velocity_x[(ny + 1) * (nx + 1) - 1]  = 0.; 
+   out_velocity_y[(ny + 1) * (nx + 1) - 1 ]  = 0.; 
  }
  
 

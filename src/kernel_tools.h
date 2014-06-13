@@ -124,6 +124,28 @@ static inline RealType ReconstructValueRightKappa(RealType in, RealType s, RealT
 
 }  
 
+static double diff(timespec start, timespec end) {
+
+  timespec result;
+
+  if ((end.tv_nsec-start.tv_nsec) < 0) {
+
+    result.tv_sec = end.tv_sec-start.tv_sec - 1;
+    result.tv_nsec = 1000000000 + end.tv_nsec - start.tv_nsec;
+
+  } else {
+
+    result.tv_sec = end.tv_sec - start.tv_sec;
+    result.tv_nsec = end.tv_nsec - start.tv_nsec;
+
+  }
+
+  const double  ms_time = 
+    (1000.0 * result.tv_sec) + (result.tv_nsec / 1000000.0);
+
+  return ms_time;
+}
+
 #ifdef __cplusplus
 }
 #endif

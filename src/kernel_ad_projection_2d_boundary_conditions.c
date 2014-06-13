@@ -1828,3 +1828,709 @@ void ProjectNodalIntensiveVariableOrder2YBoundaryRt(index_t nx,
   } // end corners
 
 }// end ProjectNodalIntensiveVariableOrder2YBoundar
+
+
+// Wall boundary conditions
+
+void ReconstructMassFluxOrder2XWallBoundary(index_t nx, 
+					index_t ny, 
+					index_t halo_width,
+					const RealType dx,
+					const RealType dy,
+					const RealType* RESTRICT volume_fluxes,
+					const RealType* RESTRICT cell_density,
+					const RealType* RESTRICT cell_density_gradient,
+					RealType* RESTRICT mass_flux) {
+  
+  for (index_t iy = 0; iy < ny; ++iy) {//problem not vect but boundary    
+      
+  //x min //
+    const index_t face_lefft = ((nx + 1) * iy);     
+    mass_flux[face_lefft] = 0.;
+    
+  //x max //
+           
+    const index_t face_right = face_lefft + nx;
+    mass_flux[face_right] = 0.;
+
+  }
+
+}
+
+
+void ReconstructIntensiveVariableFluxOrder2XWallBoundary(index_t nx, 
+						     index_t ny, 
+						     index_t halo_width,
+						     const RealType dx,
+						     const RealType dy,
+						     const RealType* RESTRICT volume_fluxes,
+						     const RealType* RESTRICT mass_flux,
+						     const RealType* RESTRICT cell_variable,
+						     const RealType* RESTRICT cell_variable_gradient,
+						     RealType* RESTRICT variable_flux) {
+  
+
+  for (index_t iy = 0; iy < ny; ++iy) {//problem not vect but boundary    
+      
+  //x min //
+    const index_t face_lefft = ((nx + 1) * iy);     
+    variable_flux[face_lefft] = 0.;
+    
+  //x max //
+    const index_t face_right = face_lefft + nx;
+    variable_flux[face_right] = 0.;
+    
+  }
+
+}
+
+
+void ProjectNodalIntensiveVariableUxXWallBoundary(index_t nx, 
+					    index_t ny, 
+					    index_t halo_width,
+					    const RealType* RESTRICT lag_cell_mass,
+					    const RealType* RESTRICT out_cell_mass,  
+					    const RealType* RESTRICT in_vx,
+					    const RealType* RESTRICT mass_flux,
+					    RealType* RESTRICT out_vx) {
+
+  
+  for (index_t iy = halo_width; iy < ny + 1 - halo_width; ++iy) {//problem not vect but boundary
+  // x min 
+    for (index_t ix = 0; ix < halo_width; ++ix) {
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+
+      out_vx[node_ooo] = 0.; 
+ 
+    }
+  // x max
+    for (index_t ix = nx; ix < nx + 1; ++ix) {
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+
+      out_vx[node_ooo] = 0.; 
+
+    }
+  } // end X boundary 
+
+
+  //ymin
+  for (index_t iy = 0; iy < halo_width; ++iy) {
+    for (index_t ix = halo_width; ix < nx + 1 - halo_width; ++ix) {//problem not vect but boundary 
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+	
+      index_t node_m1o = NodeNodeM1O(node_ooo, iy, nx);
+      index_t node_p1o = NodeNodeP1O(node_ooo, iy, nx);
+    
+      
+      index_t cellm1p1 = NodeCellM1P1(node_ooo, iy, nx);
+      index_t cellp1p1 = NodeCellP1P1(node_ooo, iy, nx);
+
+ 
+      const index_t facexm1p1 = NodeFaceXM1P1(node_ooo, iy, nx);
+      const index_t facexoop1 = NodeFaceXOOP1(node_ooo, iy, nx);
+      const index_t facexp1p1 = NodeFaceXP1P1(node_ooo, iy, nx);
+
+      const RealType in_vx_oo = in_vx[node_ooo];
+      const RealType in_vx_m1 = in_vx[node_m1o];
+      const RealType in_vx_p1 = in_vx[node_p1o];
+
+      const RealType cell_mass_m1p1 = lag_cell_mass[cellm1p1];
+      const RealType cell_mass_p1p1 = lag_cell_mass[cellp1p1];
+
+      const RealType out_mass_m1p1 = out_cell_mass[cellm1p1];
+      const RealType out_mass_p1p1 = out_cell_mass[cellp1p1];
+
+      const RealType mass_flux_m1p1 = mass_flux[facexm1p1];
+      const RealType mass_flux_oop1 = mass_flux[facexoop1];
+      const RealType mass_flux_p1p1 = mass_flux[facexp1p1];
+
+      const RealType lag_node_mass_ooo = 0.5 * (cell_mass_m1p1 +  cell_mass_p1p1);
+      assert(0.0 < lag_node_mass_ooo);
+      const RealType out_node_mass_ooo = 0.5 * (out_mass_m1p1 + out_mass_p1p1);
+      assert(0.0 < out_node_mass_ooo);
+
+      const RealType prev_dual_mass_flux = 0.5 * (mass_flux_m1p1 + mass_flux_oop1);
+      
+      const RealType next_dual_mass_flux = 0.5 * (mass_flux_p1p1 + mass_flux_oop1);  
+      
+#include "reconstruct_dual_variable_computation.h"      
+
+      const RealType in_moment_ooo =lag_node_mass_ooo * in_vx_oo; 
+
+      const RealType out_moment_ooo = 
+	in_moment_ooo + moment_flux_prev - moment_flux_next;
+
+
+      out_vx[node_ooo] = out_moment_ooo / out_node_mass_ooo; 
+
+    }
+  }
+  //ymax
+  for (index_t iy = ny; iy < ny + 1; ++iy) {
+    for (index_t ix = halo_width; ix < nx + 1 - halo_width; ++ix) {//problem not vect but boundary 
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+	
+      index_t node_m1o = NodeNodeM1O(node_ooo, iy, nx);
+      index_t node_p1o = NodeNodeP1O(node_ooo, iy, nx);
+    
+      
+      index_t cellm1m1 = NodeCellM1M1(node_ooo, iy, nx);
+      index_t cellp1m1 = NodeCellP1M1(node_ooo, iy, nx);
+
+ 
+      const index_t facexm1m1 = NodeFaceXM1M1(node_ooo, iy, nx);
+      const index_t facexoom1 = NodeFaceXOOM1(node_ooo, iy, nx);
+      const index_t facexp1m1 = NodeFaceXP1M1(node_ooo, iy, nx);
+
+      const RealType in_vx_oo = in_vx[node_ooo];
+      const RealType in_vx_m1 = in_vx[node_m1o];
+      const RealType in_vx_p1 = in_vx[node_p1o];
+
+      const RealType cell_mass_m1m1 = lag_cell_mass[cellm1m1];
+      const RealType cell_mass_p1m1 = lag_cell_mass[cellp1m1];
+
+      const RealType out_mass_m1m1 = out_cell_mass[cellm1m1];
+      const RealType out_mass_p1m1 = out_cell_mass[cellp1m1];
+
+      const RealType mass_flux_m1m1 = mass_flux[facexm1m1];
+      const RealType mass_flux_oom1 = mass_flux[facexoom1];
+      const RealType mass_flux_p1m1 = mass_flux[facexp1m1];
+
+      const RealType lag_node_mass_ooo = 0.5 * (cell_mass_m1m1 +  cell_mass_p1m1);
+      assert(0.0 < lag_node_mass_ooo);
+      const RealType out_node_mass_ooo = 0.5 * (out_mass_m1m1 + out_mass_p1m1);
+      assert(0.0 < out_node_mass_ooo);
+
+      const RealType prev_dual_mass_flux = 0.5 * (mass_flux_m1m1 + mass_flux_oom1);
+      
+      const RealType next_dual_mass_flux = 0.5 * (mass_flux_p1m1 + mass_flux_oom1);  
+      
+#include "reconstruct_dual_variable_computation.h"      
+
+      const RealType in_moment_ooo =lag_node_mass_ooo * in_vx_oo; 
+
+      const RealType out_moment_ooo = 
+	in_moment_ooo + moment_flux_prev - moment_flux_next;
+
+      out_vx[node_ooo] = out_moment_ooo / out_node_mass_ooo; 
+
+    } // end Y boundary
+  }
+
+  //corners
+  {
+    const index_t node_cmm = 0;
+    const index_t node_cpm = nx;
+    const index_t node_cmp = ny * (nx + 1) ;
+    const index_t node_cpp = (nx + 1) * (ny + 1) - 1;
+    out_vx[node_cmm] = 0.;
+    out_vx[node_cpm] = 0.;
+    out_vx[node_cpp] = 0.;
+    out_vx[node_cmp] = 0.;
+  }
+
+} // end  ProjectNodalIntensiveVariableOrder2XBoundary
+
+void ProjectNodalIntensiveVariableUyXWallBoundary(index_t nx, 
+					    index_t ny, 
+					    index_t halo_width,
+					    const RealType* RESTRICT lag_cell_mass,
+					    const RealType* RESTRICT out_cell_mass,  
+					    const RealType* RESTRICT in_vx,
+					    const RealType* RESTRICT mass_flux,
+					    RealType* RESTRICT out_vx) {
+
+  
+  for (index_t iy = halo_width; iy < ny + 1 - halo_width; ++iy) {//problem not vect but boundary
+  // x min 
+    for (index_t ix = 0; ix < halo_width; ++ix) {
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+
+      const index_t node_p1o = NodeNodeP1O(node_ooo, iy, nx);     
+      const index_t cellp1m1 = NodeCellP1M1(node_ooo, iy, nx);
+      const index_t cellp1p1 = NodeCellP1P1(node_ooo, iy, nx);
+
+      const index_t facexoom1 = NodeFaceXOOM1(node_ooo, iy, nx);
+      const index_t facexoop1 = NodeFaceXOOP1(node_ooo, iy, nx);
+      const index_t facexp1p1 = NodeFaceXP1P1(node_ooo, iy, nx);
+      const index_t facexp1m1 = NodeFaceXP1M1(node_ooo, iy, nx);
+
+      const RealType in_vx_oo = in_vx[node_ooo];
+      const RealType in_vx_p1 = in_vx[node_p1o];
+      const RealType in_vx_m1 = in_vx_oo;
+
+      const RealType cell_mass_p1m1 = lag_cell_mass[cellp1m1];
+      const RealType cell_mass_p1p1 = lag_cell_mass[cellp1p1];
+
+      const RealType out_mass_p1m1 = out_cell_mass[cellp1m1];
+      const RealType out_mass_p1p1 = out_cell_mass[cellp1p1];
+
+      const RealType mass_flux_oom1 = mass_flux[facexoom1];
+      const RealType mass_flux_oop1 = mass_flux[facexoop1];
+      const RealType mass_flux_p1p1 = mass_flux[facexp1p1];
+      const RealType mass_flux_p1m1 = mass_flux[facexp1m1];
+
+      const RealType lag_node_mass_ooo = 0.5 * (cell_mass_p1m1 +  cell_mass_p1p1);
+      assert(0.0 < lag_node_mass_ooo);
+      const RealType out_node_mass_ooo = 0.5 * (out_mass_p1m1 + out_mass_p1p1);
+      assert(0.0 < out_node_mass_ooo);
+
+      const RealType prev_dual_mass_flux = 0.5 * (mass_flux_oom1 + mass_flux_oop1);
+      
+      const RealType next_dual_mass_flux = 0.25 * (mass_flux_p1m1 + mass_flux_oom1 + mass_flux_p1p1 + mass_flux_oop1);  
+      
+#include "reconstruct_dual_variable_computation.h"      
+
+      const RealType in_moment_ooo = lag_node_mass_ooo * in_vx_oo; 
+
+      const RealType out_moment_ooo = 
+	in_moment_ooo + moment_flux_prev - moment_flux_next;
+   
+      out_vx[node_ooo] = out_moment_ooo / out_node_mass_ooo; 
+ 
+    }
+  // x max
+    for (index_t ix = nx; ix < nx + 1; ++ix) {
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+
+      const index_t node_m1o = NodeNodeM1O(node_ooo, iy, nx);
+      const index_t cellm1m1 = NodeCellM1M1(node_ooo, iy, nx);
+      const index_t cellm1p1 = NodeCellM1P1(node_ooo, iy, nx);
+
+      const index_t facexm1m1 = NodeFaceXM1M1(node_ooo, iy, nx);
+      const index_t facexm1p1 = NodeFaceXM1P1(node_ooo, iy, nx);
+      const index_t facexoom1 = NodeFaceXOOM1(node_ooo, iy, nx);
+      const index_t facexoop1 = NodeFaceXOOP1(node_ooo, iy, nx);
+
+      const RealType in_vx_oo = in_vx[node_ooo];
+      const RealType in_vx_m1 = in_vx[node_m1o];
+      const RealType in_vx_p1 = in_vx_oo;
+
+      const RealType cell_mass_m1m1 = lag_cell_mass[cellm1m1];
+      const RealType cell_mass_m1p1 = lag_cell_mass[cellm1p1];
+
+      const RealType out_mass_m1m1 = out_cell_mass[cellm1m1];
+      const RealType out_mass_m1p1 = out_cell_mass[cellm1p1];
+
+      const RealType mass_flux_oom1 = mass_flux[facexoom1];
+      const RealType mass_flux_oop1 = mass_flux[facexoop1];
+      const RealType mass_flux_m1p1 = mass_flux[facexm1p1];
+      const RealType mass_flux_m1m1 = mass_flux[facexm1m1];
+
+      const RealType lag_node_mass_ooo = 0.5 * (cell_mass_m1m1 +  cell_mass_m1p1);
+      assert(0.0 < lag_node_mass_ooo);
+      const RealType out_node_mass_ooo = 0.5 * (out_mass_m1m1 + out_mass_m1p1);
+      assert(0.0 < out_node_mass_ooo);
+
+      const RealType next_dual_mass_flux = 0.5 * (mass_flux_oom1 + mass_flux_oop1);
+      
+      const RealType prev_dual_mass_flux = 0.25 * (mass_flux_m1m1 + mass_flux_oom1 + mass_flux_m1p1 + mass_flux_oop1);  
+      
+#include "reconstruct_dual_variable_computation.h"      
+
+      const RealType in_moment_ooo = lag_node_mass_ooo * in_vx_oo; 
+
+      const RealType out_moment_ooo = 
+	in_moment_ooo + moment_flux_prev - moment_flux_next;
+   
+      out_vx[node_ooo] = out_moment_ooo / out_node_mass_ooo; 
+
+    }
+  } // end X boundary 
+
+
+  //ymin
+  for (index_t iy = 0; iy < halo_width; ++iy) {
+    for (index_t ix = halo_width; ix < nx + 1 - halo_width; ++ix) {//problem not vect but boundary 
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+	
+      out_vx[node_ooo] = 0.; 
+
+    }
+  }
+  //ymax
+  for (index_t iy = ny; iy < ny + 1; ++iy) {
+    for (index_t ix = halo_width; ix < nx + 1 - halo_width; ++ix) {//problem not vect but boundary 
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+	
+      out_vx[node_ooo] = 0.; 
+
+    } // end Y boundary
+  }
+
+  //corners
+  {
+    const index_t node_cmm = 0;
+    const index_t node_cpm = nx;
+    const index_t node_cmp = ny * (nx + 1) ;
+    const index_t node_cpp = (nx + 1) * (ny + 1) - 1;
+    out_vx[node_cmm] = 0.;
+    out_vx[node_cpm] = 0.;
+    out_vx[node_cpp] = 0.;
+    out_vx[node_cmp] = 0.;
+  }
+
+} // end  ProjectNodalIntensiveVariableOrder2XBoundary
+
+void ReconstructMassFluxOrder2YWallBoundary(index_t nx, 
+					index_t ny, 
+					index_t halo_width,
+					const RealType dx,
+					const RealType dy,
+					const RealType* RESTRICT volume_fluxes,
+					const RealType* RESTRICT cell_density,
+					const RealType* RESTRICT cell_density_gradient,
+					RealType* RESTRICT mass_flux) {
+
+  //y min and y max 
+
+  for (index_t ix = 0; ix < nx; ++ix) {//problem not vect
+       
+    const index_t face_bot = ix;
+    const index_t face_top = ny * nx + ix;
+
+    mass_flux[face_bot] = 0.;
+    mass_flux[face_top] = 0.;
+
+  }
+  
+} //end  ReconstructMassFluxOrder2YBoundary
+
+
+
+void ReconstructIntensiveVariableFluxOrder2YWallBoundary(index_t nx, 
+						     index_t ny, 
+						     index_t halo_width,
+						     const RealType dx,
+						     const RealType dy,
+						     const RealType* RESTRICT volume_fluxes,
+						     const RealType* RESTRICT mass_flux,
+						     const RealType* RESTRICT cell_variable,
+						     const RealType* RESTRICT cell_variable_gradient,
+						     RealType* RESTRICT variable_flux) {
+
+
+  for (index_t ix = 0; ix < nx; ++ix) {//problem not vect but boundary
+      
+    const index_t face_bot = ix;
+    const index_t face_top = (ny * nx) + ix;
+      
+    variable_flux[face_bot] = 0.;
+    variable_flux[face_top] = 0.;
+
+  }
+  
+}// end ReconstructIntensiveVariableFluxOrder2YBoundary
+
+
+void ProjectNodalIntensiveVariableUyYWallBoundary(index_t nx, 
+					    index_t ny, 
+					    index_t halo_width,
+					    const RealType* RESTRICT lag_cell_mass,
+					    const RealType* RESTRICT out_cell_mass,
+					    const RealType* RESTRICT in_vy,
+					    const RealType* RESTRICT mass_flux,
+					    RealType* RESTRICT out_vy) {
+
+
+  //Ymin
+   for (index_t iy = 0; iy < halo_width; ++iy) {
+    for (index_t ix = halo_width; ix < nx + 1 - halo_width; ++ix) {//problem not vect but boundary
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+
+      out_vy[node_ooo] = 0.; 
+  
+    }
+  }  
+
+  //Ymax
+   for (index_t iy = ny; iy < ny + 1; ++iy) {
+    for (index_t ix = halo_width; ix < nx + 1 - halo_width; ++ix) {//problem not vect but boundary
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+
+      out_vy[node_ooo] = 0.; 
+  
+    }
+  }  
+
+   //Xmin
+  for (index_t ix = 0; ix < halo_width; ++ix) {
+    for (index_t iy = halo_width; iy < ny + 1 - halo_width; ++iy) {//problem not vect
+      
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+
+      const index_t node_om1 = NodeNodeOM1(node_ooo, iy, nx);
+      const index_t node_op1 = NodeNodeOP1(node_ooo, iy, nx);
+      
+      const index_t cellp1m1 = NodeCellP1M1(node_ooo, iy, nx);
+      const index_t cellp1p1 = NodeCellP1P1(node_ooo, iy, nx);
+
+      const index_t faceyp1p1 = NodeFaceYP1P1(node_ooo, iy, nx);
+      const index_t faceyp1oo = NodeFaceYP1OO(node_ooo, iy, nx);
+      const index_t faceyp1m1 = NodeFaceYP1M1(node_ooo, iy, nx);
+
+      const RealType in_vx_oo = in_vy[node_ooo];
+      const RealType in_vx_m1 = in_vy[node_om1];
+      const RealType in_vx_p1 = in_vy[node_op1];
+
+      const RealType cell_mass_p1m1 = lag_cell_mass[cellp1m1];
+      const RealType cell_mass_p1p1 = lag_cell_mass[cellp1p1];
+
+      const RealType out_mass_p1m1 = out_cell_mass[cellp1m1];
+      const RealType out_mass_p1p1 = out_cell_mass[cellp1p1];
+
+      const RealType mass_flux_p1p1 = mass_flux[faceyp1p1];
+      const RealType mass_flux_p1oo = mass_flux[faceyp1oo];
+      const RealType mass_flux_p1m1 = mass_flux[faceyp1m1];      
+
+      const RealType lag_node_mass_ooo = 0.5 * (cell_mass_p1m1 +  cell_mass_p1p1);
+      assert(0.0 < lag_node_mass_ooo);
+      const RealType out_node_mass_ooo = 0.5 * (out_mass_p1m1 + out_mass_p1p1);
+      assert(0.0 < out_node_mass_ooo);
+     
+      const RealType prev_dual_mass_flux = 0.5 * (mass_flux_p1m1 + mass_flux_p1oo);
+      
+      const RealType next_dual_mass_flux = 0.5 * (mass_flux_p1oo + mass_flux_p1p1);  
+      
+#include "reconstruct_dual_variable_computation.h"      
+
+      const RealType in_moment_ooo =lag_node_mass_ooo * in_vx_oo; 
+
+      const RealType out_moment_ooo = 
+	in_moment_ooo + moment_flux_prev - moment_flux_next;
+
+
+      out_vy[node_ooo] = out_moment_ooo / out_node_mass_ooo; 
+     }
+  }  
+
+   //Xmax
+  for (index_t ix = nx; ix < nx + 1; ++ix) {
+    for (index_t iy = halo_width; iy < ny + 1 - halo_width; ++iy) {//problem not vect
+      
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+
+      const index_t node_om1 = NodeNodeOM1(node_ooo, iy, nx);
+      const index_t node_op1 = NodeNodeOP1(node_ooo, iy, nx);
+      
+      const index_t cellm1m1 = NodeCellM1M1(node_ooo, iy, nx);
+      const index_t cellm1p1 = NodeCellM1P1(node_ooo, iy, nx);
+
+      const index_t faceym1p1 = NodeFaceYM1P1(node_ooo, iy, nx);
+      const index_t faceym1oo = NodeFaceYM1OO(node_ooo, iy, nx);
+      const index_t faceym1m1 = NodeFaceYM1M1(node_ooo, iy, nx);
+
+      const RealType in_vx_oo = in_vy[node_ooo];
+      const RealType in_vx_m1 = in_vy[node_om1];
+      const RealType in_vx_p1 = in_vy[node_op1];
+
+      const RealType cell_mass_m1m1 = lag_cell_mass[cellm1m1];
+      const RealType cell_mass_m1p1 = lag_cell_mass[cellm1p1];
+
+      const RealType out_mass_m1m1 = out_cell_mass[cellm1m1];
+      const RealType out_mass_m1p1 = out_cell_mass[cellm1p1];
+
+      const RealType mass_flux_m1p1 = mass_flux[faceym1p1];
+      const RealType mass_flux_m1oo = mass_flux[faceym1oo];
+      const RealType mass_flux_m1m1 = mass_flux[faceym1m1];      
+
+      const RealType lag_node_mass_ooo = 0.5 * (cell_mass_m1m1 +  cell_mass_m1p1);
+      assert(0.0 < lag_node_mass_ooo);
+      const RealType out_node_mass_ooo = 0.5 * (out_mass_m1m1 + out_mass_m1p1);
+      assert(0.0 < out_node_mass_ooo);
+     
+      const RealType prev_dual_mass_flux = 0.5 * (mass_flux_m1m1 + mass_flux_m1oo);
+      
+      const RealType next_dual_mass_flux = 0.5 * (mass_flux_m1oo + mass_flux_m1p1);  
+      
+#include "reconstruct_dual_variable_computation.h"      
+
+      const RealType in_moment_ooo =lag_node_mass_ooo * in_vx_oo; 
+
+      const RealType out_moment_ooo = 
+	in_moment_ooo + moment_flux_prev - moment_flux_next;
+
+
+      out_vy[node_ooo] = out_moment_ooo / out_node_mass_ooo; 
+     }
+  }  
+
+  //corners
+  {
+    const index_t node_cmm = 0;
+    const index_t node_cpm = nx;
+    const index_t node_cmp = ny * (nx + 1) ;
+    const index_t node_cpp = (nx + 1) * (ny + 1) - 1;
+    out_vy[node_cmm] = 0.;
+    out_vy[node_cpm] = 0.;
+    out_vy[node_cpp] = 0.;
+    out_vy[node_cmp] = 0.;
+  }
+
+}// end ProjectNodalIntensiveVariableOrder2YBoundar
+
+void ProjectNodalIntensiveVariableUxYWallBoundary(index_t nx, 
+					    index_t ny, 
+					    index_t halo_width,
+					    const RealType* RESTRICT lag_cell_mass,
+					    const RealType* RESTRICT out_cell_mass,
+					    const RealType* RESTRICT in_vy,
+					    const RealType* RESTRICT mass_flux,
+					    RealType* RESTRICT out_vy) {
+
+
+  //Ymin
+   for (index_t iy = 0; iy < halo_width; ++iy) {
+    for (index_t ix = halo_width; ix < nx + 1 - halo_width; ++ix) {//problem not vect but boundary
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+
+      const index_t node_op1 = NodeNodeOP1(node_ooo, iy, nx);
+      
+      const index_t cellm1p1 = NodeCellM1P1(node_ooo, iy, nx);
+      const index_t cellp1p1 = NodeCellP1P1(node_ooo, iy, nx);
+
+      const index_t faceym1oo = NodeFaceYM1OO(node_ooo, iy, nx);
+      const index_t faceym1p1 = NodeFaceYM1P1(node_ooo, iy, nx);
+      const index_t faceyp1p1 = NodeFaceYP1P1(node_ooo, iy, nx);
+      const index_t faceyp1oo = NodeFaceYP1OO(node_ooo, iy, nx);
+
+      const RealType in_vx_oo = in_vy[node_ooo];
+      const RealType in_vx_m1 = in_vx_oo;
+      const RealType in_vx_p1 = in_vy[node_op1];
+
+      const RealType cell_mass_m1p1 = lag_cell_mass[cellm1p1];
+      const RealType cell_mass_p1p1 = lag_cell_mass[cellp1p1];
+
+      const RealType out_mass_m1p1 = out_cell_mass[cellm1p1];
+      const RealType out_mass_p1p1 = out_cell_mass[cellp1p1];
+
+      const RealType mass_flux_m1oo = mass_flux[faceym1oo];
+      const RealType mass_flux_m1p1 = mass_flux[faceym1p1];
+      const RealType mass_flux_p1p1 = mass_flux[faceyp1p1];
+      const RealType mass_flux_p1oo = mass_flux[faceyp1oo];
+
+      const RealType lag_node_mass_ooo = 0.5 * (cell_mass_m1p1 +  cell_mass_p1p1);
+      assert(0.0 < lag_node_mass_ooo);
+      const RealType out_node_mass_ooo = 0.5 * (out_mass_m1p1 + out_mass_p1p1);
+      assert(0.0 < out_node_mass_ooo);
+
+
+      const RealType prev_dual_mass_flux = 0.5 * (mass_flux_m1oo + mass_flux_p1oo);
+      
+      const RealType next_dual_mass_flux = 0.25 * (mass_flux_p1oo + mass_flux_m1oo + mass_flux_p1p1 + mass_flux_m1p1);  
+      
+#include "reconstruct_dual_variable_computation.h"      
+
+      const RealType in_moment_ooo = lag_node_mass_ooo * in_vx_oo; 
+
+      const RealType out_moment_ooo = 
+	in_moment_ooo + moment_flux_prev - moment_flux_next;
+
+      assert(0.0 < out_node_mass_ooo);
+
+      out_vy[node_ooo] = out_moment_ooo / out_node_mass_ooo; 
+  
+    }
+  }  
+
+  //Ymax
+   for (index_t iy = ny; iy < ny + 1; ++iy) {
+    for (index_t ix = halo_width; ix < nx + 1 - halo_width; ++ix) {//problem not vect but boundary
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+
+      const index_t node_om1 = NodeNodeOM1(node_ooo, iy, nx);
+      
+      const index_t cellm1m1 = NodeCellM1M1(node_ooo, iy, nx);
+      const index_t cellp1m1 = NodeCellP1M1(node_ooo, iy, nx);
+
+      const index_t faceym1oo = NodeFaceYM1OO(node_ooo, iy, nx);
+      const index_t faceym1m1 = NodeFaceYM1M1(node_ooo, iy, nx);
+      const index_t faceyp1m1 = NodeFaceYP1M1(node_ooo, iy, nx);
+      const index_t faceyp1oo = NodeFaceYP1OO(node_ooo, iy, nx);
+
+      const RealType in_vx_oo = in_vy[node_ooo];
+      const RealType in_vx_p1 = in_vx_oo;
+      const RealType in_vx_m1 = in_vy[node_om1];
+
+      const RealType cell_mass_m1m1 = lag_cell_mass[cellm1m1];
+      const RealType cell_mass_p1m1 = lag_cell_mass[cellp1m1];
+
+      const RealType out_mass_m1m1 = out_cell_mass[cellm1m1];
+      const RealType out_mass_p1m1 = out_cell_mass[cellp1m1];
+
+      const RealType mass_flux_m1oo = mass_flux[faceym1oo];
+      const RealType mass_flux_m1m1 = mass_flux[faceym1m1];
+      const RealType mass_flux_p1m1 = mass_flux[faceyp1m1];
+      const RealType mass_flux_p1oo = mass_flux[faceyp1oo];
+
+      const RealType lag_node_mass_ooo = 0.5 * (cell_mass_m1m1 +  cell_mass_p1m1);
+      assert(0.0 < lag_node_mass_ooo);
+      const RealType out_node_mass_ooo = 0.5 * (out_mass_m1m1 + out_mass_p1m1);
+      assert(0.0 < out_node_mass_ooo);
+
+
+      const RealType prev_dual_mass_flux = 0.25 * ( mass_flux_p1m1 + mass_flux_m1m1 + mass_flux_m1oo + mass_flux_p1oo);
+      
+      const RealType next_dual_mass_flux = 0.5 * (mass_flux_p1oo + mass_flux_m1oo);  
+      
+#include "reconstruct_dual_variable_computation.h"      
+
+      const RealType in_moment_ooo = lag_node_mass_ooo * in_vx_oo; 
+
+      const RealType out_moment_ooo = 
+	in_moment_ooo + moment_flux_prev - moment_flux_next;
+
+      assert(0.0 < out_node_mass_ooo);
+
+      out_vy[node_ooo] = out_moment_ooo / out_node_mass_ooo; 
+  
+    }
+  }  
+
+   //Xmin
+  for (index_t ix = 0; ix < halo_width; ++ix) {
+    for (index_t iy = halo_width; iy < ny + 1 - halo_width; ++iy) {//problem not vect
+      
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+
+       out_vy[node_ooo] = 0.; 
+     }
+  }  
+
+   //Xmax
+  for (index_t ix = nx; ix < nx + 1; ++ix) {
+    for (index_t iy = halo_width; iy < ny + 1 - halo_width; ++iy) {//problem not vect
+      
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+
+      out_vy[node_ooo] = 0.; 
+     }
+  }  
+
+  //corners
+  {
+    const index_t node_cmm = 0;
+    const index_t node_cpm = nx;
+    const index_t node_cmp = ny * (nx + 1) ;
+    const index_t node_cpp = (nx + 1) * (ny + 1) - 1;
+    out_vy[node_cmm] = 0.;
+    out_vy[node_cpm] = 0.;
+    out_vy[node_cpp] = 0.;
+    out_vy[node_cmp] = 0.;
+  }
+
+}// end ProjectNodalIntensiveVariableOrder2YBoundar
+
+// Wall boundary conditions

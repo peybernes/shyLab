@@ -69,6 +69,7 @@ void ReconstructGradientNodalXBoundary(std::string BoundaryConditions,
 
 
 void ProjectNodalIntensiveVariableOrder2XBoundary(std::string BoundaryConditions,
+						  std::string variable_projected,
 						  index_t nx, 
 						  index_t ny, 
 						  index_t halo_width,
@@ -126,6 +127,7 @@ void ReconstructGradientNodalYBoundary(std::string BoundaryConditions,
 
 
 void ProjectNodalIntensiveVariableOrder2YBoundary(std::string BoundaryConditions,
+						  std::string variable_projected,
 						  index_t nx, 
 						  index_t ny, 
 						  index_t halo_width,

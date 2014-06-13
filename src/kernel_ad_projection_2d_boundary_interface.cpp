@@ -28,6 +28,9 @@ void BoundaryVelocityPrediction(std::string BoundaryConditions,
   else if (BoundaryConditions == "RayleighTaylor") {
     RtBoundaryVelocityPrediction(nx, ny, dt, dx, dy, in_mass, in_pressure, in_pseudo_pressure, in_velocity_x, in_velocity_y, out_velocity_x, out_velocity_y);
   }
+  else if (BoundaryConditions == "Wall") {
+    WallBoundaryVelocityPrediction(nx, ny, dt, dx, dy, in_mass, in_pressure, in_pseudo_pressure, in_velocity_x, in_velocity_y, out_velocity_x, out_velocity_y);
+  }
   else{
     PeriodicBoundaryVelocityPrediction(nx, ny, dt, dx, dy, in_mass, in_pressure, in_pseudo_pressure, in_velocity_x, in_velocity_y, out_velocity_x, out_velocity_y);
   }
@@ -45,6 +48,8 @@ void BoundaryCopy(std::string BoundaryConditions,
   }
   else if (BoundaryConditions == "RayleighTaylor") {
     RtBoundaryCopy(nx, ny, in_velocity_x, in_velocity_y);
+  }
+  else if (BoundaryConditions == "Wall") {
   }
   else{
     PeriodicBoundaryCopy(nx, ny, in_velocity_x, in_velocity_y);
@@ -66,6 +71,8 @@ void ReconstructGradientXBoundary(std::string BoundaryConditions,
   }
   else if (BoundaryConditions == "RayleighTaylor") {
     ReconstructGradientXBoundaryRt(nx, ny, dx, dy, volume_fluxes, lag_variable, gradient_variable);
+  }
+  else if (BoundaryConditions == "Wall") {
   }
   else{
     ReconstructGradientXPeriodicBoundary(nx, ny, dx, dy, volume_fluxes, lag_variable, gradient_variable);
@@ -89,6 +96,9 @@ void ReconstructGradientXBoundary(std::string BoundaryConditions,
     else if (BoundaryConditions == "RayleighTaylor") {
       ReconstructMassFluxOrder2XBoundaryRt(nx, ny, halo_width, dx, dy, volume_fluxes, cell_density, cell_density_gradient, mass_flux);
     }
+  else if (BoundaryConditions == "Wall") {
+      ReconstructMassFluxOrder2XWallBoundary(nx, ny, halo_width, dx, dy, volume_fluxes, cell_density, cell_density_gradient, mass_flux);
+  }
     else{
       ReconstructMassFluxOrder2XPeriodicBoundary(nx, ny, halo_width, dx, dy, volume_fluxes, cell_density, cell_density_gradient, mass_flux);
     }   
@@ -112,6 +122,9 @@ void ReconstructIntensiveVariableFluxOrder2XBoundary(std::string BoundaryConditi
   else if (BoundaryConditions == "RayleighTaylor") {
     ReconstructIntensiveVariableFluxOrder2XBoundaryRt(nx, ny, halo_width, dx,dy, volume_fluxes, mass_flux, cell_variable, cell_variable_gradient, variable_flux);
   }
+  else if (BoundaryConditions == "Wall") {
+    ReconstructIntensiveVariableFluxOrder2XWallBoundary(nx, ny, halo_width, dx,dy, volume_fluxes, mass_flux, cell_variable, cell_variable_gradient, variable_flux);
+  }
   else{
     ReconstructIntensiveVariableFluxOrder2XPeriodicBoundary(nx, ny, halo_width, dx,dy, volume_fluxes, mass_flux, cell_variable, cell_variable_gradient, variable_flux);
   }     
@@ -133,6 +146,8 @@ void ReconstructGradientNodalXBoundary(std::string BoundaryConditions,
   else if (BoundaryConditions == "RayleighTaylor") {
     ReconstructGradientNodalXBoundaryRt(nx, ny, dx, dt, predicted_velocity, lag_nodal_variable, gradient_variable);
   }
+  else if (BoundaryConditions == "Wall") {
+  }
   else{
     ReconstructGradientNodalXPeriodicBoundary(nx, ny, dx, dt, predicted_velocity, lag_nodal_variable, gradient_variable);
   }
@@ -140,6 +155,7 @@ void ReconstructGradientNodalXBoundary(std::string BoundaryConditions,
 }
 
 void ProjectNodalIntensiveVariableOrder2XBoundary(std::string BoundaryConditions,
+						  std::string variable_projected,
 						  index_t nx, 
 						  index_t ny, 
 						  index_t halo_width,
@@ -158,6 +174,14 @@ void ProjectNodalIntensiveVariableOrder2XBoundary(std::string BoundaryConditions
   }
   else if (BoundaryConditions == "RayleighTaylor") {
     ProjectNodalIntensiveVariableOrder2XBoundaryRt(nx, ny, halo_width, dx, dt, lag_cell_mass, out_cell_mass, u_velocity_pred, in_variable, gradient_variable, mass_flux, out_variable);
+  }
+  else if (BoundaryConditions == "Wall") {
+    if (variable_projected == "project_ux") {
+      ProjectNodalIntensiveVariableUxXWallBoundary(nx, ny, halo_width, lag_cell_mass, out_cell_mass, in_variable, mass_flux, out_variable);
+    }
+    else if (variable_projected == "project_uy") {
+      ProjectNodalIntensiveVariableUyXWallBoundary(nx, ny, halo_width, lag_cell_mass, out_cell_mass, in_variable, mass_flux, out_variable);
+    }
   }
   else{
     ProjectNodalIntensiveVariableOrder2XPeriodicBoundary(nx, ny, halo_width, dx, dt, lag_cell_mass, out_cell_mass, u_velocity_pred, in_variable, gradient_variable, mass_flux, out_variable);
@@ -179,6 +203,8 @@ void ReconstructGradientYBoundary(std::string BoundaryConditions,
   }
   else if (BoundaryConditions == "RayleighTaylor") {
     ReconstructGradientYBoundaryRt(nx, ny, dx, dy, volume_fluxes, lag_variable, gradient_variable); 
+  }
+  else if (BoundaryConditions == "Wall") {
   }
   else{
     ReconstructGradientYPeriodicBoundary(nx, ny, dx, dy, volume_fluxes, lag_variable, gradient_variable);
@@ -202,6 +228,9 @@ void ReconstructMassFluxOrder2YBoundary(std::string BoundaryConditions,
   }
   else if (BoundaryConditions == "RayleighTaylor") {
     ReconstructMassFluxOrder2YBoundaryRt(nx, ny, halo_width, dx, dy, volume_fluxes, cell_density, cell_density_gradient, mass_flux);
+  }
+  else if (BoundaryConditions == "Wall") {
+    ReconstructMassFluxOrder2YWallBoundary(nx, ny, halo_width, dx, dy, volume_fluxes, cell_density, cell_density_gradient, mass_flux);
   }
   else{
     ReconstructMassFluxOrder2YPeriodicBoundary(nx, ny, halo_width, dx, dy, volume_fluxes, cell_density, cell_density_gradient, mass_flux);
@@ -227,6 +256,9 @@ void ReconstructIntensiveVariableFluxOrder2YBoundary(std::string BoundaryConditi
   else if (BoundaryConditions == "RayleighTaylor") {
     ReconstructIntensiveVariableFluxOrder2YBoundaryRt(nx, ny, halo_width, dx, dy, volume_fluxes, mass_flux, cell_variable, cell_variable_gradient, variable_flux);
   }
+  else if (BoundaryConditions == "Wall") {
+    ReconstructIntensiveVariableFluxOrder2YWallBoundary(nx, ny, halo_width, dx, dy, volume_fluxes, mass_flux, cell_variable, cell_variable_gradient, variable_flux);
+  }
   else{
     ReconstructIntensiveVariableFluxOrder2YPeriodicBoundary(nx, ny, halo_width, dx, dy, volume_fluxes, mass_flux, cell_variable, cell_variable_gradient, variable_flux);
   }
@@ -248,6 +280,8 @@ void ReconstructGradientNodalYBoundary(std::string BoundaryConditions,
   else if (BoundaryConditions == "RayleighTaylor") {
     ReconstructGradientNodalYBoundaryRt(nx, ny, dy, dt, predicted_velocity, lag_nodal_variable, gradient_variable);
   }
+  else if (BoundaryConditions == "Wall") {
+  }
   else{
     ReconstructGradientNodalYPeriodicBoundary(nx, ny, dy, dt, predicted_velocity, lag_nodal_variable, gradient_variable);
   }
@@ -255,6 +289,7 @@ void ReconstructGradientNodalYBoundary(std::string BoundaryConditions,
 }
 
 void ProjectNodalIntensiveVariableOrder2YBoundary(std::string BoundaryConditions,
+						  std::string variable_projected,
 						  index_t nx, 
 						  index_t ny, 
 						  index_t halo_width,
@@ -273,6 +308,14 @@ void ProjectNodalIntensiveVariableOrder2YBoundary(std::string BoundaryConditions
   }
   else if (BoundaryConditions == "RayleighTaylor") {
     ProjectNodalIntensiveVariableOrder2YBoundaryRt(nx, ny, halo_width, dy, dt, lag_cell_mass, out_cell_mass, v_velocity_pred, in_variable, gradient_variable, mass_flux, out_variable);
+  }
+  else if (BoundaryConditions == "Wall") {
+    if (variable_projected == "project_ux") {
+      ProjectNodalIntensiveVariableUxYWallBoundary(nx, ny, halo_width, lag_cell_mass, out_cell_mass, in_variable, mass_flux, out_variable);
+    }
+    else if (variable_projected == "project_uy") {
+      ProjectNodalIntensiveVariableUyYWallBoundary(nx, ny, halo_width, lag_cell_mass, out_cell_mass, in_variable, mass_flux, out_variable);
+    }
   }
   else{
     ProjectNodalIntensiveVariableOrder2YPeriodicBoundary(nx, ny, halo_width, dy, dt, lag_cell_mass, out_cell_mass, v_velocity_pred, in_variable, gradient_variable, mass_flux, out_variable);

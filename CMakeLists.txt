@@ -72,6 +72,8 @@ add_executable(
     src/kernel_lagrange_2d.c
     src/kernel_ad_projection_2d_boundary_conditions.c
     src/kernel_ad_projection_2d_boundary_interface.cpp
+    src/lagrange_2d_interface.cpp
+    src/ad_projection_2d_interface.cpp
     src/math_parser.cpp
     src/mesh.cpp
     src/mpi_boundary_condition.cpp

@@ -24,4 +24,7 @@ extern "C" {
 }
 #endif
 #include "kernel_ad_projection_2d_boundary_interface.hpp"
+#include "lagrange_2d_interface.hpp"
+#include "ad_projection_2d_interface.hpp"
+
 #endif // KERNELS_HPP_
