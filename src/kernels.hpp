@@ -17,6 +17,7 @@ extern "C" {
 
 // Lagrange Remap kernels
 #include "kernel_ad_projection_2d.h"
+#include "kernel_direct_projection_2d.h"
 #include "kernel_lagrange_2d.h"
 #include "kernel_ad_projection_2d_boundary_conditions.h"
 
@@ -26,5 +27,6 @@ extern "C" {
 #include "kernel_ad_projection_2d_boundary_interface.hpp"
 #include "lagrange_2d_interface.hpp"
 #include "ad_projection_2d_interface.hpp"
+#include "direct_projection_2d_interface.hpp"
 
 #endif // KERNELS_HPP_

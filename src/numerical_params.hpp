@@ -31,6 +31,8 @@ struct NumericalParams {
   RealType dry_height;
   //! Type of Boundary Conditions
   std::string BoundaryConditions;
+  //! Type of Projection
+  std::string TypeOfProjection;
   NumericalParams();
   void save(ptree &pt);
   void load(ptree &pt);
