@@ -769,14 +769,37 @@ void Simulation::Run() {
     // AD Projection 2nd order  2D.
     /*==============================*/
 
-  AdProjection_2d(
+  // Projection X
+  AdProjection_2d_X(
 		  //in
-		  numerical_params.BoundaryConditions, nx, ny, nb_faces_x, nb_faces_y, nb_cells, nb_nodes, dx, dy, dt, halo_width, predicted_pressure, predicted_u, predicted_v,
-		  //out
-		  e_lag, u_lag, v_lag, in_u, in_v, in_e, in_cell_mass, out_u, out_v, out_e, out_cell_mass, directional_lagrangian_volume, directional_lagrangian_density, directional_lagrangian_volume_y, directional_lagrangian_density_y, volume_fluxes_x, volume_fluxes_y, mass_flux_x, mass_flux_y, energy_flux_x, energy_flux_y, density_gradient, energy_gradient, gradient_u, gradient_v,
+		  numerical_params.BoundaryConditions, nx, ny, nb_faces_x, nb_faces_y, nb_cells, nb_nodes, dx, dy, dt, halo_width, predicted_u, e_lag, u_lag, v_lag, in_cell_mass, 
+		  // out
+		  out_u, out_v, out_e, out_cell_mass, directional_lagrangian_volume, directional_lagrangian_density, volume_fluxes_x, mass_flux_x, energy_flux_x, density_gradient, energy_gradient, gradient_u, gradient_v,
 		  //timing
-		  time_compute_volume_fluxes_X, time_gradient_X, time_mass_reconstruct_o2_X, time_project_mass_X, time_reconstruct_energy_o2_X, time_project_energy_X, time_gradient_nodal_X, time_project_nodal_velocity_X, time_compute_volume_fluxes_Y, time_gradient_Y, time_mass_reconstruct_o2_Y, time_project_mass_Y, time_reconstruct_energy_o2_Y, time_project_energy_Y, time_gradient_nodal_Y, time_project_nodal_velocity_Y, time_periodic_boundary); 
+		  time_compute_volume_fluxes_X, time_gradient_X, time_mass_reconstruct_o2_X, time_project_mass_X, time_reconstruct_energy_o2_X, time_project_energy_X, time_gradient_nodal_X, time_project_nodal_velocity_X, time_periodic_boundary); 
   
+
+  std::swap(in_cell_mass, out_cell_mass);
+  std::swap(u_lag, out_u);
+  std::swap(v_lag, out_v);
+  std::swap(e_lag, out_e);
+  
+     // Projection Y
+
+  AdProjection_2d_Y(
+		  //in
+		    numerical_params.BoundaryConditions, nx, ny, nb_faces_x, nb_faces_y, nb_cells, nb_nodes, dx, dy, dt, halo_width, predicted_v, e_lag, u_lag, v_lag, in_cell_mass, 
+		    //out
+		    out_u, out_v, out_e, out_cell_mass, directional_lagrangian_volume_y, directional_lagrangian_density_y, volume_fluxes_y, mass_flux_y, energy_flux_y, density_gradient, energy_gradient, gradient_u, gradient_v,
+		  //timing
+		    time_compute_volume_fluxes_Y, time_gradient_Y, time_mass_reconstruct_o2_Y, time_project_mass_Y, time_reconstruct_energy_o2_Y, time_project_energy_Y, time_gradient_nodal_Y, time_project_nodal_velocity_Y, time_periodic_boundary); 
+     
+  std::swap(in_cell_mass, out_cell_mass); 
+  std::swap(in_u, out_u); 
+  std::swap(in_v, out_v);
+  std::swap(in_e, out_e);
+          
+
     /*==================================*/
       //  for output
     /*==================================*/

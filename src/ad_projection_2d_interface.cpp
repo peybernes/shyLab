@@ -8,7 +8,7 @@
 
 #include "kernel_tools.h"
 
-void AdProjection_2d(const std::string BoundaryConditions,
+void AdProjection_2d_X(const std::string BoundaryConditions,
 		     const int nx,
 		     const int ny,
 		     const int nb_faces_x,
@@ -19,30 +19,20 @@ void AdProjection_2d(const std::string BoundaryConditions,
 		     const RealType dy,
 		     const RealType dt,
 		     const RealType halo_width,
-		     const RealType* RESTRICT predicted_pressure,
 		     const RealType* RESTRICT predicted_u,
-		     const RealType* RESTRICT predicted_v,
-		     RealType* RESTRICT e_lag,
-		     RealType* RESTRICT u_lag,
-		     RealType* RESTRICT v_lag,
-		     RealType* RESTRICT in_u,
-		     RealType* RESTRICT in_v,
-		     RealType* RESTRICT in_e,
-		     RealType* RESTRICT in_cell_mass,
+		     const RealType* RESTRICT e_lag,
+		     const RealType* RESTRICT u_lag,
+		     const RealType* RESTRICT v_lag,
+		     const RealType* RESTRICT in_cell_mass,
 		     RealType* RESTRICT out_u,
 		     RealType* RESTRICT out_v,
 		     RealType* RESTRICT out_e,
 		     RealType* RESTRICT out_cell_mass,
 		     RealType* RESTRICT directional_lagrangian_volume,
 		     RealType* RESTRICT directional_lagrangian_density,
-		     RealType* RESTRICT directional_lagrangian_volume_y,
-		     RealType* RESTRICT directional_lagrangian_density_y,
 		     RealType* RESTRICT volume_fluxes_x,
-		     RealType* RESTRICT volume_fluxes_y,
 		     RealType* RESTRICT mass_flux_x,
-		     RealType* RESTRICT mass_flux_y,
 		     RealType* RESTRICT energy_flux_x,
-		     RealType* RESTRICT energy_flux_y,
 		     RealType* RESTRICT density_gradient,
 		     RealType* RESTRICT energy_gradient,
 		     RealType* RESTRICT gradient_u,
@@ -56,14 +46,6 @@ void AdProjection_2d(const std::string BoundaryConditions,
 		     std::vector<RealType>& time_project_energy_X,
 		     std::vector<RealType>& time_gradient_nodal_X,
 		     std::vector<RealType>& time_project_nodal_velocity_X,
-		     std::vector<RealType>& time_compute_volume_fluxes_Y,
-		     std::vector<RealType>& time_gradient_Y,
-		     std::vector<RealType>& time_mass_reconstruct_o2_Y,
-		     std::vector<RealType>& time_project_mass_Y,
-		     std::vector<RealType>& time_reconstruct_energy_o2_Y,
-		     std::vector<RealType>& time_project_energy_Y,
-		     std::vector<RealType>& time_gradient_nodal_Y,
-		     std::vector<RealType>& time_project_nodal_velocity_Y,		     
 		     std::vector<RealType> time_periodic_boundary
 		     )  {
   
@@ -113,7 +95,7 @@ void AdProjection_2d(const std::string BoundaryConditions,
      clock_gettime(CLOCK_REALTIME, &time2);
      time_project_mass_X.push_back(diff(time1, time2));
     
-      
+           
      // ========================
      //     Projection X _ e. (projection of mass*energy then back to e )
      // ========================
@@ -204,15 +186,58 @@ void AdProjection_2d(const std::string BoundaryConditions,
     clock_gettime(CLOCK_REALTIME, &time1);
     ProjectNodalIntensiveVariableOrder2XBoundary(BoundaryConditions, "project_uy", nx,  ny,  halo_width, dx, dt, in_cell_mass, out_cell_mass, predicted_u, v_lag, gradient_v, mass_flux_x,
 					 out_v);
-
     clock_gettime(CLOCK_REALTIME, &time2);
     time_periodic_boundary.push_back(diff(time1, time2));
 
+          
+}
 
-     std::swap(in_cell_mass, out_cell_mass);
-     std::swap(u_lag, out_u);
-     std::swap(v_lag, out_v);
-     std::swap(e_lag, out_e);
+void AdProjection_2d_Y(const std::string BoundaryConditions,
+		     const int nx,
+		     const int ny,
+		     const int nb_faces_x,
+		     const int nb_faces_y,
+		     const int nb_cells,
+		     const int nb_nodes,
+		     const RealType dx,
+		     const RealType dy,
+		     const RealType dt,
+		     const RealType halo_width,
+		     const RealType* RESTRICT predicted_v,
+		     const RealType* RESTRICT e_lag,
+		     const RealType* RESTRICT u_lag,
+		     const RealType* RESTRICT v_lag,
+		     const RealType* RESTRICT in_cell_mass,
+		     RealType* RESTRICT out_u,
+		     RealType* RESTRICT out_v,
+		     RealType* RESTRICT out_e,
+		     RealType* RESTRICT out_cell_mass,
+		     RealType* RESTRICT directional_lagrangian_volume_y,
+		     RealType* RESTRICT directional_lagrangian_density_y,
+		     RealType* RESTRICT volume_fluxes_y,
+		     RealType* RESTRICT mass_flux_y,
+		     RealType* RESTRICT energy_flux_y,
+		     RealType* RESTRICT density_gradient,
+		     RealType* RESTRICT energy_gradient,
+		     RealType* RESTRICT gradient_u,
+		     RealType* RESTRICT gradient_v,
+		     //timing
+		     std::vector<RealType>& time_compute_volume_fluxes_Y,
+		     std::vector<RealType>& time_gradient_Y,
+		     std::vector<RealType>& time_mass_reconstruct_o2_Y,
+		     std::vector<RealType>& time_project_mass_Y,
+		     std::vector<RealType>& time_reconstruct_energy_o2_Y,
+		     std::vector<RealType>& time_project_energy_Y,
+		     std::vector<RealType>& time_gradient_nodal_Y,
+		     std::vector<RealType>& time_project_nodal_velocity_Y,		     
+		     std::vector<RealType> time_periodic_boundary
+		     )  {
+  
+  //for timing
+   struct timespec time1;
+   struct timespec time2;
+  //
+
      
      //===================
     // //Projection Y.
@@ -356,11 +381,5 @@ void AdProjection_2d(const std::string BoundaryConditions,
 						  out_v);
      clock_gettime(CLOCK_REALTIME, &time2);
      time_periodic_boundary.push_back(diff(time1, time2));
-     
-     
-     std::swap(in_cell_mass, out_cell_mass); 
-     std::swap(in_u, out_u); 
-     std::swap(in_v, out_v);
-     std::swap(in_e, out_e);
      
 }
