@@ -817,7 +817,7 @@ void Simulation::Run() {
 
             DirectProjection_2d(
 				//in
-				nx, ny, dx, dy, dt, halo_width, predicted_u, predicted_v,
+				numerical_params.BoundaryConditions, nx, ny, dx, dy, dt, halo_width, predicted_u, predicted_v,
 				//out
 				e_lag, u_lag, v_lag, in_u, in_v, in_e, in_cell_mass, out_u, out_v, out_e, out_cell_mass, directional_lagrangian_volume, directional_lagrangian_density, directional_lagrangian_volume_y, directional_lagrangian_density_y, volume_fluxes_x, volume_fluxes_y, mass_flux_x, mass_flux_y, energy_flux_x, energy_flux_y,
 				//timing

@@ -8,7 +8,8 @@
 
 #include "kernel_tools.h"
 
-void DirectProjection_2d( const int nx,
+void DirectProjection_2d(const std::string BoundaryConditions, 
+			 const int nx,
 		     const int ny,
 		     const RealType dx,
 		     const RealType dy,
