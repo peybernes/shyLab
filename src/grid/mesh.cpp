@@ -9,16 +9,16 @@
 
 #include <boost/unordered_map.hpp>
 
-#include "array_io.hpp"
-#include "byte_swap.hpp"
-#include "cell_variable_metadata.hpp"
-#include "face_variable_metadata.hpp"
+#include "../io/array_io.hpp"
+#include "../io/byte_swap.hpp"
+#include "../io/token_parser.hpp"
+#include "../variables/cell_variable_metadata.hpp"
+#include "../variables/face_variable_metadata.hpp"
 #include "geom.hpp"
 #include "mesh_elements.hpp"
-#include "serialize.hpp"
-#include "token_parser.hpp"
-#include "variable_store.hpp"
-#include "vertice_variable_metadata.hpp"
+#include "../serialize.hpp"
+#include "../variables/variable_store.hpp"
+#include "../variables/vertice_variable_metadata.hpp"
 
 typedef int32_t vtkint_t;
 typedef int32_t vtktype_t;

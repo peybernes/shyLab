@@ -4,9 +4,9 @@
 #include <fstream>
 #include <omp.h>
 
-#include "array_io.hpp"
-#include "serialize.hpp"
-#include "simulation.hpp"
+#include "../io/array_io.hpp"
+#include "../serialize.hpp"
+#include "../simulation.hpp"
 
 InitVariable::InitVariable(Simulation *sim_ptr, const Timetable &timetable):
   Event(sim_ptr, timetable, PRE) {

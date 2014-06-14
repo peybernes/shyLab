@@ -5,7 +5,7 @@
 #include <string>
 
 #include "event.hpp"
-#include "serialize_fwd.hpp"
+#include "../serialize_fwd.hpp"
 
 enum IoFormatType {ASCII, BINARY};
 

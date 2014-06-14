@@ -8,12 +8,12 @@
 #endif // HAVE_MPI
 #include <string>
 
-#include "array_io.hpp"
-#include "cell_variable_metadata.hpp"
-#include "serialize.hpp"
-#include "simulation.hpp"
-#include "variable_attribute.hpp"
-#include "vertice_variable_metadata.hpp"
+#include "../io/array_io.hpp"
+#include "../serialize.hpp"
+#include "../simulation.hpp"
+#include "../variables/cell_variable_metadata.hpp"
+#include "../variables/variable_attribute.hpp"
+#include "../variables/vertice_variable_metadata.hpp"
 
 Output::Output(Simulation *sim_ptr, std::string &stream_name, const Timetable &timetable):
   Event(sim_ptr, timetable, POST), m_stream_name(stream_name) {}

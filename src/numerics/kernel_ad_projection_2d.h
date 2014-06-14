@@ -60,16 +60,16 @@ void ReconstructIntensiveVariableFluxOrder1Y(index_t nx,
 
 
 void ProjectMassX(index_t nx, 
-			       index_t ny, 
-			       const RealType* in_cell_mass,
-			       const RealType* mass_flux,
-			       RealType* out_cell_mass);
+		  index_t ny, 
+		  const RealType* in_cell_mass,
+		  const RealType* mass_flux,
+		  RealType* out_cell_mass);
 
 void ProjectMassY(index_t nx, 
-			       index_t ny, 
-			       const RealType* in_cell_mass,
-			       const RealType* mass_flux,
-			       RealType* out_cell_mass);
+		  index_t ny, 
+		  const RealType* in_cell_mass,
+		  const RealType* mass_flux,
+		  RealType* out_cell_mass);
 
 void CheckFluxPeriodicalPropertyX(index_t nx,
 				  index_t ny,

@@ -8,7 +8,7 @@
 #include <iosfwd>
 #include <vector>
 
-#include "variable_store.hpp"
+#include "variables/variable_store.hpp"
 
 class VariableStore;
 class Mesh;

@@ -53,43 +53,43 @@ ADD_DEFINITIONS(" -DRealType=double -I${CMAKE_SOURCE_DIR}/external -I${CMAKE_SOU
 
 add_executable(
     shy
-    src/array_io.cpp
-    src/cell.cpp
     src/clock.cpp
-    src/event.cpp
-    src/geom.cpp
-    src/grid.cpp
-    src/init.cpp
-    src/kernel_advection_fv_uw_1_2d.c
-    src/kernel_advection_fv_uw_1_3d.c
-    src/kernel_advection_fv_uw_2_2d.c
-    src/kernel_advection_fv_uw_2_3d.c
-    src/kernel_advection_fv_uw_kappa_2d.c
-    src/kernel_advection_fv_uw_kappa_3d.c
-    src/kernel_advection_fv_central_compact_explicit_2d.c
-    src/kernel_compressible_euler_fv_uw_kappa_2d.c
-    src/kernel_ad_projection_2d.c
-    src/kernel_direct_projection_2d.c
-    src/kernel_lagrange_2d.c
-    src/kernel_ad_projection_2d_boundary_conditions.c
-    src/kernel_ad_projection_2d_boundary_interface.cpp
-    src/lagrange_2d_interface.cpp
-    src/ad_projection_2d_interface.cpp
-    src/direct_projection_2d_interface.cpp
+    src/grid/cell.cpp
+    src/grid/geom.cpp
+    src/grid/grid.cpp
+    src/grid/mesh.cpp
+    src/io/array_io.cpp
+    src/io/event.cpp
+    src/io/init.cpp
+    src/io/output.cpp
+    src/numerics/kernel_advection_fv_uw_1_2d.c
+    src/numerics/kernel_advection_fv_uw_1_3d.c
+    src/numerics/kernel_advection_fv_uw_2_2d.c
+    src/numerics/kernel_advection_fv_uw_2_3d.c
+    src/numerics/kernel_advection_fv_uw_kappa_2d.c
+    src/numerics/kernel_advection_fv_uw_kappa_3d.c
+    src/numerics/kernel_advection_fv_central_compact_explicit_2d.c
+    src/numerics/kernel_compressible_euler_fv_uw_kappa_2d.c
+    src/numerics/kernel_ad_projection_2d.c
+    src/numerics/kernel_direct_projection_2d.c
+    src/numerics/kernel_lagrange_2d.c
+    src/numerics/kernel_ad_projection_2d_boundary_conditions.c
+    src/numerics/kernel_ad_projection_2d_boundary_interface.cpp
+    src/numerics/lagrange_2d_interface.cpp
+    src/numerics/ad_projection_2d_interface.cpp
+    src/numerics/direct_projection_2d_interface.cpp
     src/math_parser.cpp
-    src/mesh.cpp
     src/mpi_boundary_condition.cpp
     src/numerical_core.c
     src/numerical_params.cpp 
-    src/output.cpp
     src/physical_params.cpp
     src/euler_riemann_analytic_solver.cpp
     src/shy.cpp 
     src/simulation.cpp 
-    src/structured_grid.cpp
+    src/grid/structured_grid.cpp
     src/timetable.cpp 
-    src/variable_database.cpp
-    src/variable_store.cpp)
+    src/variables/variable_database.cpp
+    src/variables/variable_store.cpp)
 
 # Telling cmake where our custom cmake modules are.
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake/Modules/")

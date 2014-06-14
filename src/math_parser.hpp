@@ -6,7 +6,7 @@
 
 #include <muParser.h>
 
-#include "variable_database.hpp"
+#include "variables/variable_database.hpp"
 
 class NumericalParams;
 class PhysicalParams;

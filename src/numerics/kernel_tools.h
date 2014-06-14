@@ -5,6 +5,14 @@
 #include <xmmintrin.h>
 #include <algorithm> 
 
+#if !defined(SHY_ASM_COMMENT)
+  #if (defined __GNUC__) && ( defined(__i386__) || defined(__x86_64__) )
+    #define SHY_ASM_COMMENT(X)  asm("#" X)
+  #else
+    #define SHY_ASM_COMMENT(X)
+  #endif
+#endif
+
 #define RESTRICT __restrict
 
 #define ALIGN_BYTES 64

@@ -8,8 +8,8 @@
 #include "cell.hpp"
 #include "grid.hpp"
 #include "mesh_elements.hpp"
-#include "mpi_boundary_condition.hpp"
-#include "serialize_fwd.hpp"
+#include "../mpi_boundary_condition.hpp"
+#include "../serialize_fwd.hpp"
 
 class VariableStore;
 

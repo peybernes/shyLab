@@ -5,7 +5,7 @@
 #include <muParserDef.h>
 #include <boost/foreach.hpp>
 
-#include "variable_metadata.hpp"
+#include "variables/variable_metadata.hpp"
 #include "numerical_params.hpp"
 #include "physical_params.hpp"
 #include "simulation.hpp"

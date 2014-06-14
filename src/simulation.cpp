@@ -16,15 +16,15 @@
 #include <sys/time.h>
 #include <omp.h>
 
-#include "kernel_tools.h"
-#include "array_io.hpp"
-#include "init.hpp"
-#include "kernels.hpp"
+#include "numerics/kernels.hpp"
+#include "numerics/kernel_tools.h"
+#include "io/array_io.hpp"
+#include "io/init.hpp"
 #include "numerical_core.h"
-#include "output.hpp"
+#include "io/output.hpp"
 #include "serialize.hpp"
-#include "structured_grid.hpp"
-#include "variable_metadata.hpp"
+#include "grid/structured_grid.hpp"
+#include "variables/variable_metadata.hpp"
 #include "euler_riemann_analytic_solver.hpp"
 
 #include <ctime>
@@ -348,7 +348,6 @@ void Simulation::Save(const std::string &filename) {
   ptree pt_dump;
   pt_dump.put_child("Simulation", pt_simulation);
 
-  // Write simulation in XML format.
   write_json(filename, pt_dump);
 }
 
@@ -534,9 +533,13 @@ void Simulation::Run() {
   const int ny = m_grid.ny();
 
     
- RealType* cell_volumes = cell_variables.GetVariable(variables_database, "cell_volumes");
- 
- RealType* directional_lagrangian_volume= cell_variables.GetVariable(variables_database, "directional_lagrangian_volume");/* may need to move some variables in local part and be consistant with json files -- here json variable name is ***_volume and variable store in memory ishould be ***_volume_x , same for lagrangian density*/
+  RealType* cell_volumes = cell_variables.GetVariable(variables_database, "cell_volumes");
+
+  // may need to move some variables in local part and be consistant
+  // with json files -- here json variable name is ***_volume and
+  // variable store in memory ishould be ***_volume_x , same for
+  // lagrangian density
+  RealType* directional_lagrangian_volume = cell_variables.GetVariable(variables_database, "directional_lagrangian_volume");
   RealType* directional_lagrangian_density = cell_variables.GetVariable(variables_database, "directional_lagrangian_density");
   RealType* directional_lagrangian_volume_y = cell_variables.GetVariable(variables_database, "directional_lagrangian_volume_y");
   RealType* directional_lagrangian_density_y = cell_variables.GetVariable(variables_database, "directional_lagrangian_density_y");
@@ -602,12 +605,7 @@ void Simulation::Run() {
   RealType* density_gradient = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* energy_gradient = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
 
- /*RealType* directional_lagrangian_volume_x = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* directional_lagrangian_density_x = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* directional_lagrangian_volume_y = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* directional_lagrangian_density_y = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));*/
-
-// Node local variables.
+  // Node local variables.
   RealType* gradient_v = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
   RealType* gradient_u = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
   // INIT
@@ -688,8 +686,9 @@ void Simulation::Run() {
 
   double time = get_time();
 
-  std::cerr << "type of Boundary Conditions : " << numerical_params.BoundaryConditions << "\n";      
-  std::cerr << "type of Projection : " << numerical_params.TypeOfProjection << "\n";      
+  std::cerr << "Type of Boundary Conditions : " << numerical_params.BoundaryConditions << "\n";      
+  std::cerr << "Type of Projection : " << numerical_params.TypeOfProjection << "\n";      
+
   while (!timetable.IsFinished(clock)) {
     
     if (process_rank == 0)
@@ -736,116 +735,223 @@ void Simulation::Run() {
 
     const RealType kappa = 1.0 / 3.0;
 
-    //std::cerr << "dt=" << dt << ", dx=" << dx << ", dy=" << dy << "\n";
-
     struct timespec time1;
     struct timespec time2;
 
     if (m_grid.dimension() == 2) {
+
       clock_gettime(CLOCK_REALTIME, &time1);
       dt = TimeStep(nx, ny, dx, dy, CFL, in_rho, in_p, in_u, in_v);
       clock_gettime(CLOCK_REALTIME, &time2);
       time_time_step.push_back(diff(time1, time2)); 
 
-  std::cerr << "CFL : " << numerical_params.CFL << "\n"; 
-  std::cerr << "          dt = " << dt << "\n";
+      std::cerr << "CFL : " << numerical_params.CFL << "\n"; 
+      std::cerr << "          dt = " << dt << "\n";
    
-    /*==============================*/
-    // Lagrange 2nd order  2D.
-    /*==============================*/
-
-    /*  std::swap(e_lag,in_e); when skipping lagrangian step  for testing projection only
-	std::swap(u_lag,in_u);*/
-    
-  Lagrange_2d(
-	      //in
-	      numerical_params.BoundaryConditions, nx, ny, dx, dy, dt, in_u, in_v, in_e, in_cell_mass,
-	      //out
-	      in_p, predicted_pressure, cell_pseudo_pressure, predicted_u, predicted_v, e_lag, u_lag, v_lag,
-	      // timing
-	      time_lagrange_pressure_predicted, time_lagrange_velocity_predicted, time_periodic_boundary, time_lagrange_correction, time_lagrange_velocity_correction);
+      // Lagrange 2D algorithm for compressible Euler equations.
+      
+      Lagrange2dDriver(//in
+		       numerical_params.BoundaryConditions,
+		       nx,
+		       ny,
+		       dx,
+		       dy,
+		       dt,
+		       in_u,
+		       in_v,
+		       in_e,
+		       in_cell_mass,
+		       //out
+		       in_p,
+		       predicted_pressure,
+		       cell_pseudo_pressure,
+		       predicted_u,
+		       predicted_v,
+		       e_lag,
+		       u_lag,
+		       v_lag,
+		       // timing
+		       time_lagrange_pressure_predicted,
+		       time_lagrange_velocity_predicted,
+		       time_periodic_boundary,
+		       time_lagrange_correction,
+		       time_lagrange_velocity_correction);
   
+      // Projection 2D algorithm for compressible Euler equations.
   
-    /*==============================*/
-    // Projection  2D.
-    /*==============================*/
+      if (numerical_params.TypeOfProjection == "AdProjection") {
 
-  if (numerical_params.TypeOfProjection == "AdProjection") {
-
-            /*==============================*/
-            // AD Projection 2nd order  2D.
-            /*==============================*/
-
-              // Projection X
-            AdProjection_2d_X(
-			      //in
-			      numerical_params.BoundaryConditions, nx, ny, nb_faces_x, nb_faces_y, nb_cells, nb_nodes, dx, dy, dt, halo_width, predicted_u, e_lag, u_lag, v_lag, in_cell_mass, 
+	// Projection X
+	AdProjection2dXDriver(//in
+			      numerical_params.BoundaryConditions,
+			      nx,
+			      ny,
+			      nb_faces_x,
+			      nb_faces_y,
+			      nb_cells,
+			      nb_nodes,
+			      dx,
+			      dy,
+			      dt,
+			      halo_width,
+			      predicted_u,
+			      e_lag,
+			      u_lag,
+			      v_lag,
+			      in_cell_mass, 
 			      // out
-			      out_u, out_v, out_e, out_cell_mass, directional_lagrangian_volume, directional_lagrangian_density, volume_fluxes_x, mass_flux_x, energy_flux_x, density_gradient, energy_gradient, gradient_u, gradient_v,
+			      out_u,
+			      out_v,
+			      out_e,
+			      out_cell_mass,
+			      directional_lagrangian_volume,
+			      directional_lagrangian_density,
+			      volume_fluxes_x,
+			      mass_flux_x,
+			      energy_flux_x,
+			      density_gradient,
+			      energy_gradient,
+			      gradient_u,
+			      gradient_v,
 			      //timing
-			      time_compute_volume_fluxes_X, time_gradient_X, time_mass_reconstruct_o2_X, time_project_mass_X, time_reconstruct_energy_o2_X, time_project_energy_X, time_gradient_nodal_X, time_project_nodal_velocity_X, time_periodic_boundary); 
+			      time_compute_volume_fluxes_X,
+			      time_gradient_X,
+			      time_mass_reconstruct_o2_X,
+			      time_project_mass_X,
+			      time_reconstruct_energy_o2_X,
+			      time_project_energy_X,
+			      time_gradient_nodal_X,
+			      time_project_nodal_velocity_X,
+			      time_periodic_boundary);
 	    
-	    
-	    std::swap(in_cell_mass, out_cell_mass);
-	    std::swap(u_lag, out_u);
-	    std::swap(v_lag, out_v);
-	    std::swap(e_lag, out_e);
-	    
-	    // Projection Y
-	    
-	    AdProjection_2d_Y(
-			      //in
-			      numerical_params.BoundaryConditions, nx, ny, nb_faces_x, nb_faces_y, nb_cells, nb_nodes, dx, dy, dt, halo_width, predicted_v, e_lag, u_lag, v_lag, in_cell_mass, 
+	std::swap(in_cell_mass, out_cell_mass);
+	std::swap(u_lag, out_u);
+	std::swap(v_lag, out_v);
+	std::swap(e_lag, out_e);
+	
+	// Projection Y
+	AdProjection2dYDriver(//in
+			      numerical_params.BoundaryConditions,
+			      nx,
+			      ny,
+			      nb_faces_x,
+			      nb_faces_y,
+			      nb_cells,
+			      nb_nodes,
+			      dx,
+			      dy,
+			      dt,
+			      halo_width,
+			      predicted_v,
+			      e_lag,
+			      u_lag,
+			      v_lag,
+			      in_cell_mass, 
 			      //out
-			      out_u, out_v, out_e, out_cell_mass, directional_lagrangian_volume_y, directional_lagrangian_density_y, volume_fluxes_y, mass_flux_y, energy_flux_y, density_gradient, energy_gradient, gradient_u, gradient_v,
+			      out_u,
+			      out_v,
+			      out_e,
+			      out_cell_mass,
+			      directional_lagrangian_volume_y,
+			      directional_lagrangian_density_y,
+			      volume_fluxes_y,
+			      mass_flux_y,
+			      energy_flux_y,
+			      density_gradient,
+			      energy_gradient,
+			      gradient_u,
+			      gradient_v,
 			      //timing
-			      time_compute_volume_fluxes_Y, time_gradient_Y, time_mass_reconstruct_o2_Y, time_project_mass_Y, time_reconstruct_energy_o2_Y, time_project_energy_Y, time_gradient_nodal_Y, time_project_nodal_velocity_Y, time_periodic_boundary); 
+			      time_compute_volume_fluxes_Y,
+			      time_gradient_Y,
+			      time_mass_reconstruct_o2_Y,
+			      time_project_mass_Y,
+			      time_reconstruct_energy_o2_Y,
+			      time_project_energy_Y,
+			      time_gradient_nodal_Y,
+			      time_project_nodal_velocity_Y,
+			      time_periodic_boundary); 
 	    
-	    std::swap(in_cell_mass, out_cell_mass); 
-	    std::swap(in_u, out_u); 
-	    std::swap(in_v, out_v);
-	    std::swap(in_e, out_e);
-  }
+	std::swap(in_cell_mass, out_cell_mass); 
+	std::swap(in_u, out_u); 
+	std::swap(in_v, out_v);
+	std::swap(in_e, out_e);
+	
+      } else if (numerical_params.TypeOfProjection == "DirectProjection") {
 
-          
-  else if (numerical_params.TypeOfProjection == "DirectProjection") {
+	// Direct projection --- first order for now.
+	DirectProjection2dDriver(//in
+				 numerical_params.BoundaryConditions,
+				 nx,
+				 ny,
+				 dx,
+				 dy,
+				 dt,
+				 halo_width,
+				 predicted_u,
+				 predicted_v,
+				 //out
+				 e_lag,
+				 u_lag,
+				 v_lag,
+				 in_u,
+				 in_v,
+				 in_e,
+				 in_cell_mass,
+				 out_u,
+				 out_v,
+				 out_e,
+				 out_cell_mass,
+				 directional_lagrangian_volume,
+				 directional_lagrangian_density,
+				 directional_lagrangian_volume_y,
+				 directional_lagrangian_density_y,
+				 volume_fluxes_x,
+				 volume_fluxes_y,
+				 mass_flux_x,
+				 mass_flux_y,
+				 energy_flux_x,
+				 energy_flux_y,
+				 //timing
+				 time_compute_volume_fluxes_X,
+				 time_gradient_X,
+				 time_mass_reconstruct_o2_X,
+				 time_project_mass_X,
+				 time_reconstruct_energy_o2_X,
+				 time_project_energy_X,
+				 time_gradient_nodal_X,
+				 time_project_nodal_velocity_X,
+				 time_compute_volume_fluxes_Y,
+				 time_gradient_Y,
+				 time_mass_reconstruct_o2_Y,
+				 time_project_mass_Y,
+				 time_reconstruct_energy_o2_Y,
+				 time_project_energy_Y,
+				 time_gradient_nodal_Y,
+				 time_project_nodal_velocity_Y,
+				 time_periodic_boundary);
+	
+	std::swap(in_cell_mass, out_cell_mass); 
+	std::swap(in_u, out_u); 
+	std::swap(in_v, out_v);
+	std::swap(in_e, out_e);
+	
+      }
 
-            /*===============================*/
-            // Direct Projection 1st order 2D.
-            /*===============================*/
 
+      // Recompute the density from mass and volume. Only needed for output.
 
-            DirectProjection_2d(
-				//in
-				numerical_params.BoundaryConditions, nx, ny, dx, dy, dt, halo_width, predicted_u, predicted_v,
-				//out
-				e_lag, u_lag, v_lag, in_u, in_v, in_e, in_cell_mass, out_u, out_v, out_e, out_cell_mass, directional_lagrangian_volume, directional_lagrangian_density, directional_lagrangian_volume_y, directional_lagrangian_density_y, volume_fluxes_x, volume_fluxes_y, mass_flux_x, mass_flux_y, energy_flux_x, energy_flux_y,
-				//timing
-				time_compute_volume_fluxes_X, time_gradient_X, time_mass_reconstruct_o2_X, time_project_mass_X, time_reconstruct_energy_o2_X, time_project_energy_X, time_gradient_nodal_X, time_project_nodal_velocity_X, time_compute_volume_fluxes_Y, time_gradient_Y, time_mass_reconstruct_o2_Y, time_project_mass_Y, time_reconstruct_energy_o2_Y, time_project_energy_Y, time_gradient_nodal_Y, time_project_nodal_velocity_Y, time_periodic_boundary);
-	    
-	    std::swap(in_cell_mass, out_cell_mass); 
-	    std::swap(in_u, out_u); 
-	    std::swap(in_v, out_v);
-	    std::swap(in_e, out_e);
-	    
-  }
+      for (int iy = 0; iy < ny; ++iy) {
+	for (int ix = 0; ix < nx; ++ix) {
+	  
+	  const int cell_ooo = (nx * iy) + ix;
+	  
+	  const RealType x = ix * dx;
+	  const RealType y = iy * dy;
 
-
-    /*==================================*/
-      //  for output
-    /*==================================*/
-
-  for (int iy = 0; iy < ny; ++iy) {
-    for (int ix = 0; ix < nx; ++ix) {
-
-      const int cell_ooo = (nx * iy) + ix;
-
-      const RealType x = ix * dx;
-      const RealType y = iy * dy;
-
-      in_rho[cell_ooo] =  in_cell_mass[cell_ooo] / cell_volumes[cell_ooo];
-    }
-  }
+	  in_rho[cell_ooo] =  in_cell_mass[cell_ooo] / cell_volumes[cell_ooo];
+	}
+      }
 
       // Compute analytical solution for the 1D Riemann problem.
       const RealType rho_left = 1.0;
@@ -857,9 +963,6 @@ void Simulation::Run() {
       const RealType p_right = 0.1;
 
       const RealType gamma = 1.4;
-
-      const RealType p_star = 0.30313;
-      const RealType u_star = 0.927453;
 
       const RealType x0 = 0.5;
 
@@ -883,12 +986,6 @@ void Simulation::Run() {
       //AdvectionFvUw13d(nx, ny, nz, dt, dx, dy, dz, in_rho, u_face, v_face, w_face, out_rho);
 
     }
-
-    // std::swap(in_rho, out_rho);
-    // std::swap(in_u, out_u);
-    // std::swap(in_v, out_v);
-    // std::swap(in_e, out_e);
-
 
     // // Unpack halo exchange data.
     // for (int i = 0; i < nb_processes; ++i)
@@ -921,11 +1018,7 @@ void Simulation::Run() {
 	events.erase(events.begin(), events.begin() + 1);
 
       }
-
     }
-   
-    
- 
   }
 
   
@@ -935,76 +1028,48 @@ void Simulation::Run() {
 
   std::cerr << "\n-----------------------------------------------------------------------------------------\n\n";
 
-  
-  PrintTimings(time_time_step,                   "time_step_CFL_computation___");
-  
+  PrintTimings(time_time_step,                   "TimeStep                               ");
+  std::cerr << "\n\n\n";
+  PrintTimings(time_lagrange_pressure_predicted, "LagrangePressurePredicted              ");
+  PrintTimings(time_lagrange_velocity_predicted, "LagrangeVelocityPredicted              ");
+  PrintTimings(time_lagrange_correction,         "LagrangeCorrection                     ");
+  PrintTimings(time_lagrange_velocity_correction,"LagrangeVelocityCorrection             ");
+  std::cerr << "\n\n\n";
+  PrintTimings(time_compute_volume_fluxes_X,     "ComputeDirectionalLagrangianQuantitiesX");
+  PrintTimings(time_compute_volume_fluxes_Y,     "ComputeDirectionalLagrangianQuantitiesY");
   std::cerr << "\n";
-  PrintTimings(time_lagrange_pressure_predicted, "lagrange_pressure_predicted_");
-  PrintTimings(time_lagrange_velocity_predicted, "lagrange_velocity_predicted_");
-  PrintTimings(time_lagrange_correction,         "lagrange_correction_________");
-  PrintTimings(time_lagrange_velocity_correction,"lagrange_velocity_correction");
-  
+  PrintTimings(time_gradient_X,                  "ReconstructGradientX                   ");
+  PrintTimings(time_gradient_Y,                  "ReconstructGradientY                   ");
   std::cerr << "\n";
-  PrintTimings(time_compute_volume_fluxes_X,     "compute_volume_fluxes_X_____");
-  PrintTimings(time_gradient_X,                  "compute_gradient_X__________");
-  PrintTimings(time_mass_reconstruct_o2_X,       "reconstruct_mass_o2_X_______");
-  PrintTimings(time_project_mass_X,              "project_mass_X______________");
-  
+  PrintTimings(time_mass_reconstruct_o2_X,       "ReconstructMassFluxOrder2X             ");
+  PrintTimings(time_mass_reconstruct_o2_Y,       "ReconstructMassFluxOrder2Y             ");
   std::cerr << "\n";
-  PrintTimings(time_reconstruct_energy_o2_X,     "reconstruct_energy_o2_X_____");
-  PrintTimings(time_project_energy_X,            "project_energy_X____________");
+  PrintTimings(time_project_mass_X,              "ProjectMassX                           ");
+  PrintTimings(time_project_mass_Y,              "ProjectMassY                           ");
+  std::cerr << "\n";
+  PrintTimings(time_reconstruct_energy_o2_X,     "ReconstructIntensiveVariableFluxOrder2X");
+  PrintTimings(time_reconstruct_energy_o2_Y,     "ReconstructIntensiveVariableFluxOrder2Y");
+  std::cerr << "\n";
+  PrintTimings(time_project_energy_X,            "MassProjectIntensiveVariableX          ");
+  PrintTimings(time_project_energy_Y,            "MassProjectIntensiveVariableY          ");
+  std::cerr << "\n";
+  PrintTimings(time_gradient_nodal_X,            "ReconstructNodalGradientX              ");
+  PrintTimings(time_gradient_nodal_Y,            "ReconstructNodalGradientY              ");
+  std::cerr << "\n";
+  PrintTimings(time_project_nodal_velocity_X,    "ProjectNodalIntensiveVariableOrder2X   ");
+  PrintTimings(time_project_nodal_velocity_Y,    "ProjectNodalIntensiveVariableOrder2Y   ");
+
+
+
+  std::cerr << "\n";
 
 
   std::cerr << "\n";
-  PrintTimings(time_gradient_nodal_X,            "gradient_nodal_X____________");
-  PrintTimings(time_project_nodal_velocity_X,    "project_velocity_nodal_X____");
-  std::cerr << "\n";
+
 
   std::cerr << "\n";
-  PrintTimings(time_compute_volume_fluxes_Y,     "compute_volume_fluxes_Y_____");
-  PrintTimings(time_gradient_Y,                  "compute_gradient_Y__________");
-  PrintTimings(time_mass_reconstruct_o2_Y,       "reconstruct_mass_o2_Y_______");
-  PrintTimings(time_project_mass_Y,              "project_mass_Y______________");
-
-  std::cerr << "\n";
-  PrintTimings(time_reconstruct_energy_o2_Y,     "reconstruct_energy_o2_Y_____");
-  PrintTimings(time_project_energy_Y,            "project_energy_Y____________");
-
-  std::cerr << "\n";
-  PrintTimings(time_gradient_nodal_Y,            "gradient_nodal_Y____________");
-  PrintTimings(time_project_nodal_velocity_Y,    "project_velocity_nodal_Y____");
-  
-  std::cerr << "\n";
-  PrintTimings(time_periodic_boundary,           "all_boundary_effect_________");
-  
+  PrintTimings(time_periodic_boundary,           "**Aggregated** boundary functions      ");
   std::cerr << "\n-----------------------------------------------------------------------------------------\n\n";
-
-  /* PrintTimings(time_LagrangePressurePredicted,  "LagrangePressurePredicted_");
-  PrintTimings(time_LagrangeVelocityPredicted,  "LagrangeVelocityPredicted_");
-  PrintTimings(time_LagrangeCorrection,         "LagrangeCorrection________");
-  PrintTimings(time_LagrangeVelocityCorrection, "LagrangeVelocityCorrection");
-  PrintTimings(time_compute_volume_fluxes_0, "ComputeVolumeFluxes");
-  PrintTimings(time_reconstruct_0, "Reconstruct");
-  PrintTimings(time_reconstruct_boundary_0, "ReconstructBoundary");
-  PrintTimings(time_project_mass_0, "ProjectMass");
-  PrintTimings(time_project_intensive_variable_0, "ProjectIntensiveVariable");
-  PrintTimings(time_project_nodal_intensive_variable_0, "ProjectNodalIntensiveVariable");
-  PrintTimings(time_mass_project_intensive_variable_0, "MassProjectIntensiveVariable");
-  */
-  // PrintTimings(time_compressible_euler_physical_to_conservative_0, "CompressibleEulerPhysicalToConservative");
-  // PrintTimings(time_compressible_euler_conservative_to_physical_0, "CompressibleEulerConservativeToPhysical");
-
-  // std::cerr << "\n";
-
-  // PrintTimings(time_compressible_euler_fv_uw_kappa_2d_x_0, "CompressibleEulerFvUwKappa2dX");
-  // PrintTimings(time_compressible_euler_fv_uw_kappa_2d_y_0, "CompressibleEulerFvUwKappa2dY");
-
-  // std::cerr << "\n";
-
-  // PrintTimings(time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_x_0, "CompressibleEulerFvUwKappaBoundaryConditionsX");
-  // PrintTimings(time_compressible_euler_fv_uw_kappa_2d_boundary_conditions_y_0, "CompressibleEulerFvUwKappaBoundaryConditionsY");
-
-  // std::cerr << "\n-----------------------------------------------------------------------------------------\n\n";
 
   ofs.close();
 }

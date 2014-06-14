@@ -2,7 +2,7 @@
 /// variables for now.
 #include "event.hpp"
 
-#include "serialize.hpp"
+#include "../serialize.hpp"
 
 Event::Event(Simulation* sim_ptr, const Timetable& timetable, 
 	     const EventType& type):

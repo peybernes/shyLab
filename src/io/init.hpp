@@ -4,8 +4,8 @@
 #include <string>
 
 #include "event.hpp"
-#include "serialize_fwd.hpp"
-#include "variable_database.hpp"
+#include "../serialize_fwd.hpp"
+#include "../variables/variable_database.hpp"
 
 // Row major layout : C/C++. Column major : Fortran.
 typedef enum {ROW_MAJOR, COLUMN_MAJOR} LayoutType;

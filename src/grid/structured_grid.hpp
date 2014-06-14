@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "grid.hpp"
-#include "serialize.hpp"
+#include "../serialize.hpp"
 
 class StructuredGrid : public Grid {
 public:

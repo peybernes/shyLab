@@ -10,13 +10,13 @@
 #include "clock.hpp"
 #include "config.hpp"
 #include "math_parser.hpp"
-#include "mesh.hpp"
+#include "grid/mesh.hpp"
 #include "numerical_params.hpp"
 #include "physical_params.hpp"
-#include "structured_grid.hpp"
+#include "grid/structured_grid.hpp"
 #include "timetable.hpp"
-#include "variable_database.hpp"
-#include "variable_store.hpp"
+#include "variables/variable_database.hpp"
+#include "variables/variable_store.hpp"
 
 class Event;
 

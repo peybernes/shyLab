@@ -3,9 +3,9 @@
 #include <cassert>
 #include <iostream>
 
-#include "mesh.hpp"
-#include "variable_metadata.hpp"
-#include "variable_store.hpp"
+#include "grid/mesh.hpp"
+#include "variables/variable_metadata.hpp"
+#include "variables/variable_store.hpp"
 
 MpiBoundaryCondition::MpiBoundaryCondition() {
 }

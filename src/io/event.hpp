@@ -1,8 +1,8 @@
 #ifndef EVENT_HPP
 #define EVENT_HPP
 
-#include "timetable.hpp"
-#include "serialize_fwd.hpp"
+#include "../timetable.hpp"
+#include "../serialize_fwd.hpp"
 
 // before or after solution update ?
 typedef enum _EventType {PRE, POST} EventType;

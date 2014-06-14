@@ -4,8 +4,8 @@
 #include <fstream>
 #include <iostream>
 
-#include "variable_metadata.hpp"
-#include "variable_store.hpp"
+#include "../variables/variable_metadata.hpp"
+#include "../variables/variable_store.hpp"
 
 static void SampleArray(double value_first, 
 			double value_last, 
