@@ -1,5 +1,5 @@
 // -*- c++ -*- (for emacs users)
-#include "lagrange_2d_interface.hpp"
+#include "lagrange_2d_driver.hpp"
 
 #include <cassert>
 #include <cmath>

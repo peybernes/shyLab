@@ -1,5 +1,5 @@
 // -*- c++ -*- (for emacs users)
-#include "ad_projection_2d_interface.hpp"
+#include "ad_projection_2d_driver.hpp"
 
 #include <cassert>
 #include <cmath>

@@ -24,9 +24,10 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
 #include "kernel_ad_projection_2d_boundary_interface.hpp"
-#include "lagrange_2d_interface.hpp"
-#include "ad_projection_2d_interface.hpp"
-#include "direct_projection_2d_interface.hpp"
+#include "lagrange_2d_driver.hpp"
+#include "ad_projection_2d_driver.hpp"
+#include "direct_projection_2d_driver.hpp"
 
 #endif // KERNELS_HPP_

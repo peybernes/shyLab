@@ -1,5 +1,5 @@
 // -*- c++ -*- (for emacs users)
-#include "direct_projection_2d_interface.hpp"
+#include "direct_projection_2d_driver.hpp"
 
 #include <cassert>
 #include <cmath>
