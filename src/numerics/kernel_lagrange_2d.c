@@ -6,9 +6,6 @@
 #include <cstdio>
 #include <algorithm>
 
-
-
-
 RealType TimeStep(int nx,
 		  int ny,
 		  const RealType dx,
@@ -73,6 +70,8 @@ void LagrangePressurePredicted(int nx,
   for (int iy = 0; iy < ny; ++iy) {
     for (int ix = 0; ix < nx; ++ix) {  // sqrt fction vectorization with icpc but not with gcc
 
+      SHY_ASM_COMMENT("LagrangePressurePredicted -- INNER LOOP BEGIN");
+
       //DATA LOAD
       const int cell_ooo = nx * iy + ix; 
    
@@ -94,8 +93,11 @@ void LagrangePressurePredicted(int nx,
       const RealType mass_ooo = in_mass[cell_ooo];
 
       const RealType e_ooo = in_energy[cell_ooo];
+
+      SHY_ASM_COMMENT("LagrangePressurePredicted -- COMPUTE BEGIN");
+      
       const RealType rho_ooo = mass_ooo / (dx * dy);
-      const RealType p_ooo = EquationOfState( rho_ooo, e_ooo);
+      const RealType p_ooo = EquationOfState(rho_ooo, e_ooo);
                                               
       const RealType delta_vol = 0.5 * dt * 0.5 * (u_x_se + u_x_ne - u_x_sw - u_x_nw) * dy + 
 	0.5 *  dt * 0.5 * (u_y_nw + u_y_ne - u_y_sw - u_y_se) * dx;
@@ -121,13 +123,15 @@ void LagrangePressurePredicted(int nx,
       const RealType e_lag_ooo = e_ooo 
 	- 0.5 * dt * (p_ooo + q_ooo) * div_u_ooo / mass_ooo * dx * dy;
 
-
       const RealType out_predicted_p_ooo = EquationOfState(mass_ooo / (dx * dy + delta_vol), e_lag_ooo);
-  
 
-      out_pressure[cell_ooo]       = p_ooo ;
+      SHY_ASM_COMMENT("LagrangePressurePredicted -- COMPUTE END");
+
+      out_pressure[cell_ooo] = p_ooo ;
       out_predicted_pressure[cell_ooo] = out_predicted_p_ooo;
       out_pseudo_pressure[cell_ooo] = q_ooo;
+
+      SHY_ASM_COMMENT("LagrangePressurePredicted - INNER LOOP END");
 
     }
   }
@@ -152,6 +156,8 @@ void LagrangeVelocityPredicted(int nx,
   for (int iy = 1; iy < ny; ++iy) {
     for (int ix = 1; ix < nx; ++ix) {
 
+      SHY_ASM_COMMENT("LagrangeVelocityPredicted -- INNER LOOP BEGIN");
+
       const int node_ooo = (nx + 1) * iy + ix; 
 
       const int cell_SW = NodeCellM1M1(node_ooo, iy, nx);
@@ -163,7 +169,9 @@ void LagrangeVelocityPredicted(int nx,
 
       out_velocity_x[node_ooo] = out_u_x;
       out_velocity_y[node_ooo] = out_u_y;
-        
+      
+      SHY_ASM_COMMENT("LagrangeVelocityPredicted -- INNER LOOP END");
+  
     }
   }
 }
@@ -186,6 +194,8 @@ void LagrangeCorrection(int nx,
 #pragma omp parallel for
   for (int iy = 0; iy < ny; ++iy) {
     for (int ix = 0; ix < nx ; ++ix) {
+
+      SHY_ASM_COMMENT("LagrangeCorrection -- INNER LOOP BEGIN");
 
       //DATA LOAD
       const int cell_ooo = nx * iy + ix;
@@ -211,16 +221,20 @@ void LagrangeCorrection(int nx,
       const RealType p_ooo = in_pressure[cell_ooo];
       const RealType q_ooo = in_pseudo_pressure[cell_ooo];
      
+      SHY_ASM_COMMENT("LagrangeCorrection -- COMPUTE BEGIN");
+
       const RealType div_u_ooo = 
 	1.0 / dx * (0.5 * (u_x_se + u_x_ne - u_x_sw - u_x_nw)) +
 	1.0 / dy * (0.5 * (u_y_nw + u_y_ne - u_y_sw - u_y_se));
       
       const RealType e_lag_ooo = e_ooo 
 	- dt * (p_ooo + q_ooo) * div_u_ooo / mass_ooo * dx * dy;
-      
+
+      SHY_ASM_COMMENT("LagrangeCorrection -- COMPUTE END");
 
       out_energy[cell_ooo] = e_lag_ooo;
 
+      SHY_ASM_COMMENT("LagrangeCorrection -- INNER LOOP END");
     }
   }
 }
@@ -233,12 +247,16 @@ void LagrangeVelocityCorrection(int nx,
 				const RealType* RESTRICT predicted_velocity_x,
 				const RealType* RESTRICT predicted_velocity_y,
 				RealType* RESTRICT lagrangian_velocity_x,
-				RealType* RESTRICT lagrangian_velocity_y)
-{
+				RealType* RESTRICT lagrangian_velocity_y) {
+
 #pragma omp parallel for
   for (int iy = 0; iy < ny+1; ++iy) {
     for (int ix = 0; ix < nx+1 ; ++ix) {
+
+      SHY_ASM_COMMENT("LagrangeVelocityCorrection -- INNER LOOP BEGIN");
+
       const int node_ooo = iy * (nx + 1) + ix;
+
       RealType in_u = in_velocity_x[node_ooo];
       RealType in_v = in_velocity_y[node_ooo];
       RealType u_predicted = predicted_velocity_x[node_ooo];
@@ -248,6 +266,9 @@ void LagrangeVelocityCorrection(int nx,
 
       lagrangian_velocity_x[node_ooo] = u_lag;
       lagrangian_velocity_y[node_ooo] = v_lag;
+
+      SHY_ASM_COMMENT("LagrangeVelocityCorrection -- INNER LOOP END");
+
     }
   }
 }

@@ -14,6 +14,8 @@
   const RealType p_ne = in_pressure[cell_NE];
   const RealType q_ne = in_pseudo_pressure[cell_NE];
 
+  SHY_ASM_COMMENT("LagrangeVelocityPredicted -- COMPUTE BEGIN");
+
   const RealType nodal_mass_ooo = 0.25 * (m_sw + m_se + m_nw + m_ne );
 
   RealType delta_p_x = 0.5 * ((p_se + q_se + p_ne + q_ne   )
@@ -23,3 +25,5 @@
 
   RealType out_u_x  = in_velocity_x[node_ooo] - 0.5 * dt * delta_p_x / nodal_mass_ooo * dy; 
   RealType out_u_y  = in_velocity_y[node_ooo] - 0.5 * dt * delta_p_y / nodal_mass_ooo  * dx;
+
+  SHY_ASM_COMMENT("LagrangeVelocityPredicted -- COMPUTE END");
