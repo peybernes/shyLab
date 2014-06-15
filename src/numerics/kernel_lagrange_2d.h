@@ -70,6 +70,19 @@ void LagrangeCorrection(int nx,
 			const RealType* in_velocity_y,
 			RealType* out_enery);
 
+void LagrangeCorrectionOptimised(int nx,
+				 int ny,
+				 RealType dt,
+				 RealType dx,
+				 RealType dy,
+				 const RealType* in_mass,
+				 const RealType* in_enery,
+				 const RealType* in_pressure,
+				 const RealType* in_pseudo_pressure,
+				 const RealType* in_velocity_x,
+				 const RealType* in_velocity_y,
+				 RealType* out_enery);
+
 
 void LagrangeVelocityCorrection(int nx,
 				int ny,

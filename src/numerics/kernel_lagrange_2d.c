@@ -307,15 +307,15 @@ void LagrangeCorrection(int nx,
       const int node_NW = CellNodeM1P1(cell_ooo,iy,nx);
       const int node_NE = CellNodeP1P1(cell_ooo,iy,nx);
       
-      const RealType u_x_sw = in_velocity_x[node_SW];
-      const RealType u_x_se = in_velocity_x[node_SE];
-      const RealType u_x_nw = in_velocity_x[node_NW];
-      const RealType u_x_ne = in_velocity_x[node_NE];
+      const RealType ux_sw = in_velocity_x[node_SW];
+      const RealType ux_se = in_velocity_x[node_SE];
+      const RealType ux_nw = in_velocity_x[node_NW];
+      const RealType ux_ne = in_velocity_x[node_NE];
 
-      const RealType u_y_sw = in_velocity_y[node_SW];
-      const RealType u_y_se = in_velocity_y[node_SE];
-      const RealType u_y_nw = in_velocity_y[node_NW];
-      const RealType u_y_ne = in_velocity_y[node_NE];
+      const RealType uy_sw = in_velocity_y[node_SW];
+      const RealType uy_se = in_velocity_y[node_SE];
+      const RealType uy_nw = in_velocity_y[node_NW];
+      const RealType uy_ne = in_velocity_y[node_NE];
 
       const RealType mass_ooo = in_mass[cell_ooo];
 
@@ -324,14 +324,80 @@ void LagrangeCorrection(int nx,
       const RealType q_ooo = in_pseudo_pressure[cell_ooo];
      
       const RealType div_u_ooo = 
-	1.0 / dx * (0.5 * (u_x_se + u_x_ne - u_x_sw - u_x_nw)) +
-	1.0 / dy * (0.5 * (u_y_nw + u_y_ne - u_y_sw - u_y_se));
+	1.0 / dx * (0.5 * (ux_se + ux_ne - ux_sw - ux_nw)) +
+	1.0 / dy * (0.5 * (uy_nw + uy_ne - uy_sw - uy_se));
       
       const RealType e_lag_ooo = e_ooo 
 	- dt * (p_ooo + q_ooo) * div_u_ooo / mass_ooo * dx * dy;
       
       out_energy[cell_ooo] = e_lag_ooo;
 
+      SHY_ASM_COMMENT("LagrangeCorrection -- INNER LOOP END");
+    }
+  }
+}
+
+void LagrangeCorrectionOptimised(int nx,
+				 int ny,
+				 RealType dt,
+				 RealType dx,
+				 RealType dy,
+				 const RealType* RESTRICT in_mass,
+				 const RealType* RESTRICT in_energy,
+				 const RealType* RESTRICT in_pressure,
+				 const RealType* RESTRICT in_pseudo_pressure,
+				 const RealType* RESTRICT in_velocity_x,
+				 const RealType* RESTRICT in_velocity_y,
+				 RealType* RESTRICT out_energy) {
+
+  const RealType one = 1.0;
+  const RealType one_over_dx = one / dx;
+  const RealType one_over_dy = one / dy;
+
+#pragma omp parallel for
+  for (int iy = 0; iy < ny; ++iy) {
+    for (int ix = 0; ix < nx ; ++ix) {
+
+      SHY_ASM_COMMENT("LagrangeCorrection -- INNER LOOP BEGIN");
+
+      //DATA LOAD
+      const int cell_ooo = nx * iy + ix;
+
+      const int node_SW = CellNodeM1M1(cell_ooo,iy,nx);
+      const int node_SE = CellNodeP1M1(cell_ooo,iy,nx);
+      const int node_NW = CellNodeM1P1(cell_ooo,iy,nx);
+      const int node_NE = CellNodeP1P1(cell_ooo,iy,nx);
+      
+      const RealType ux_sw = in_velocity_x[node_SW];
+      const RealType ux_se = in_velocity_x[node_SE];
+      const RealType ux_nw = in_velocity_x[node_NW];
+      const RealType ux_ne = in_velocity_x[node_NE];
+
+      const RealType uy_sw = in_velocity_y[node_SW];
+      const RealType uy_se = in_velocity_y[node_SE];
+      const RealType uy_nw = in_velocity_y[node_NW];
+      const RealType uy_ne = in_velocity_y[node_NE];
+
+      const RealType mass_ooo = in_mass[cell_ooo];
+
+      const RealType e_ooo = in_energy[cell_ooo];
+      const RealType p_ooo = in_pressure[cell_ooo];
+      const RealType q_ooo = in_pseudo_pressure[cell_ooo];
+
+      const RealType half = 0.5;
+      
+      const RealType one_over_mass_ooo = one / mass_ooo; // 1 DIV
+
+      const RealType div_u_ooo = half * // 3 MUL, 6 ADD
+      (one_over_dx * (ux_se + ux_ne - ux_sw - ux_nw) +
+       one_over_dy * (uy_nw + uy_ne - uy_sw - uy_se));
+      
+      const RealType e_lag_ooo = e_ooo // 2 MUL, 4 ADD
+	- dt * (p_ooo + q_ooo) * div_u_ooo * dx * dy * one_over_mass_ooo;
+      
+      out_energy[cell_ooo] = e_lag_ooo;
+
+      // 10 ADD, 5 MUL, 1 DIV : approx 22 FLOPS
       SHY_ASM_COMMENT("LagrangeCorrection -- INNER LOOP END");
     }
   }
@@ -355,16 +421,19 @@ void LagrangeVelocityCorrection(int nx,
 
       const int node_ooo = iy * (nx + 1) + ix;
 
-      RealType in_u = in_velocity_x[node_ooo];
-      RealType in_v = in_velocity_y[node_ooo];
-      RealType u_predicted = predicted_velocity_x[node_ooo];
-      RealType v_predicted = predicted_velocity_y[node_ooo];
-      RealType u_lag = 2.0 * u_predicted - in_u;
-      RealType v_lag = 2.0 * v_predicted - in_v;
+      const RealType in_u = in_velocity_x[node_ooo];
+      const RealType in_v = in_velocity_y[node_ooo];
+      const RealType u_predicted = predicted_velocity_x[node_ooo];
+      const RealType v_predicted = predicted_velocity_y[node_ooo];
+
+      const RealType two = 2.0;
+      const RealType u_lag = two * u_predicted - in_u; // 1 FMA
+      const RealType v_lag = two * v_predicted - in_v; // 1 FMA
 
       lagrangian_velocity_x[node_ooo] = u_lag;
       lagrangian_velocity_y[node_ooo] = v_lag;
 
+      // TOTAL : 4 FLOPS, 4 FP LOADS, 2 FP stores.
       SHY_ASM_COMMENT("LagrangeVelocityCorrection -- INNER LOOP END");
 
     }

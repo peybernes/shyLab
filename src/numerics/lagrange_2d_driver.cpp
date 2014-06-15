@@ -42,7 +42,7 @@ void Lagrange2dDriver(const std::string BoundaryConditions,
 				     in_p , predicted_pressure, cell_pseudo_pressure);
   clock_gettime(CLOCK_REALTIME, &time2);
   time_lagrange_pressure_predicted.push_back(diff(time1, time2)); 
-    
+  
   clock_gettime(CLOCK_REALTIME, &time1);
   LagrangeVelocityPredicted(nx, ny, dt, dx, dy, in_cell_mass, predicted_pressure,cell_pseudo_pressure, in_u, in_v,
 			    predicted_u , predicted_v);
@@ -56,8 +56,8 @@ void Lagrange2dDriver(const std::string BoundaryConditions,
   time_periodic_boundary.push_back(diff(time1, time2));   
     
   clock_gettime(CLOCK_REALTIME, &time1);
-  LagrangeCorrection(nx, ny, dt, dx, dy, in_cell_mass, in_e, predicted_pressure,cell_pseudo_pressure, predicted_u, predicted_v,
-		     e_lag);
+  LagrangeCorrectionOptimised(nx, ny, dt, dx, dy, in_cell_mass, in_e, predicted_pressure,cell_pseudo_pressure, predicted_u, predicted_v,
+			      e_lag);
   clock_gettime(CLOCK_REALTIME, &time2);
   time_lagrange_correction.push_back(diff(time1, time2)); 
     
