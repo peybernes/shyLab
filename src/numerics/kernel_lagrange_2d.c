@@ -95,7 +95,7 @@ void LagrangePressurePredicted(int nx,
       const RealType e_ooo = in_energy[cell_ooo];
       
       const RealType rho_ooo = mass_ooo / (dx * dy);
-      const RealType p_ooo = EquationOfState(rho_ooo, e_ooo);
+      const RealType p_ooo = EquationOfState(gamma, rho_ooo, e_ooo);
                                               
       const RealType delta_vol = 0.5 * dt * 0.5 * (u_x_se + u_x_ne - u_x_sw - u_x_nw) * dy + 
 	0.5 *  dt * 0.5 * (u_y_nw + u_y_ne - u_y_sw - u_y_se) * dx;
@@ -121,7 +121,7 @@ void LagrangePressurePredicted(int nx,
       const RealType e_lag_ooo = e_ooo 
 	- 0.5 * dt * (p_ooo + q_ooo) * div_u_ooo / mass_ooo * dx * dy;
 
-      const RealType out_predicted_p_ooo = EquationOfState(mass_ooo / (dx * dy + delta_vol), e_lag_ooo);
+      const RealType out_predicted_p_ooo = EquationOfState(gamma, mass_ooo / (dx * dy + delta_vol), e_lag_ooo);
 
       out_pressure[cell_ooo] = p_ooo ;
       out_predicted_pressure[cell_ooo] = out_predicted_p_ooo;
@@ -189,7 +189,7 @@ void LagrangePressurePredictedOptimised(int nx,
       const RealType rho_ooo = one_over_dx * one_over_dy * mass_ooo; // 2 MUL
       const RealType one_over_rho_ooo = one / rho_ooo; // 1 DIV
 
-      const RealType p_ooo = EquationOfState(rho_ooo, e_ooo); // 1 MUL, 1 FMA
+      const RealType p_ooo = EquationOfState(gamma, rho_ooo, e_ooo); // 1 MUL, 1 FMA
       
       const RealType delta_ux = half * ((ux_se + ux_ne) - (ux_sw + ux_nw)); // 2 ADD, 1 FMA
       const RealType delta_uy = half * ((uy_nw + uy_ne) - (uy_sw + uy_se)); // 2 ADD, 1 FMA
@@ -215,11 +215,11 @@ void LagrangePressurePredictedOptimised(int nx,
 	(one_over_dx * delta_ux + one_over_dy * delta_uy); // 1 MUL, 1 FMA
       
       const RealType e_lag_ooo = e_ooo 
-	- 0.5 * dt * (p_ooo + q_ooo) * div_u_ooo * one_over_rho_ooo; // 1 FMA, 3 MUL, 1 ADD
+	- half * dt * (p_ooo + q_ooo) * div_u_ooo * one_over_rho_ooo; // 1 FMA, 3 MUL, 1 ADD
       
       const RealType predicted_rho_ooo = mass_ooo / (dx * dy + delta_volume); // 1 DIV, 1 FMA
       
-      const RealType out_predicted_p_ooo = EquationOfState(predicted_rho_ooo, e_lag_ooo); // 1 MUL, 1 FMA
+      const RealType out_predicted_p_ooo = EquationOfState(gamma, predicted_rho_ooo, e_lag_ooo); // 1 MUL, 1 FMA
 
       // END COMPUTE.
       // Summary : 7 ADD, 17 MUL, 9 FMA, 2 DIV, 1 ABS, 1 SQRT

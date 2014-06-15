@@ -49,7 +49,7 @@ ENDIF( ${CMAKE_CXX_COMPILER} MATCHES "icpc" )
 #  ADD_DEFINITIONS("-DLOW_ENDIAN")
 # ENDIF (WORDS_BIGENDIAN)
 
-ADD_DEFINITIONS(" -DRealType=double -I${CMAKE_SOURCE_DIR}/external -I${CMAKE_SOURCE_DIR}/external/iaca-lin32/include")
+ADD_DEFINITIONS(" -DRealType=float -I${CMAKE_SOURCE_DIR}/external -I${CMAKE_SOURCE_DIR}/external/iaca-lin32/include")
 
 add_executable(
     shy
