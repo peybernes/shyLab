@@ -207,6 +207,9 @@ void LagrangePressurePredictedOptimised(int nx,
 
       const RealType delta_v =  0.5 * delta_ux
       	+ 0.5 * delta_uy;
+<<<<<<< HEAD
+>>>>>>> parent of ae72d31... LagrangePressurePredictedOptimised : further rewrite
+=======
 >>>>>>> parent of ae72d31... LagrangePressurePredictedOptimised : further rewrite
 
       // Formulas below valid for perfect gas law.
