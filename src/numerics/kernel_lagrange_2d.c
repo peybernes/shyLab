@@ -168,15 +168,15 @@ void LagrangePressurePredictedOptimised(int nx,
       const int node_NW = CellNodeM1P1(cell_ooo, iy, nx);
       const int node_NE = CellNodeP1P1(cell_ooo, iy, nx);
 
-      const RealType u_x_sw = in_velocity_x[node_SW];
-      const RealType u_x_se = in_velocity_x[node_SE];
-      const RealType u_x_nw = in_velocity_x[node_NW];
-      const RealType u_x_ne = in_velocity_x[node_NE];
+      const RealType ux_sw = in_velocity_x[node_SW];
+      const RealType ux_se = in_velocity_x[node_SE];
+      const RealType ux_nw = in_velocity_x[node_NW];
+      const RealType ux_ne = in_velocity_x[node_NE];
 
-      const RealType u_y_sw = in_velocity_y[node_SW];
-      const RealType u_y_se = in_velocity_y[node_SE];
-      const RealType u_y_nw = in_velocity_y[node_NW];
-      const RealType u_y_ne = in_velocity_y[node_NE];
+      const RealType uy_sw = in_velocity_y[node_SW];
+      const RealType uy_se = in_velocity_y[node_SE];
+      const RealType uy_nw = in_velocity_y[node_NW];
+      const RealType uy_ne = in_velocity_y[node_NE];
 
       const RealType mass_ooo = in_mass[cell_ooo];
 
@@ -185,12 +185,15 @@ void LagrangePressurePredictedOptimised(int nx,
       const RealType rho_ooo = one_over_dx * one_over_dy * mass_ooo;
 
       const RealType p_ooo = EquationOfState(rho_ooo, e_ooo);
-                                              
-      const RealType delta_vol = 0.5 * dt * 0.5 * (u_x_se + u_x_ne - u_x_sw - u_x_nw) * dy + 
-	0.5 *  dt * 0.5 * (u_y_nw + u_y_ne - u_y_sw - u_y_se) * dx;
+      
+      const RealType delta_ux = (ux_se + ux_ne) - (ux_sw + ux_nw);
+      const RealType delta_uy = (uy_nw + uy_ne) - (uy_sw + uy_se);
+                                        
+      const RealType delta_vol = 0.5 * dt * 0.5 * delta_ux * dy + 
+	0.5 *  dt * 0.5 * delta_uy * dx;
 
-      const RealType delta_v =  0.5 * (u_x_se + u_x_ne - u_x_sw - u_x_nw)
-      	+ 0.5 * (u_y_nw + u_y_ne - u_y_sw - u_y_se);
+      const RealType delta_v =  0.5 * delta_ux
+      	+ 0.5 * delta_uy;
 
       // for perfect gas law
       const RealType cs2 = gamma * p_ooo / rho_ooo;
@@ -204,8 +207,7 @@ void LagrangePressurePredictedOptimised(int nx,
 	1.0 * rho_ooo * delta_v_neg * delta_v_neg; 
       
       const RealType div_u_ooo = half *
-	(one_over_dx * (u_x_se + u_x_ne - u_x_sw - u_x_nw) +
-	 one_over_dy * (u_y_nw + u_y_ne - u_y_sw - u_y_se));
+	(one_over_dx * delta_ux + one_over_dy * delta_uy);
       
       const RealType e_lag_ooo = e_ooo 
 	- 0.5 * dt * (p_ooo + q_ooo) * div_u_ooo / mass_ooo * dx * dy;
