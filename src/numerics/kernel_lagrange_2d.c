@@ -95,7 +95,7 @@ void LagrangePressurePredicted(int nx,
       const RealType e_ooo = in_energy[cell_ooo];
       
       const RealType rho_ooo = mass_ooo / (dx * dy);
-      const RealType p_ooo = EquationOfState(rho_ooo, e_ooo);
+      const RealType p_ooo = EquationOfState(gamma, rho_ooo, e_ooo);
                                               
       const RealType delta_vol = 0.5 * dt * 0.5 * (u_x_se + u_x_ne - u_x_sw - u_x_nw) * dy + 
 	0.5 *  dt * 0.5 * (u_y_nw + u_y_ne - u_y_sw - u_y_se) * dx;
@@ -121,7 +121,7 @@ void LagrangePressurePredicted(int nx,
       const RealType e_lag_ooo = e_ooo 
 	- 0.5 * dt * (p_ooo + q_ooo) * div_u_ooo / mass_ooo * dx * dy;
 
-      const RealType out_predicted_p_ooo = EquationOfState(mass_ooo / (dx * dy + delta_vol), e_lag_ooo);
+      const RealType out_predicted_p_ooo = EquationOfState(gamma, mass_ooo / (dx * dy + delta_vol), e_lag_ooo);
 
       out_pressure[cell_ooo] = p_ooo ;
       out_predicted_pressure[cell_ooo] = out_predicted_p_ooo;
@@ -147,7 +147,7 @@ void LagrangePressurePredictedOptimised(int nx,
 					RealType* RESTRICT out_pseudo_pressure) {
 
   const RealType gamma = 1.4;
-
+  
   const RealType half = 0.5;
   const RealType one = 1.0;
 
@@ -184,43 +184,53 @@ void LagrangePressurePredictedOptimised(int nx,
       
       // END DATA LOAD.
 
-      const RealType rho_ooo = one_over_dx * one_over_dy * mass_ooo;
-      const RealType one_over_rho_ooo = one / rho_ooo;
+      // BEGIN COMPUTE.
+      
+      const RealType rho_ooo = one_over_dx * one_over_dy * mass_ooo; // 2 MUL
+      const RealType one_over_rho_ooo = one / rho_ooo; // 1 DIV
 
-      const RealType p_ooo = EquationOfState(rho_ooo, e_ooo);
+      const RealType p_ooo = EquationOfState(gamma, rho_ooo, e_ooo); // 1 MUL, 1 FMA
+      
+      const RealType delta_ux = half * ((ux_se + ux_ne) - (ux_sw + ux_nw)); // 2 ADD, 1 FMA
+      const RealType delta_uy = half * ((uy_nw + uy_ne) - (uy_sw + uy_se)); // 2 ADD, 1 FMA
+      
+      const RealType delta_volume = half * dt * (delta_ux * dy + delta_uy * dx); // 3 MUL, 1 FMA
+      
+      const RealType delta_velocity = delta_ux + delta_uy; // 1 ADD
 
       // Formulas below valid for perfect gas law.
-      const RealType cs_square = gamma * p_ooo * one_over_rho_ooo;
-      const RealType cs  = std::sqrt(cs_square);  
-      
-      const RealType delta_ux = half * ((ux_se + ux_ne) - (ux_sw + ux_nw));
-      const RealType delta_uy = half * ((uy_nw + uy_ne) - (uy_sw + uy_se));
-                                        
-      const RealType delta_volume = half * dt * (delta_ux * dy + delta_uy * dx);
+      const RealType cs_square = gamma * p_ooo * one_over_rho_ooo; // 2 MUL
+      const RealType cs  = std::sqrt(cs_square);  // 1 SQRT
 
-      const RealType delta_velocity = delta_ux + delta_uy;
+      // Pseudo viscosity.
+      const RealType linear_pseudo_coeff = one;
+      const RealType quadratic_pseudo_coeff = one;
 
+      const RealType delta_velocity_minus = - half * (delta_velocity - fabs(delta_velocity)); // 1 MUL, 1 ADD, 1 ABS
       
-      // viscous pressure  -- one possible formulation with both linear 
-      // and quadratic coefficient equals to 1.0 ; 
-      // using negative part of delta_v --  -0.5*(delta_v-abs(delta_v)) for vectorisation*/
-      const RealType delta_velocity_minus = - half * (delta_velocity - fabs(delta_velocity));
-      const RealType q_ooo   = 1.0 * rho_ooo * cs * delta_velocity_minus + 
-	1.0 * rho_ooo * delta_velocity_minus * delta_velocity_minus; 
+      const RealType q_ooo = rho_ooo * delta_velocity_minus * 
+	((linear_pseudo_coeff * cs) + (quadratic_pseudo_coeff * delta_velocity_minus)); // 3 MUL, 1 FMA
       
       const RealType div_u_ooo =
-	(one_over_dx * delta_ux + one_over_dy * delta_uy);
+	(one_over_dx * delta_ux + one_over_dy * delta_uy); // 1 MUL, 1 FMA
       
       const RealType e_lag_ooo = e_ooo 
-	- 0.5 * dt * (p_ooo + q_ooo) * div_u_ooo * one_over_rho_ooo;
+	- 0.5 * dt * (p_ooo + q_ooo) * div_u_ooo * one_over_rho_ooo; // 1 FMA, 3 MUL, 1 ADD
+      
+      const RealType predicted_rho_ooo = mass_ooo / (dx * dy + delta_volume); // 1 DIV, 1 FMA
+      
+      const RealType out_predicted_p_ooo = EquationOfState(gamma, predicted_rho_ooo, e_lag_ooo); // 1 MUL, 1 FMA
 
-      const RealType predicted_rho_ooo = mass_ooo / (dx * dy + delta_volume);
+      // END COMPUTE.
+      // Summary : 7 ADD, 17 MUL, 9 FMA, 2 DIV, 1 ABS, 1 SQRT
+      // Flop = 7 + 17 + (9 x 2) + (2 x 7) + 7 = 63 (indicative only...).
+      // 3 loads, 3 stores = 24 bytes loads, 24 bytes stores.
 
-      const RealType out_predicted_p_ooo = EquationOfState(predicted_rho_ooo, e_lag_ooo);
-
+      // BEGIN DATA STORE.
       out_pressure[cell_ooo] = p_ooo ;
       out_predicted_pressure[cell_ooo] = out_predicted_p_ooo;
       out_pseudo_pressure[cell_ooo] = q_ooo;
+      // END DATA STORE.
 
       SHY_ASM_COMMENT("LagrangePressurePredicted - INNER LOOP END");
 

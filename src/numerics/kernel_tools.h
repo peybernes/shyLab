@@ -46,29 +46,30 @@ extern "C" {
   }
 
 
-  static inline RealType EquationOfState (RealType rho, RealType e) {
+  static inline RealType EquationOfState(RealType gamma, RealType rho, RealType e) {
     
-    SHY_ASM_COMMENT("__Inlined - EquationOfState - BEGIN");
-    return  (1.4 - 1.0) * rho * e; 
-    SHY_ASM_COMMENT("__Inlined - EquationOfState - END");
+    const RealType one = 1.0;
+    
+    return  (gamma - one) * rho * e; 
   
   }
-  
+ 
+
+  static inline RealType EquationOfStatePerfectGas(RealType gamma, RealType rho, RealType ux, RealType uy, RealType total_energy) {
+
+    const RealType one = 1.0;
+    const RealType half = 0.5;
+    
+    return (gamma - one) * rho * (total_energy - half * (ux * ux + uy * uy));
+    
+  }
+ 
 
   static inline RealType MySign(RealType x) {
 
     return (x > 0.0) - (x < 0.0);
 
   }
-
-static inline RealType EquationOfStatePerfectGas(RealType gamma, RealType rho, RealType ux, RealType uy, RealType total_energy) {
-
-  const RealType one = 1.0;
-  const RealType half = 0.5;
-
-  return (gamma - one) * rho * (total_energy - half * (ux * ux + uy * uy));
-
-}
 
 /// Van Albada limiter (reference : Nishikawa 2008, carbuncle free solver)
 static inline RealType VanAlbadaLimiter(RealType a, RealType b) {
