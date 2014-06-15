@@ -32,7 +32,9 @@ void ComputeDirectionalLagrangianQuantitiesX(index_t nx,
 	const RealType vx_prev = in_vx[prev_node];
 	const RealType vx_next = in_vx[next_node];
 
-	const RealType face_velocity = 0.5 * (vx_prev + vx_next);
+	const RealType half = 0.5;
+
+	const RealType face_velocity = half * (vx_prev + vx_next);
       
 	const RealType volume_flux = dt * face_velocity * dy;
       
@@ -98,7 +100,9 @@ void ComputeDirectionalLagrangianQuantitiesY(index_t nx,
 	const RealType vy_prev = in_vy[prev_node];
 	const RealType vy_next = in_vy[next_node];
 
-	const RealType face_velocity = 0.5 * (vy_prev + vy_next);
+	const RealType half = 0.5;
+	
+	const RealType face_velocity = half * (vy_prev + vy_next);
       
 	const RealType volume_flux = dt * face_velocity * dx;
       
@@ -151,8 +155,8 @@ void CheckFluxPeriodicalPropertyX(index_t nx,
     const RealType first_flux = flux[first_face];
     const RealType lasst_flux = flux[lasst_face];
 
-      assert(flux[first_face] == flux[lasst_face]);
-    
+    assert(flux[first_face] == flux[lasst_face]);
+      
     
   }
 
@@ -494,17 +498,19 @@ void ProjectNodalIntensiveVariableX(index_t nx,
       const index_t facexp1p1 = NodeFaceXP1P1(node_ooo, iy, nx);
       const index_t facexp1m1 = NodeFaceXP1M1(node_ooo, iy, nx);
 
+      const RealType one_quarter = 0.25;
+
 #include "ad_nodal_projection_2d_X_data_load.h"
 
-      const RealType lag_node_mass_ooo = 0.25 * (cell_mass_m1m1 + cell_mass_p1m1 + cell_mass_m1p1 +  cell_mass_p1p1);
+      const RealType lag_node_mass_ooo = one_quarter * (cell_mass_m1m1 + cell_mass_p1m1 + cell_mass_m1p1 +  cell_mass_p1p1);
       assert(0.0 < lag_node_mass_ooo);
 
-      const RealType out_node_mass_ooo = 0.25 * (out_mass_m1m1 + out_mass_p1m1 + out_mass_m1p1 + out_mass_p1p1);
+      const RealType out_node_mass_ooo = one_quarter * (out_mass_m1m1 + out_mass_p1m1 + out_mass_m1p1 + out_mass_p1p1);
       assert(0.0 < out_node_mass_ooo);
 
-      const RealType prev_dual_mass_flux = 0.25 * (mass_flux_m1m1 + mass_flux_oom1 + mass_flux_m1p1 + mass_flux_oop1);
+      const RealType prev_dual_mass_flux = one_quarter * (mass_flux_m1m1 + mass_flux_oom1 + mass_flux_m1p1 + mass_flux_oop1);
       
-      const RealType next_dual_mass_flux = 0.25 * (mass_flux_p1m1 + mass_flux_oom1 + mass_flux_p1p1 + mass_flux_oop1);  
+      const RealType next_dual_mass_flux = one_quarter * (mass_flux_p1m1 + mass_flux_oom1 + mass_flux_p1p1 + mass_flux_oop1);  
       
 #include "reconstruct_dual_variable_computation.h"      
 
@@ -554,17 +560,19 @@ void ProjectNodalIntensiveVariableY(index_t nx,
       const index_t faceyp1oo = NodeFaceYP1OO(node_ooo, iy, nx);
       const index_t faceyp1m1 = NodeFaceYP1M1(node_ooo, iy, nx);
 
+      const RealType one_quarter = 0.25;
+
 #include "ad_nodal_projection_2d_Y_data_load.h"
 
-      const RealType lag_node_mass_ooo = 0.25 * (cell_mass_m1m1 + cell_mass_p1m1 + cell_mass_m1p1 +  cell_mass_p1p1);
+      const RealType lag_node_mass_ooo = one_quarter * (cell_mass_m1m1 + cell_mass_p1m1 + cell_mass_m1p1 +  cell_mass_p1p1);
       assert(0.0 < lag_node_mass_ooo);
 
-      const RealType out_node_mass_ooo = 0.25 * (out_mass_m1m1 + out_mass_p1m1 + out_mass_m1p1 + out_mass_p1p1);
+      const RealType out_node_mass_ooo = one_quarter * (out_mass_m1m1 + out_mass_p1m1 + out_mass_m1p1 + out_mass_p1p1);
       assert(0.0 < out_node_mass_ooo);
 
-      const RealType prev_dual_mass_flux = 0.25 * (mass_flux_m1m1 + mass_flux_p1m1 + mass_flux_m1oo + mass_flux_p1oo);
+      const RealType prev_dual_mass_flux = one_quarter * (mass_flux_m1m1 + mass_flux_p1m1 + mass_flux_m1oo + mass_flux_p1oo);
       
-      const RealType next_dual_mass_flux = 0.25 * (mass_flux_p1oo + mass_flux_m1oo + mass_flux_p1p1 + mass_flux_m1p1);  
+      const RealType next_dual_mass_flux = one_quarter * (mass_flux_p1oo + mass_flux_m1oo + mass_flux_p1p1 + mass_flux_m1p1);  
       
 #include "reconstruct_dual_variable_computation.h"      
 
@@ -619,7 +627,7 @@ void ReconstructGradientX(index_t nx,
       const RealType grad_p1o = (variable_p1o - variable_ooo ) /
 	(dx + (d_vol_p2o - d_vol_m1o) / dy);
 
-      const RealType limited_grad_variable = LimiterMinmod(grad_m1o,grad_p1o) ;
+      const RealType limited_grad_variable = MinmodLimiter(grad_m1o, grad_p1o);
       gradient_variable[cell_ooo] = limited_grad_variable;
       
     }
@@ -658,15 +666,17 @@ void ReconstructMassFluxOrder2X(index_t nx,
       const RealType vol_flux = volume_fluxes[face_ooo];
       const RealType vol_flux_m1o = volume_fluxes[face_m1o];
       const RealType vol_flux_p1o = volume_fluxes[face_p1o];
+
+      const RealType half = 0.5;
       
       const RealType dx_lag_prev_corrected = dx - vol_flux_m1o / dy;
       const RealType dx_lag_next_corrected = - dx  - vol_flux_p1o / dy;	
-      const RealType prev_cell_variable_o2 =  prev_cell_variable + 0.5 * prev_cell_gradient * dx_lag_prev_corrected;
-      const RealType next_cell_variable_o2 =  next_cell_variable + 0.5 * next_cell_gradient * dx_lag_next_corrected;
+      const RealType prev_cell_variable_o2 =  prev_cell_variable + half * prev_cell_gradient * dx_lag_prev_corrected;
+      const RealType next_cell_variable_o2 =  next_cell_variable + half * next_cell_gradient * dx_lag_next_corrected;
       
       const RealType mass_flux_ooo =
-	(0.5 * (vol_flux + fabs(vol_flux)) * prev_cell_variable_o2) + 
-	(0.5 * (vol_flux - fabs(vol_flux)) * next_cell_variable_o2);
+	(half * (vol_flux + fabs(vol_flux)) * prev_cell_variable_o2) + 
+	(half * (vol_flux - fabs(vol_flux)) * next_cell_variable_o2);
       
       mass_flux[face_ooo] = mass_flux_ooo;
 
@@ -708,14 +718,16 @@ void ReconstructIntensiveVariableFluxOrder2X(index_t nx,
       const RealType vol_flux_m1o = volume_fluxes[face_m1o];
       const RealType vol_flux_p1o = volume_fluxes[face_p1o];
       
+      const RealType half = 0.5;
+
       const RealType dx_lag_prev_corrected = dx - vol_flux_m1o / dy;
       const RealType dx_lag_next_corrected = - dx - vol_flux_p1o / dy;	
-      const RealType prev_cell_variable_o2 =  prev_cell_variable + 0.5 * prev_cell_gradient * dx_lag_prev_corrected;
-      const RealType next_cell_variable_o2 =  next_cell_variable + 0.5 * next_cell_gradient * dx_lag_next_corrected;
+      const RealType prev_cell_variable_o2 =  prev_cell_variable + half * prev_cell_gradient * dx_lag_prev_corrected;
+      const RealType next_cell_variable_o2 =  next_cell_variable + half * next_cell_gradient * dx_lag_next_corrected;
       
       const RealType variable_flux_ooo =
-	(0.5 * (mass_flux_face + fabs(mass_flux_face)) * prev_cell_variable_o2) + 
-	(0.5 * (mass_flux_face - fabs(mass_flux_face)) * next_cell_variable_o2);
+	(half * (mass_flux_face + fabs(mass_flux_face)) * prev_cell_variable_o2) + 
+	(half * (mass_flux_face - fabs(mass_flux_face)) * next_cell_variable_o2);
       
       variable_flux[face_ooo] = variable_flux_ooo;
 
@@ -758,7 +770,7 @@ void ReconstructGradientNodalX(index_t nx,
       const RealType grad_p1o = (variable_p1o - variable_ooo ) /
        	(dx + dt * (velocity_p1o - velocity_ooo));
 
-      const RealType limited_grad_variable = LimiterMinmod(grad_m1o,grad_p1o) ;
+      const RealType limited_grad_variable = MinmodLimiter(grad_m1o,grad_p1o) ;
       gradient_variable[node_ooo] = limited_grad_variable;
       
     }
@@ -846,7 +858,7 @@ void ReconstructGradientY(index_t nx,
       const RealType grad_op1 = (variable_op1 - variable_ooo ) /
 	(dy + (d_vol_op2 - d_vol_om1) / dx);
 
-      const RealType limited_grad_variable = LimiterMinmod(grad_om1,grad_op1) ;
+      const RealType limited_grad_variable = MinmodLimiter(grad_om1,grad_op1) ;
       gradient_variable[cell_ooo] = limited_grad_variable;
     }
   }
@@ -888,14 +900,16 @@ void ReconstructMassFluxOrder2Y(index_t nx,
       const RealType vol_flux_om1 = volume_fluxes[face_om1];
       const RealType vol_flux_op1 = volume_fluxes[face_op1];
       
+      const RealType half = 0.5;
+
       const RealType dy_lag_prev_corrected = dy - vol_flux_om1 / dx;
       const RealType dy_lag_next_corrected = - dy  - vol_flux_op1 / dx;	
       const RealType prev_cell_variable_o2 =  prev_cell_variable + 0.5 * prev_cell_gradient * dy_lag_prev_corrected;
       const RealType next_cell_variable_o2 =  next_cell_variable + 0.5 * next_cell_gradient * dy_lag_next_corrected;
       
       const RealType mass_flux_ooo =
-	(0.5 * (vol_flux + fabs(vol_flux)) * prev_cell_variable_o2) + 
-	(0.5 * (vol_flux - fabs(vol_flux)) * next_cell_variable_o2);
+	(half * (vol_flux + fabs(vol_flux)) * prev_cell_variable_o2) + 
+	(half * (vol_flux - fabs(vol_flux)) * next_cell_variable_o2);
       
       mass_flux[face_ooo] = mass_flux_ooo;
 
@@ -938,14 +952,16 @@ void ReconstructIntensiveVariableFluxOrder2Y(index_t nx,
       const RealType vol_flux_om1 = volume_fluxes[face_om1];
       const RealType vol_flux_op1 = volume_fluxes[face_op1];
       
+      const RealType half = 0.5;
+
       const RealType dy_lag_prev_corrected = dy - vol_flux_om1 / dx;
       const RealType dy_lag_next_corrected = - dy  - vol_flux_op1 / dx;	
-      const RealType prev_cell_variable_o2 =  prev_cell_variable + 0.5 * prev_cell_gradient * dy_lag_prev_corrected;
-      const RealType next_cell_variable_o2 =  next_cell_variable + 0.5 * next_cell_gradient * dy_lag_next_corrected;
+      const RealType prev_cell_variable_o2 =  prev_cell_variable + half * prev_cell_gradient * dy_lag_prev_corrected;
+      const RealType next_cell_variable_o2 =  next_cell_variable + half * next_cell_gradient * dy_lag_next_corrected;
       
       const RealType variable_flux_ooo =
-	(0.5 * (mass_flux_face + fabs(mass_flux_face)) * prev_cell_variable_o2) + 
-	(0.5 * (mass_flux_face - fabs(mass_flux_face)) * next_cell_variable_o2);
+	(half * (mass_flux_face + fabs(mass_flux_face)) * prev_cell_variable_o2) + 
+	(half * (mass_flux_face - fabs(mass_flux_face)) * next_cell_variable_o2);
       
       variable_flux[face_ooo] = variable_flux_ooo;
   
@@ -988,7 +1004,7 @@ void ReconstructGradientNodalY(index_t nx,
       const RealType grad_op1 = (variable_op1 - variable_ooo ) /
        	(dy + dt * (velocity_op1 - velocity_ooo));
 
-      const RealType limited_grad_variable = LimiterMinmod(grad_om1,grad_op1) ;
+      const RealType limited_grad_variable = MinmodLimiter(grad_om1,grad_op1) ;
       gradient_variable[node_ooo] = limited_grad_variable;
       
     }

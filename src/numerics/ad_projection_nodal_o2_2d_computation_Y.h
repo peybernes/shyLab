@@ -1,3 +1,6 @@
+const RealType one_quarter = 0.25;
+const RealType one_half = 0.5;
+
   //data load
         const RealType in_variable_oo = in_variable[node_ooo];
         const RealType in_variable_m1 = in_variable[node_om1];
@@ -30,33 +33,33 @@
         //
 
 
-        const RealType lag_node_mass_ooo = 0.25 * (cell_mass_m1m1 + cell_mass_p1m1 + cell_mass_m1p1 +  cell_mass_p1p1);
+        const RealType lag_node_mass_ooo = one_quarter * (cell_mass_m1m1 + cell_mass_p1m1 + cell_mass_m1p1 +  cell_mass_p1p1);
         assert(0.0 < lag_node_mass_ooo);
-        const RealType out_node_mass_ooo = 0.25 * (out_mass_m1m1 + out_mass_p1m1 + out_mass_m1p1 + out_mass_p1p1);
+        const RealType out_node_mass_ooo = one_quarter * (out_mass_m1m1 + out_mass_p1m1 + out_mass_m1p1 + out_mass_p1p1);
         assert(0.0 < out_node_mass_ooo);
 
-        const RealType prev_dual_mass_flux = 0.25 * (mass_flux_m1m1 + mass_flux_m1oo + mass_flux_p1m1 + mass_flux_p1oo);
-	const RealType next_dual_mass_flux = 0.25 * (mass_flux_m1p1 + mass_flux_m1oo + mass_flux_p1p1 + mass_flux_p1oo); 
+        const RealType prev_dual_mass_flux = one_quarter * (mass_flux_m1m1 + mass_flux_m1oo + mass_flux_p1m1 + mass_flux_p1oo);
+	const RealType next_dual_mass_flux = one_quarter * (mass_flux_m1p1 + mass_flux_m1oo + mass_flux_p1p1 + mass_flux_p1oo); 
 
 const RealType dy_lag_m1 =  dy + dt * (v_oo - v_m1);
 const RealType dy_lag_p1 =  dy + dt * (v_p1 - v_oo);
 
-const RealType dt_vf_m1 = 0.5 * dt * (v_oo + v_m1);
-const RealType dt_vf_p1 = 0.5 * dt * (v_oo + v_p1);
+const RealType dt_vf_m1 = one_half * dt * (v_oo + v_m1);
+const RealType dt_vf_p1 = one_half * dt * (v_oo + v_p1);
 
 RealType nodal_reconstruct_variable_o2_m1;
 RealType nodal_reconstruct_variable_o2_p1 ;
 
 if (prev_dual_mass_flux > 0 ) {
-  nodal_reconstruct_variable_o2_m1 = in_variable_m1 + 0.5 * gradient_variable_m1 * (dy_lag_m1 - dt_vf_m1);
+  nodal_reconstruct_variable_o2_m1 = in_variable_m1 + one_half * gradient_variable_m1 * (dy_lag_m1 - dt_vf_m1);
  } else {
-  nodal_reconstruct_variable_o2_m1 = in_variable_oo + 0.5 * gradient_variable_oo * ( -dy_lag_m1 - dt_vf_m1);
+  nodal_reconstruct_variable_o2_m1 = in_variable_oo + one_half * gradient_variable_oo * ( -dy_lag_m1 - dt_vf_m1);
  } 
 
 if (next_dual_mass_flux > 0 ) {
-  nodal_reconstruct_variable_o2_p1 = in_variable_oo + 0.5 * gradient_variable_oo *(dy_lag_p1 - dt_vf_p1);
+  nodal_reconstruct_variable_o2_p1 = in_variable_oo + one_half * gradient_variable_oo *(dy_lag_p1 - dt_vf_p1);
  } else {
-  nodal_reconstruct_variable_o2_p1 = in_variable_p1 + 0.5 * gradient_variable_p1 * ( -dy_lag_p1 - dt_vf_p1);
+  nodal_reconstruct_variable_o2_p1 = in_variable_p1 + one_half * gradient_variable_p1 * ( -dy_lag_p1 - dt_vf_p1);
  }
 
 const RealType moment_flux_prev = nodal_reconstruct_variable_o2_m1 * prev_dual_mass_flux ;

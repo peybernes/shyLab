@@ -65,7 +65,7 @@ extern "C" {
   }
 
 
-  static inline RealType LimiterMinmod (RealType a, RealType b) {
+  static inline RealType MinmodLimiter(RealType a, RealType b) {
 
     return (a < 0 ? -1.0 : 1.0 ) * (a * b > 0) * std::min(fabs(a),fabs(b));
 
