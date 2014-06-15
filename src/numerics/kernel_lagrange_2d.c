@@ -160,7 +160,7 @@ void LagrangePressurePredictedOptimised(int nx,
 
       SHY_ASM_COMMENT("LagrangePressurePredicted -- INNER LOOP BEGIN");
 
-      //DATA LOAD
+      // BEGIN DATA LOAD.
       const int cell_ooo = nx * iy + ix; 
    
       const int node_SW = CellNodeM1M1(cell_ooo, iy, nx);
@@ -182,35 +182,39 @@ void LagrangePressurePredictedOptimised(int nx,
 
       const RealType e_ooo = in_energy[cell_ooo];
       
+      // END DATA LOAD.
+
       const RealType rho_ooo = one_over_dx * one_over_dy * mass_ooo;
+      const RealType one_over_rho_ooo = one / rho_ooo;
 
       const RealType p_ooo = EquationOfState(rho_ooo, e_ooo);
+
+      // Formulas below valid for perfect gas law.
+      const RealType cs_square = gamma * p_ooo * one_over_rho_ooo;
+      const RealType cs  = std::sqrt(cs_square);  
       
-      const RealType delta_ux = (ux_se + ux_ne) - (ux_sw + ux_nw);
-      const RealType delta_uy = (uy_nw + uy_ne) - (uy_sw + uy_se);
+      const RealType delta_ux = half * ((ux_se + ux_ne) - (ux_sw + ux_nw));
+      const RealType delta_uy = half * ((uy_nw + uy_ne) - (uy_sw + uy_se));
                                         
-      const RealType delta_vol = 0.5 * 0.5 * dt * (delta_ux * dy + delta_uy * dx);
+      const RealType delta_volume = half * dt * (delta_ux * dy + delta_uy * dx);
 
-      const RealType delta_v =  half * (delta_ux + delta_uy);
+      const RealType delta_velocity = delta_ux + delta_uy;
 
-      // for perfect gas law
-      const RealType cs2 = gamma * p_ooo / rho_ooo;
-      const RealType cs  = std::sqrt(cs2);  
       
       // viscous pressure  -- one possible formulation with both linear 
       // and quadratic coefficient equals to 1.0 ; 
       // using negative part of delta_v --  -0.5*(delta_v-abs(delta_v)) for vectorisation*/
-      const RealType delta_v_neg = -0.5 * (delta_v - fabs(delta_v));
-      const RealType q_ooo   = 1.0 * rho_ooo * cs * delta_v_neg + 
-	1.0 * rho_ooo * delta_v_neg * delta_v_neg; 
+      const RealType delta_velocity_minus = - half * (delta_velocity - fabs(delta_velocity));
+      const RealType q_ooo   = 1.0 * rho_ooo * cs * delta_velocity_minus + 
+	1.0 * rho_ooo * delta_velocity_minus * delta_velocity_minus; 
       
-      const RealType div_u_ooo = half *
+      const RealType div_u_ooo =
 	(one_over_dx * delta_ux + one_over_dy * delta_uy);
       
       const RealType e_lag_ooo = e_ooo 
-	- 0.5 * dt * (p_ooo + q_ooo) * div_u_ooo / mass_ooo * dx * dy;
+	- 0.5 * dt * (p_ooo + q_ooo) * div_u_ooo * one_over_rho_ooo;
 
-      const RealType predicted_rho_ooo = mass_ooo / (dx * dy + delta_vol);
+      const RealType predicted_rho_ooo = mass_ooo / (dx * dy + delta_volume);
 
       const RealType out_predicted_p_ooo = EquationOfState(predicted_rho_ooo, e_lag_ooo);
 
