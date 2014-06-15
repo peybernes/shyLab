@@ -186,6 +186,7 @@ void LagrangePressurePredictedOptimised(int nx,
 
       // BEGIN COMPUTE.
       
+<<<<<<< HEAD
       const RealType rho_ooo = one_over_dx * one_over_dy * mass_ooo; // 2 MUL
       const RealType one_over_rho_ooo = one / rho_ooo; // 1 DIV
 
@@ -197,6 +198,16 @@ void LagrangePressurePredictedOptimised(int nx,
       const RealType delta_volume = half * dt * (delta_ux * dy + delta_uy * dx); // 3 MUL, 1 FMA
       
       const RealType delta_velocity = delta_ux + delta_uy; // 1 ADD
+=======
+      const RealType delta_ux = (ux_se + ux_ne) - (ux_sw + ux_nw);
+      const RealType delta_uy = (uy_nw + uy_ne) - (uy_sw + uy_se);
+                                        
+      const RealType delta_vol = 0.5 * dt * 0.5 * delta_ux * dy + 
+	0.5 *  dt * 0.5 * delta_uy * dx;
+
+      const RealType delta_v =  0.5 * delta_ux
+      	+ 0.5 * delta_uy;
+>>>>>>> parent of ae72d31... LagrangePressurePredictedOptimised : further rewrite
 
       // Formulas below valid for perfect gas law.
       const RealType cs_square = gamma * p_ooo * one_over_rho_ooo; // 2 MUL
