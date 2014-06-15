@@ -189,11 +189,9 @@ void LagrangePressurePredictedOptimised(int nx,
       const RealType delta_ux = (ux_se + ux_ne) - (ux_sw + ux_nw);
       const RealType delta_uy = (uy_nw + uy_ne) - (uy_sw + uy_se);
                                         
-      const RealType delta_vol = 0.5 * dt * 0.5 * delta_ux * dy + 
-	0.5 *  dt * 0.5 * delta_uy * dx;
+      const RealType delta_vol = 0.5 * 0.5 * dt * (delta_ux * dy + delta_uy * dx);
 
-      const RealType delta_v =  0.5 * delta_ux
-      	+ 0.5 * delta_uy;
+      const RealType delta_v =  half * (delta_ux + delta_uy);
 
       // for perfect gas law
       const RealType cs2 = gamma * p_ooo / rho_ooo;
