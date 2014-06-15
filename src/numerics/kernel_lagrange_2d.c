@@ -95,7 +95,7 @@ void LagrangePressurePredicted(int nx,
       const RealType e_ooo = in_energy[cell_ooo];
       
       const RealType rho_ooo = mass_ooo / (dx * dy);
-      const RealType p_ooo = EquationOfState(gamma, rho_ooo, e_ooo);
+      const RealType p_ooo = EquationOfState(rho_ooo, e_ooo);
                                               
       const RealType delta_vol = 0.5 * dt * 0.5 * (u_x_se + u_x_ne - u_x_sw - u_x_nw) * dy + 
 	0.5 *  dt * 0.5 * (u_y_nw + u_y_ne - u_y_sw - u_y_se) * dx;
@@ -121,7 +121,7 @@ void LagrangePressurePredicted(int nx,
       const RealType e_lag_ooo = e_ooo 
 	- 0.5 * dt * (p_ooo + q_ooo) * div_u_ooo / mass_ooo * dx * dy;
 
-      const RealType out_predicted_p_ooo = EquationOfState(gamma, mass_ooo / (dx * dy + delta_vol), e_lag_ooo);
+      const RealType out_predicted_p_ooo = EquationOfState(mass_ooo / (dx * dy + delta_vol), e_lag_ooo);
 
       out_pressure[cell_ooo] = p_ooo ;
       out_predicted_pressure[cell_ooo] = out_predicted_p_ooo;
@@ -186,11 +186,10 @@ void LagrangePressurePredictedOptimised(int nx,
 
       // BEGIN COMPUTE.
       
-<<<<<<< HEAD
       const RealType rho_ooo = one_over_dx * one_over_dy * mass_ooo; // 2 MUL
       const RealType one_over_rho_ooo = one / rho_ooo; // 1 DIV
 
-      const RealType p_ooo = EquationOfState(gamma, rho_ooo, e_ooo); // 1 MUL, 1 FMA
+      const RealType p_ooo = EquationOfState(rho_ooo, e_ooo); // 1 MUL, 1 FMA
       
       const RealType delta_ux = half * ((ux_se + ux_ne) - (ux_sw + ux_nw)); // 2 ADD, 1 FMA
       const RealType delta_uy = half * ((uy_nw + uy_ne) - (uy_sw + uy_se)); // 2 ADD, 1 FMA
@@ -198,19 +197,6 @@ void LagrangePressurePredictedOptimised(int nx,
       const RealType delta_volume = half * dt * (delta_ux * dy + delta_uy * dx); // 3 MUL, 1 FMA
       
       const RealType delta_velocity = delta_ux + delta_uy; // 1 ADD
-=======
-      const RealType delta_ux = (ux_se + ux_ne) - (ux_sw + ux_nw);
-      const RealType delta_uy = (uy_nw + uy_ne) - (uy_sw + uy_se);
-                                        
-      const RealType delta_vol = 0.5 * dt * 0.5 * delta_ux * dy + 
-	0.5 *  dt * 0.5 * delta_uy * dx;
-
-      const RealType delta_v =  0.5 * delta_ux
-      	+ 0.5 * delta_uy;
-<<<<<<< HEAD
->>>>>>> parent of ae72d31... LagrangePressurePredictedOptimised : further rewrite
-=======
->>>>>>> parent of ae72d31... LagrangePressurePredictedOptimised : further rewrite
 
       // Formulas below valid for perfect gas law.
       const RealType cs_square = gamma * p_ooo * one_over_rho_ooo; // 2 MUL
@@ -233,7 +219,7 @@ void LagrangePressurePredictedOptimised(int nx,
       
       const RealType predicted_rho_ooo = mass_ooo / (dx * dy + delta_volume); // 1 DIV, 1 FMA
       
-      const RealType out_predicted_p_ooo = EquationOfState(gamma, predicted_rho_ooo, e_lag_ooo); // 1 MUL, 1 FMA
+      const RealType out_predicted_p_ooo = EquationOfState(predicted_rho_ooo, e_lag_ooo); // 1 MUL, 1 FMA
 
       // END COMPUTE.
       // Summary : 7 ADD, 17 MUL, 9 FMA, 2 DIV, 1 ABS, 1 SQRT

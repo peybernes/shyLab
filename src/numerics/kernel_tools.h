@@ -46,11 +46,11 @@ extern "C" {
   }
 
 
-  static inline RealType EquationOfState(RealType gamma, RealType rho, RealType e) {
+  static inline RealType EquationOfState(RealType rho, RealType e) {
     
     const RealType one = 1.0;
     
-    return  (gamma - one) * rho * e; 
+    return  (1.4 - 1.0) * rho * e;
   
   }
  

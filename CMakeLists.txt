@@ -24,7 +24,7 @@ set (CMAKE_CXX_COMPILER g++)
 set(CMAKE_VERBOSE_MAKEFILE on)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
-set(CMAKE_C_FLAGS "-g -ftree-vectorize -ftree-vectorizer-verbose=2 -O3")
+set(CMAKE_C_FLAGS "-g -ffast-math -ftree-vectorize -ftree-vectorizer-verbose=2 -O3")
 set(CMAKE_CXX_FLAGS "-g -O3")
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
