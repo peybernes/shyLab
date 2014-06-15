@@ -266,7 +266,8 @@ void LagrangeVelocityPredicted(int nx,
       const int cell_NW = NodeCellM1P1(node_ooo, iy, nx);
       const int cell_NE = NodeCellP1P1(node_ooo, iy, nx);
 
-#include "kernel_lagrange_velocity.h"
+#include "kernel_lagrange_velocity_optimised.h"
+      //#include "kernel_lagrange_velocity.h"
 
       out_velocity_x[node_ooo] = out_u_x;
       out_velocity_y[node_ooo] = out_u_y;
@@ -322,17 +323,13 @@ void LagrangeCorrection(int nx,
       const RealType p_ooo = in_pressure[cell_ooo];
       const RealType q_ooo = in_pseudo_pressure[cell_ooo];
      
-      SHY_ASM_COMMENT("LagrangeCorrection -- COMPUTE BEGIN");
-
       const RealType div_u_ooo = 
 	1.0 / dx * (0.5 * (u_x_se + u_x_ne - u_x_sw - u_x_nw)) +
 	1.0 / dy * (0.5 * (u_y_nw + u_y_ne - u_y_sw - u_y_se));
       
       const RealType e_lag_ooo = e_ooo 
 	- dt * (p_ooo + q_ooo) * div_u_ooo / mass_ooo * dx * dy;
-
-      SHY_ASM_COMMENT("LagrangeCorrection -- COMPUTE END");
-
+      
       out_energy[cell_ooo] = e_lag_ooo;
 
       SHY_ASM_COMMENT("LagrangeCorrection -- INNER LOOP END");
