@@ -31,6 +31,19 @@ void LagrangePressurePredicted(int nx,
 	       	      	       RealType* out_predicted_pressure,
        			       RealType* out_pseudo_pressure);
 
+void LagrangePressurePredictedOptimised(int nx,
+					int ny,
+					RealType dt,
+					RealType dx,
+					RealType dy,
+					const RealType* in_mass,
+					const RealType* in_enery,	 
+					const RealType* in_velocity_x,
+					const RealType* in_velocity_y,
+					RealType* out_pressure,
+					RealType* out_predicted_pressure,
+					RealType* out_pseudo_pressure);
+
 void LagrangeVelocityPredicted(int nx,
 			    int ny,
 			    RealType dt,
