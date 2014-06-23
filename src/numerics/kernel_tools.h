@@ -74,10 +74,10 @@ extern "C" {
   /// Van Albada limiter (reference : Nishikawa 2008, carbuncle free solver)
   static inline RealType VanAlbadaLimiter(RealType a, RealType b) {
   
-    const RealType epsilon = 1.0e-6;
+    const RealType epsilon = 1.0e-14;
     const RealType two = 2.0;
-
-    return (two * ((a * b) + epsilon) / ((a * a) + (b * b) + (two * epsilon)));
+    
+    return ( ((a * b) * (a + b )) * ((a * a + b * b) > 0.) / (a * a + b * b + epsilon) );
   }
 
   /// Van Leer kappa scheme

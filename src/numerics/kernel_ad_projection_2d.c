@@ -29,16 +29,16 @@ void ComputeDirectionalLagrangianQuantitiesX(index_t nx,
 	const index_t prev_node = FaceXNodeM1(face_ooo, iy, nx);
 	const index_t next_node = FaceXNodeP1(face_ooo, iy, nx);
 
-	const RealType vx_prev = in_vx[prev_node];
-	const RealType vx_next = in_vx[next_node];
+	const RealType vx_prev = in_vx[prev_node];                    //1 Load
+	const RealType vx_next = in_vx[next_node];                    // 0 load (in cache?)
 
 	const RealType half = 0.5;
 
-	const RealType face_velocity = half * (vx_prev + vx_next);
+	const RealType face_velocity = half * (vx_prev + vx_next);    // 1 FMA
       
-	const RealType volume_flux = dt * face_velocity * dy;
+	const RealType volume_flux = dt * face_velocity * dy;         // 2 MUL
       
-	volume_fluxes[face_ooo] = volume_flux;
+	volume_fluxes[face_ooo] = volume_flux;                        // 1 store                   
 
       }
     }  
@@ -52,19 +52,19 @@ void ComputeDirectionalLagrangianQuantitiesX(index_t nx,
 	const index_t prev_face = CellFaceM1O(cell_ooo, iy, nx);
 	const index_t next_face = CellFaceP1O(cell_ooo, iy, nx);
 
-	const RealType volume_flux_prev = volume_fluxes[prev_face];
-	const RealType volume_flux_next = volume_fluxes[next_face];
-	const RealType current_mass = cell_mass[cell_ooo];
+	const RealType volume_flux_prev = volume_fluxes[prev_face];    //1 Load
+	const RealType volume_flux_next = volume_fluxes[next_face];     // 0 load (in cache?)
+	const RealType current_mass = cell_mass[cell_ooo];             //1 Load
 
-	const RealType current_directional_lagrangian_volume =
+	const RealType current_directional_lagrangian_volume =         // 1 FMA   1 ADD
 	  (dx * dy) - volume_flux_prev + volume_flux_next;
 
-	const RealType current_directional_lagrangian_density =
+	const RealType current_directional_lagrangian_density =        // 1 DIV
 	  current_mass / current_directional_lagrangian_volume;
 
-	directional_lagrangian_volume[cell_ooo] = current_directional_lagrangian_volume;
+	directional_lagrangian_volume[cell_ooo] = current_directional_lagrangian_volume; // 1 Store
       
-	directional_lagrangian_density[cell_ooo] = current_directional_lagrangian_density;
+	directional_lagrangian_density[cell_ooo] = current_directional_lagrangian_density; // 1 Store
 
 
 	assert(0.0 < current_directional_lagrangian_volume);
@@ -73,7 +73,7 @@ void ComputeDirectionalLagrangianQuantitiesX(index_t nx,
       }
     }  
   }
-}
+} // total function manual optimist count --  3 Load + 3 Store    2 MUL 2 FMA 1 Add 1 DIV  
 
 
 void ComputeDirectionalLagrangianQuantitiesY(index_t nx, 
@@ -97,16 +97,16 @@ void ComputeDirectionalLagrangianQuantitiesY(index_t nx,
 	const index_t prev_node = FaceYNodeM1(face_ooo, iy, nx);
 	const index_t next_node = FaceYNodeP1(face_ooo, iy, nx);
 
-	const RealType vy_prev = in_vy[prev_node];
-	const RealType vy_next = in_vy[next_node];
+	const RealType vy_prev = in_vy[prev_node];  // 1 Load
+	const RealType vy_next = in_vy[next_node];  // 1 Load
 
 	const RealType half = 0.5;
 	
-	const RealType face_velocity = half * (vy_prev + vy_next);
+	const RealType face_velocity = half * (vy_prev + vy_next); //1 FMA
       
-	const RealType volume_flux = dt * face_velocity * dx;
+	const RealType volume_flux = dt * face_velocity * dx;      // 2 MUL
       
-	volume_fluxes[face_ooo] = volume_flux;
+	volume_fluxes[face_ooo] = volume_flux;     // 1 Store
 
       }
     }  
@@ -120,19 +120,19 @@ void ComputeDirectionalLagrangianQuantitiesY(index_t nx,
 	const index_t prev_face = CellFaceOM1(cell_ooo, iy, nx);
 	const index_t next_face = CellFaceOP1(cell_ooo, iy, nx);
 
-	const RealType volume_flux_prev = volume_fluxes[prev_face];
-	const RealType volume_flux_next = volume_fluxes[next_face];
-	const RealType current_mass = cell_mass[cell_ooo];
+	const RealType volume_flux_prev = volume_fluxes[prev_face]; // 1 load
+	const RealType volume_flux_next = volume_fluxes[next_face]; // 1 load
+	const RealType current_mass = cell_mass[cell_ooo];         // 1 load
 
-	const RealType current_directional_lagrangian_volume =
+	const RealType current_directional_lagrangian_volume =      // 1 fma  1 add
 	  (dx * dy) - volume_flux_prev + volume_flux_next;
       
-	const RealType current_directional_lagrangian_density =
+	const RealType current_directional_lagrangian_density =     // 1 Div
 	  current_mass / current_directional_lagrangian_volume;
 
-	directional_lagrangian_volume[cell_ooo] = current_directional_lagrangian_volume;
+	directional_lagrangian_volume[cell_ooo] = current_directional_lagrangian_volume; //1 store
       
-	directional_lagrangian_density[cell_ooo] = current_directional_lagrangian_density;
+	directional_lagrangian_density[cell_ooo] = current_directional_lagrangian_density; // 1 store
 
 	assert(0.0 < current_directional_lagrangian_volume);
 	assert(0.0 < current_directional_lagrangian_density);
@@ -140,7 +140,7 @@ void ComputeDirectionalLagrangianQuantitiesY(index_t nx,
       }
     }  
   }
-}
+}// total function manual optimist count  5 Load + 3 Store    2 MUL 2 FMA 1 Add 1 DIV  
 
 
 void CheckFluxPeriodicalPropertyX(index_t nx,
@@ -318,21 +318,21 @@ void ProjectMassX(index_t nx,
       const index_t next_face = CellFaceP1O(cell_ooo, iy, nx);
 
       // dmass
-      const RealType mass_flux_prev = mass_flux[prev_face];
-      const RealType mass_flux_next = mass_flux[next_face];
+      const RealType mass_flux_prev = mass_flux[prev_face]; // 1 load
+      const RealType mass_flux_next = mass_flux[next_face]; // 0 load (in cache)
 
       /// mass
-      const RealType in_cell_mass_ooo = in_cell_mass[cell_ooo];
+      const RealType in_cell_mass_ooo = in_cell_mass[cell_ooo]; // 1 load
       
       const RealType out_cell_mass_ooo = 
-	in_cell_mass_ooo +  mass_flux_prev - mass_flux_next;
+	in_cell_mass_ooo +  mass_flux_prev - mass_flux_next; // 2 add
 
-      out_cell_mass[cell_ooo] = out_cell_mass_ooo; 
+      out_cell_mass[cell_ooo] = out_cell_mass_ooo;     //1 store
       
     }
   }  
 
-}
+} // total function manual optimist count  2 Load   1 Store    2 Add
 
 
 void ProjectMassY(index_t nx, 
@@ -352,22 +352,22 @@ void ProjectMassY(index_t nx,
       const index_t next_face = CellFaceOP1(cell_ooo, iy, nx);
 
       // dmass
-      const RealType mass_flux_prev = mass_flux[prev_face];
-      const RealType mass_flux_next = mass_flux[next_face];
+      const RealType mass_flux_prev = mass_flux[prev_face];  // 1 Load
+      const RealType mass_flux_next = mass_flux[next_face];  // 1 Load
 
       /// mass
-      const RealType in_cell_mass_ooo = in_cell_mass[cell_ooo];
+      const RealType in_cell_mass_ooo = in_cell_mass[cell_ooo]; // 1 Load
       
       const RealType out_cell_mass_ooo = 
-	in_cell_mass_ooo +  mass_flux_prev - mass_flux_next;
+	in_cell_mass_ooo +  mass_flux_prev - mass_flux_next; // 2 Add
 
-      out_cell_mass[cell_ooo] = out_cell_mass_ooo; 
+      out_cell_mass[cell_ooo] = out_cell_mass_ooo;       // 1 Store
       
     }
 
   }  
 
-}
+} //total function  manual optimist count  3 load 1 store    2 add
 
 
 void MassProjectIntensiveVariableX(index_t nx, 
@@ -393,30 +393,30 @@ void MassProjectIntensiveVariableX(index_t nx,
       //      const RealType mass_flux_next = mass_flux[next_face];
 
       // reconstruct face variable
-      const RealType face_variable_prev = in_variable_flux[prev_face];
-      const RealType face_variable_next = in_variable_flux[next_face];
+      const RealType face_variable_prev = in_variable_flux[prev_face]; // 1 load
+      const RealType face_variable_next = in_variable_flux[next_face]; // 0 load (cache)
 
       /// mass and variable
-      const RealType in_cell_mass_ooo = in_cell_mass[cell_ooo];
-      const RealType out_cell_mass_ooo = out_cell_mass[cell_ooo];
+      const RealType in_cell_mass_ooo = in_cell_mass[cell_ooo];      //1 load
+      const RealType out_cell_mass_ooo = out_cell_mass[cell_ooo];    // 1 load
       
-      const RealType in_cell_variable_ooo = in_cell_variable[cell_ooo];
+      const RealType in_cell_variable_ooo = in_cell_variable[cell_ooo]; // 1 load
       
       const RealType out_cell_variable_ooo = 
-	in_cell_mass_ooo * in_cell_variable_ooo +
+	in_cell_mass_ooo * in_cell_variable_ooo +              //1 FMA   1 Add
 	//	mass_flux_prev * face_variable_prev -
 	//        mass_flux_next * face_variable_next;
 	face_variable_prev -
         face_variable_next;
 
       assert(0.0 < out_cell_mass_ooo);
-      out_cell_variable[cell_ooo] = out_cell_variable_ooo / out_cell_mass_ooo; 
-      
+      out_cell_variable[cell_ooo] = out_cell_variable_ooo / out_cell_mass_ooo;  // 1 Div
+                                                                                // 1 Store
     }
 
   }  
 
-}
+}// Total function manual optimist count  4 load  1 store     1 Fma  1 add  1 div  
 
 
 void MassProjectIntensiveVariableY(index_t nx, 
@@ -442,29 +442,30 @@ void MassProjectIntensiveVariableY(index_t nx,
       // const RealType mass_flux_next = mass_flux[next_face];
 
       // reconstruct face variable
-      const RealType face_variable_prev = in_variable_flux[prev_face];
-      const RealType face_variable_next = in_variable_flux[next_face];
+      const RealType face_variable_prev = in_variable_flux[prev_face]; // 1 load
+      const RealType face_variable_next = in_variable_flux[next_face]; // 1 load
 
       /// mass and variable
-      const RealType in_cell_mass_ooo = in_cell_mass[cell_ooo];
-      const RealType out_cell_mass_ooo = out_cell_mass[cell_ooo];
+      const RealType in_cell_mass_ooo = in_cell_mass[cell_ooo];   // 1 load
+      const RealType out_cell_mass_ooo = out_cell_mass[cell_ooo]; // 1 load
       
-      const RealType in_cell_variable_ooo = in_cell_variable[cell_ooo];
+      const RealType in_cell_variable_ooo = in_cell_variable[cell_ooo]; // 1 load
       
-      const RealType out_cell_variable_ooo = in_cell_mass_ooo * in_cell_variable_ooo +
+      const RealType out_cell_variable_ooo = in_cell_mass_ooo * in_cell_variable_ooo +   // 1 FMA   1 ADD
 	//mass_flux_prev * face_variable_prev -
         //mass_flux_next * face_variable_next;
 	face_variable_prev -
         face_variable_next;
 
       assert(0.0 < out_cell_mass_ooo);
-      out_cell_variable[cell_ooo] = out_cell_variable_ooo / out_cell_mass_ooo; 
+      out_cell_variable[cell_ooo] = out_cell_variable_ooo / out_cell_mass_ooo;    // 1 Div   
+                                                                                 //1 Store
       
     }
 
   }  
 
-}
+} //total function  manual optimist count - 5 load  1  store    1 fma  1 add 1 div
 
 
 void ProjectNodalIntensiveVariableX(index_t nx, 
@@ -612,28 +613,28 @@ void ReconstructGradientX(index_t nx,
       const int face_p2o = CellFaceP1O(cell_p1o, iy, nx);
       //could be put in --.h file
       //data load
-      const RealType variable_m1o = lag_variable[cell_m1o];
-      const RealType variable_ooo = lag_variable[cell_ooo];
-      const RealType variable_p1o = lag_variable[cell_p1o];
-      const RealType d_vol_m2o = volume_fluxes[face_m2o];
-      const RealType d_vol_m1o = volume_fluxes[face_m1o];
-      const RealType d_vol_p1o = volume_fluxes[face_p1o];
-      const RealType d_vol_p2o = volume_fluxes[face_p2o];
+      const RealType variable_m1o = lag_variable[cell_m1o]; // 1 load
+      const RealType variable_ooo = lag_variable[cell_ooo]; // 0 load
+      const RealType variable_p1o = lag_variable[cell_p1o]; // 0 load
+      const RealType d_vol_m2o = volume_fluxes[face_m2o]; // 1 load
+      const RealType d_vol_m1o = volume_fluxes[face_m1o]; // 0 load
+      const RealType d_vol_p1o = volume_fluxes[face_p1o]; // 0 load
+      const RealType d_vol_p2o = volume_fluxes[face_p2o]; // 0 load
 
+      const RealType one_over_dy = 1.0 / dy;    // 1div
+      const RealType grad_m1o = (variable_ooo - variable_m1o ) /   //2 add  1 FMA 1 div
+	(dx + (d_vol_p1o - d_vol_m2o) * one_over_dy);
 
-      const RealType grad_m1o = (variable_ooo - variable_m1o ) /
-	(dx + (d_vol_p1o - d_vol_m2o) / dy);
+      const RealType grad_p1o = (variable_p1o - variable_ooo) /     //2 add 1 FMA  1 div
+	(dx + (d_vol_p2o - d_vol_m1o) * one_over_dy);
 
-      const RealType grad_p1o = (variable_p1o - variable_ooo ) /
-	(dx + (d_vol_p2o - d_vol_m1o) / dy);
-
-      const RealType limited_grad_variable = MinmodLimiter(grad_m1o, grad_p1o);
-      gradient_variable[cell_ooo] = limited_grad_variable;
+      const RealType limited_grad_variable = VanAlbadaLimiter(grad_m1o, grad_p1o); // VanAlbada  : 4 FMA  3 Mul  1 logic  1 Div     || ( minmod 2 logic  3 mul  1 min  2 abs)
+      gradient_variable[cell_ooo] = limited_grad_variable; // 1 store
       
     }
   } 
 
-}
+}// function manual optimist count - 2 load 1 store    6 fma  3 mul  4 add   4 div  (1 logic) 
 
 
 void ReconstructMassFluxOrder2X(index_t nx, 
@@ -658,32 +659,34 @@ void ReconstructMassFluxOrder2X(index_t nx,
       const index_t face_m1o = CellFaceM1O( prev_cell, iy, nx);
       const index_t face_p1o = CellFaceP1O( next_cell, iy, nx);;
       
-      const RealType prev_cell_variable = cell_density[prev_cell];
-      const RealType next_cell_variable = cell_density[next_cell];
-      const RealType prev_cell_gradient = cell_density_gradient[prev_cell];
-      const RealType next_cell_gradient = cell_density_gradient[next_cell];
+      const RealType prev_cell_variable = cell_density[prev_cell];         // 1 load
+      const RealType next_cell_variable = cell_density[next_cell];         // 0 load
+      const RealType prev_cell_gradient = cell_density_gradient[prev_cell]; // 1 load
+      const RealType next_cell_gradient = cell_density_gradient[next_cell]; // 0 load
 
-      const RealType vol_flux = volume_fluxes[face_ooo];
-      const RealType vol_flux_m1o = volume_fluxes[face_m1o];
-      const RealType vol_flux_p1o = volume_fluxes[face_p1o];
+      const RealType vol_flux = volume_fluxes[face_ooo];          // 1 load
+      const RealType vol_flux_m1o = volume_fluxes[face_m1o];      // 0 load
+      const RealType vol_flux_p1o = volume_fluxes[face_p1o];      // 0 load
 
       const RealType half = 0.5;
       
-      const RealType dx_lag_prev_corrected = dx - vol_flux_m1o / dy;
-      const RealType dx_lag_next_corrected = - dx  - vol_flux_p1o / dy;	
-      const RealType prev_cell_variable_o2 =  prev_cell_variable + half * prev_cell_gradient * dx_lag_prev_corrected;
-      const RealType next_cell_variable_o2 =  next_cell_variable + half * next_cell_gradient * dx_lag_next_corrected;
+      const RealType one_over_dy = 1.0 / dy;                // 1 div
+
+      const RealType dx_lag_prev_corrected = dx - vol_flux_m1o *  one_over_dy;   // 1 fma
+      const RealType dx_lag_next_corrected = - dx  - vol_flux_p1o * one_over_dy;	 // 1 fma  1 add
+      const RealType prev_cell_variable_o2 =  prev_cell_variable + half * prev_cell_gradient * dx_lag_prev_corrected; // 1 mul 1 fma 
+      const RealType next_cell_variable_o2 =  next_cell_variable + half * next_cell_gradient * dx_lag_next_corrected; // 1 mul 1 fma
       
       const RealType mass_flux_ooo =
-	(half * (vol_flux + fabs(vol_flux)) * prev_cell_variable_o2) + 
+	(half * (vol_flux + fabs(vol_flux)) * prev_cell_variable_o2) +  // 2 abs 3 fma 1 mul
 	(half * (vol_flux - fabs(vol_flux)) * next_cell_variable_o2);
       
-      mass_flux[face_ooo] = mass_flux_ooo;
+      mass_flux[face_ooo] = mass_flux_ooo; // 1 store
 
     }
   }
 
-}
+} // total function manual optimist count -  3 load  1 store       7 fma  3 mul 1add   2 abs  1 div
 
 
 void ReconstructIntensiveVariableFluxOrder2X(index_t nx, 
@@ -708,33 +711,35 @@ void ReconstructIntensiveVariableFluxOrder2X(index_t nx,
       const index_t face_m1o = CellFaceM1O( prev_cell, iy, nx);
       const index_t face_p1o = CellFaceP1O( next_cell, iy, nx);
       
-      const RealType prev_cell_variable = cell_variable[prev_cell];
-      const RealType next_cell_variable = cell_variable[next_cell];
-      const RealType prev_cell_gradient = cell_variable_gradient[prev_cell];
-      const RealType next_cell_gradient = cell_variable_gradient[next_cell];
+      const RealType prev_cell_variable = cell_variable[prev_cell];        // 1 load
+      const RealType next_cell_variable = cell_variable[next_cell];        // 0 load
+      const RealType prev_cell_gradient = cell_variable_gradient[prev_cell]; // 1 load
+      const RealType next_cell_gradient = cell_variable_gradient[next_cell]; // 0 load
 
-      const RealType mass_flux_face = mass_flux[face_ooo];
+      const RealType mass_flux_face = mass_flux[face_ooo];              // 1 load
       
-      const RealType vol_flux_m1o = volume_fluxes[face_m1o];
-      const RealType vol_flux_p1o = volume_fluxes[face_p1o];
+      const RealType vol_flux_m1o = volume_fluxes[face_m1o];            // 1 load
+      const RealType vol_flux_p1o = volume_fluxes[face_p1o];            // 0 load
       
       const RealType half = 0.5;
 
-      const RealType dx_lag_prev_corrected = dx - vol_flux_m1o / dy;
-      const RealType dx_lag_next_corrected = - dx - vol_flux_p1o / dy;	
-      const RealType prev_cell_variable_o2 =  prev_cell_variable + half * prev_cell_gradient * dx_lag_prev_corrected;
-      const RealType next_cell_variable_o2 =  next_cell_variable + half * next_cell_gradient * dx_lag_next_corrected;
+      const RealType one_over_dy = 1.0 / dy;                  // 1 div
+ 
+      const RealType dx_lag_prev_corrected = dx - vol_flux_m1o * one_over_dy ;  // 1 fma
+      const RealType dx_lag_next_corrected = - dx - vol_flux_p1o * one_over_dy ; // 1 fma  1 add	
+      const RealType prev_cell_variable_o2 =  prev_cell_variable + half * prev_cell_gradient * dx_lag_prev_corrected; // 1 fma 1 mul
+      const RealType next_cell_variable_o2 =  next_cell_variable + half * next_cell_gradient * dx_lag_next_corrected; // 1 fma 1 mul
       
       const RealType variable_flux_ooo =
-	(half * (mass_flux_face + fabs(mass_flux_face)) * prev_cell_variable_o2) + 
+	(half * (mass_flux_face + fabs(mass_flux_face)) * prev_cell_variable_o2) +  // 2 abs  3 fma 1 mul
 	(half * (mass_flux_face - fabs(mass_flux_face)) * next_cell_variable_o2);
-      
-      variable_flux[face_ooo] = variable_flux_ooo;
+     
+      variable_flux[face_ooo] = variable_flux_ooo; // 1 store
 
     }
   }
 
-}
+} //total function manual optimist count  4 load  1 store   7 fma  3 mul  1 add  2abs 1 div 
 
 
 
@@ -755,28 +760,28 @@ void ReconstructGradientNodalX(index_t nx,
       const int node_p1o = NodeNodeP1O(node_ooo, iy, nx);
       
       //data load
-      const RealType variable_m1o = lag_nodal_variable[node_m1o];
-      const RealType variable_ooo = lag_nodal_variable[node_ooo];
-      const RealType variable_p1o = lag_nodal_variable[node_p1o];
+      const RealType variable_m1o = lag_nodal_variable[node_m1o];   // 1 load
+      const RealType variable_ooo = lag_nodal_variable[node_ooo];   // 0 load
+      const RealType variable_p1o = lag_nodal_variable[node_p1o];   // 0 load
 
-      const RealType velocity_m1o = predicted_velocity[node_m1o];
-      const RealType velocity_ooo = predicted_velocity[node_ooo];
-      const RealType velocity_p1o = predicted_velocity[node_p1o];
+      const RealType velocity_m1o = predicted_velocity[node_m1o];   // 1 load
+      const RealType velocity_ooo = predicted_velocity[node_ooo];   // 0 load
+      const RealType velocity_p1o = predicted_velocity[node_p1o];   // 0 load
      
 
-      const RealType grad_m1o = (variable_ooo - variable_m1o ) /
+      const RealType grad_m1o = (variable_ooo - variable_m1o ) /    //2 add 1 fma  1 div 
        	(dx + dt * (velocity_ooo - velocity_m1o));
 
-      const RealType grad_p1o = (variable_p1o - variable_ooo ) /
+      const RealType grad_p1o = (variable_p1o - variable_ooo ) / //2 add 1 fma  1 div 
        	(dx + dt * (velocity_p1o - velocity_ooo));
 
-      const RealType limited_grad_variable = MinmodLimiter(grad_m1o,grad_p1o) ;
-      gradient_variable[node_ooo] = limited_grad_variable;
+      const RealType limited_grad_variable = VanAlbadaLimiter(grad_m1o,grad_p1o) ; // VanAlbada  : 4 FMA  3 Mul  1 logic  1 Div   
+      gradient_variable[node_ooo] = limited_grad_variable; // 1 store
       
     }
   } 
 
-}
+} //total function manual optimist count  --   2 load  1 store   6 fma  3 mul 4 add  3 div  (1 logic)
 
 
 void ProjectNodalIntensiveVariableOrder2X(index_t nx, 
@@ -815,12 +820,16 @@ void ProjectNodalIntensiveVariableOrder2X(index_t nx,
       const index_t facexp1m1 = NodeFaceXP1M1(node_ooo, iy, nx);
 
 #include "ad_projection_nodal_o2_2d_computation_X.h"
-
-      out_variable[node_ooo] = out_nodal_variable ;
+      // 9 load   8 fma  8 add 2 mul   
+      //   if statement but similare branch
+      //   4 fma ( or 4 fma  and 1-2 add) // end if
+      //3 mul  2 add 1 div
+      
+      out_variable[node_ooo] = out_nodal_variable ; // 1 store
     }
   }
 
-}
+} //total function manual optimist count -- 9 load 1 strore   12 fma  10 add  5 mul 1 div
 
 void ReconstructGradientY(index_t nx,
 			  index_t ny,
@@ -843,27 +852,29 @@ void ReconstructGradientY(index_t nx,
       const int face_op1 = CellFaceOP1(cell_ooo, iy, nx);
       const int face_op2 = CellFaceOP1(cell_op1, iy + 1, nx);
 
-      const RealType variable_om1 = lag_variable[cell_om1];
-      const RealType variable_ooo = lag_variable[cell_ooo];
-      const RealType variable_op1 = lag_variable[cell_op1];
-      const RealType d_vol_om2 = volume_fluxes[face_om2];
-      const RealType d_vol_om1 = volume_fluxes[face_om1];
-      const RealType d_vol_op1 = volume_fluxes[face_op1];
-      const RealType d_vol_op2 = volume_fluxes[face_op2];
+      const RealType variable_om1 = lag_variable[cell_om1]; // 1 load
+      const RealType variable_ooo = lag_variable[cell_ooo]; // 1 load
+      const RealType variable_op1 = lag_variable[cell_op1]; // 1 load
+      const RealType d_vol_om2 = volume_fluxes[face_om2];   // 1 load
+      const RealType d_vol_om1 = volume_fluxes[face_om1];   // 1 load
+      const RealType d_vol_op1 = volume_fluxes[face_op1];   // 1 load
+      const RealType d_vol_op2 = volume_fluxes[face_op2];   // 1 load
 
+      const RealType one_over_dx = 1.0 / dx;    // 1 div
+	
+      const RealType grad_om1 = (variable_ooo - variable_om1 ) / //2 add 1 fma 1 div
+	(dy + (d_vol_op1 - d_vol_om2) * one_over_dx);
 
-      const RealType grad_om1 = (variable_ooo - variable_om1 ) /
-	(dy + (d_vol_op1 - d_vol_om2) / dx);
+      const RealType grad_op1 = (variable_op1 - variable_ooo )  /  //2 add 1 fma 1 div
+	(dy + (d_vol_op2 - d_vol_om1) *one_over_dx);
 
-      const RealType grad_op1 = (variable_op1 - variable_ooo ) /
-	(dy + (d_vol_op2 - d_vol_om1) / dx);
-
-      const RealType limited_grad_variable = MinmodLimiter(grad_om1,grad_op1) ;
-      gradient_variable[cell_ooo] = limited_grad_variable;
+      const RealType limited_grad_variable = VanAlbadaLimiter(grad_om1,grad_op1) ;// VanAlbada  : 4 FMA  3 Mul  1 logic  1 Div 
+      gradient_variable[cell_ooo] = limited_grad_variable; // 1 store
     }
   }
 
 } // end ReconstructGradientY
+//total function optimist manual count - 7 load 1 store  6 fma  4add 3mul  4div  (logic 1)
 
 
 
@@ -891,32 +902,34 @@ void ReconstructMassFluxOrder2Y(index_t nx,
       const index_t face_om1 = CellFaceOM1( prev_cell, iy, nx);
       const index_t face_op1 = CellFaceOP1( next_cell, iy, nx);;
       
-      const RealType prev_cell_variable = cell_density[prev_cell];
-      const RealType next_cell_variable = cell_density[next_cell];
-      const RealType prev_cell_gradient = cell_density_gradient[prev_cell];
-      const RealType next_cell_gradient = cell_density_gradient[next_cell];
+      const RealType prev_cell_variable = cell_density[prev_cell]; // 1 load
+      const RealType next_cell_variable = cell_density[next_cell];// 1 load
+      const RealType prev_cell_gradient = cell_density_gradient[prev_cell];// 1 load
+      const RealType next_cell_gradient = cell_density_gradient[next_cell];// 1 load
 
-      const RealType vol_flux = volume_fluxes[face_ooo];
-      const RealType vol_flux_om1 = volume_fluxes[face_om1];
-      const RealType vol_flux_op1 = volume_fluxes[face_op1];
+      const RealType vol_flux = volume_fluxes[face_ooo];// 1 load
+      const RealType vol_flux_om1 = volume_fluxes[face_om1];// 1 load
+      const RealType vol_flux_op1 = volume_fluxes[face_op1];// 1 load
       
       const RealType half = 0.5;
 
-      const RealType dy_lag_prev_corrected = dy - vol_flux_om1 / dx;
-      const RealType dy_lag_next_corrected = - dy  - vol_flux_op1 / dx;	
-      const RealType prev_cell_variable_o2 =  prev_cell_variable + 0.5 * prev_cell_gradient * dy_lag_prev_corrected;
-      const RealType next_cell_variable_o2 =  next_cell_variable + 0.5 * next_cell_gradient * dy_lag_next_corrected;
+      const RealType one_over_dx = 1.0 / dx;                          // 1 div
+      const RealType dy_lag_prev_corrected = dy - vol_flux_om1 * one_over_dx; // 1fma
+      const RealType dy_lag_next_corrected = - dy  - vol_flux_op1 * one_over_dx; // 1 add 1 fma	
+      const RealType prev_cell_variable_o2 =  prev_cell_variable + 0.5 * prev_cell_gradient * dy_lag_prev_corrected; // 1 mul  1 fma
+      const RealType next_cell_variable_o2 =  next_cell_variable + 0.5 * next_cell_gradient * dy_lag_next_corrected; // 1 mul 1 fma
       
       const RealType mass_flux_ooo =
-	(half * (vol_flux + fabs(vol_flux)) * prev_cell_variable_o2) + 
+	(half * (vol_flux + fabs(vol_flux)) * prev_cell_variable_o2) + // 2 abs 3 fma 1 mul 
 	(half * (vol_flux - fabs(vol_flux)) * next_cell_variable_o2);
       
-      mass_flux[face_ooo] = mass_flux_ooo;
+      mass_flux[face_ooo] = mass_flux_ooo; // 1 store
 
     }
   }
 
 } //end ReconstructMassFluxOrder2Y
+//total function manual optimist count -- 7 load 1 store -- 7fma   1 add  3 mul  1 div  2 abs
 
 
 
@@ -942,34 +955,34 @@ void ReconstructIntensiveVariableFluxOrder2Y(index_t nx,
       const index_t face_om1 = CellFaceOM1( prev_cell, iy, nx);
       const index_t face_op1 = CellFaceOP1( next_cell, iy, nx);;
       
-      const RealType prev_cell_variable = cell_variable[prev_cell];
-      const RealType next_cell_variable = cell_variable[next_cell];
-      const RealType prev_cell_gradient = cell_variable_gradient[prev_cell];
-      const RealType next_cell_gradient = cell_variable_gradient[next_cell];
+      const RealType prev_cell_variable = cell_variable[prev_cell];  // 1 load
+      const RealType next_cell_variable = cell_variable[next_cell]; // 1 load
+      const RealType prev_cell_gradient = cell_variable_gradient[prev_cell];// 1 load
+      const RealType next_cell_gradient = cell_variable_gradient[next_cell];// 1 load
  
-      const RealType mass_flux_face = mass_flux[face_ooo];
+      const RealType mass_flux_face = mass_flux[face_ooo];// 1 load
       
-      const RealType vol_flux_om1 = volume_fluxes[face_om1];
-      const RealType vol_flux_op1 = volume_fluxes[face_op1];
+      const RealType vol_flux_om1 = volume_fluxes[face_om1];// 1 load
+      const RealType vol_flux_op1 = volume_fluxes[face_op1];// 1 load
       
       const RealType half = 0.5;
-
-      const RealType dy_lag_prev_corrected = dy - vol_flux_om1 / dx;
-      const RealType dy_lag_next_corrected = - dy  - vol_flux_op1 / dx;	
-      const RealType prev_cell_variable_o2 =  prev_cell_variable + half * prev_cell_gradient * dy_lag_prev_corrected;
-      const RealType next_cell_variable_o2 =  next_cell_variable + half * next_cell_gradient * dy_lag_next_corrected;
+      const RealType one_over_dx = 1.0 / dx;                    //1 div
+      const RealType dy_lag_prev_corrected = dy - vol_flux_om1 * one_over_dx; // 1 fma
+      const RealType dy_lag_next_corrected = - dy  - vol_flux_op1 * one_over_dx; // 1add 1 fma	
+      const RealType prev_cell_variable_o2 =  prev_cell_variable + half * prev_cell_gradient * dy_lag_prev_corrected; // 1 mul  1 fma
+      const RealType next_cell_variable_o2 =  next_cell_variable + half * next_cell_gradient * dy_lag_next_corrected; // 1 mul 1 fma
       
       const RealType variable_flux_ooo =
-	(half * (mass_flux_face + fabs(mass_flux_face)) * prev_cell_variable_o2) + 
+	(half * (mass_flux_face + fabs(mass_flux_face)) * prev_cell_variable_o2) +  // 2 abs 3 fma 1 mul
 	(half * (mass_flux_face - fabs(mass_flux_face)) * next_cell_variable_o2);
       
-      variable_flux[face_ooo] = variable_flux_ooo;
+      variable_flux[face_ooo] = variable_flux_ooo; // 1 store
   
 
     }
   }
 } // end ReconstructIntensiveVariableFluxOrder2Y
-
+// total function manual optimist count - 7 load 1 store-- 7 fma  1add  3mul   1 div  2 abs
 
 
 void ReconstructGradientNodalY(index_t nx,
@@ -989,29 +1002,29 @@ void ReconstructGradientNodalY(index_t nx,
       const int node_op1 = NodeNodeOP1(node_ooo, iy, nx);
       
       //data load
-      const RealType variable_om1 = lag_nodal_variable[node_om1];
-      const RealType variable_ooo = lag_nodal_variable[node_ooo];
-      const RealType variable_op1 = lag_nodal_variable[node_op1];
+      const RealType variable_om1 = lag_nodal_variable[node_om1]; // 1 load
+      const RealType variable_ooo = lag_nodal_variable[node_ooo]; // 1 load
+      const RealType variable_op1 = lag_nodal_variable[node_op1]; // 1 load
 
-      const RealType velocity_om1 = predicted_velocity[node_om1];
-      const RealType velocity_ooo = predicted_velocity[node_ooo];
-      const RealType velocity_op1 = predicted_velocity[node_op1];
+      const RealType velocity_om1 = predicted_velocity[node_om1]; // 1 load
+      const RealType velocity_ooo = predicted_velocity[node_ooo]; // 1 load
+      const RealType velocity_op1 = predicted_velocity[node_op1]; // 1 load
      
 
-      const RealType grad_om1 = (variable_ooo - variable_om1 ) /
+      const RealType grad_om1 = (variable_ooo - variable_om1 ) / //1 fma 2 add 1 div
        	(dy + dt * (velocity_ooo - velocity_om1));
 
-      const RealType grad_op1 = (variable_op1 - variable_ooo ) /
+      const RealType grad_op1 = (variable_op1 - variable_ooo ) / //1 fma 2 add 1 div
        	(dy + dt * (velocity_op1 - velocity_ooo));
 
-      const RealType limited_grad_variable = MinmodLimiter(grad_om1,grad_op1) ;
-      gradient_variable[node_ooo] = limited_grad_variable;
+      const RealType limited_grad_variable = VanAlbadaLimiter(grad_om1,grad_op1) ;// VanAlbada  : 4 FMA  3 Mul  (1 logic)  1 Div 
+      gradient_variable[node_ooo] = limited_grad_variable; // 1 store
       
     }
   } 
 
 } // end ReconstructGradientNodalY
-
+// total function optimist manual count -- 6 load 1 store -- 6 fma  4 add 3 mul 1 div (1logic)
 
 
 void ProjectNodalIntensiveVariableOrder2Y(index_t nx, 
@@ -1050,11 +1063,15 @@ void ProjectNodalIntensiveVariableOrder2Y(index_t nx,
       const index_t faceyp1m1 = NodeFaceYP1M1(node_ooo, iy, nx);
 
 #include "ad_projection_nodal_o2_2d_computation_Y.h"
+      //16 load  8 fma  8 add   2mul 
+      // if - 4 fma (or fma 1-2 add)
+      //3mul  2 add 1 div
 
-      out_variable[node_ooo] = out_nodal_variable ;
+      out_variable[node_ooo] = out_nodal_variable ; // 1 store
     }
   }
 
 } //end ProjectNodalIntensiveVariableOrder2Y
+//total function manual optimist count -- 16 load 1 store --12 fma  10 add 5mul 1 div
 
 

@@ -2,7 +2,7 @@ const RealType one_quarter = 0.25;
 const RealType one_half = 0.5;
 
        //data load
-        const RealType in_variable_oo = in_variable[node_ooo];
+        const RealType in_variable_oo = in_variable[node_ooo]; 
         const RealType in_variable_m1 = in_variable[node_m1o];
         const RealType in_variable_p1 = in_variable[node_p1o];
 	

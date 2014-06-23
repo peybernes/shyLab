@@ -573,7 +573,7 @@ void ReconstructGradientXPeriodicBoundary(index_t nx,
     const RealType grad_p1o = (variable_p1o - variable_ooo ) /
       (dx + (d_vol_p2o - d_vol_m1o) / dy);
 
-    const RealType limited_grad_variable = MinmodLimiter(grad_m1o,grad_p1o) ;
+    const RealType limited_grad_variable = VanAlbadaLimiter(grad_m1o,grad_p1o) ;
     gradient_variable[cell_ooo] = limited_grad_variable;   
     
   } 
@@ -608,7 +608,7 @@ void ReconstructGradientXPeriodicBoundary(index_t nx,
     const RealType grad_p1o = (variable_p1o - variable_ooo ) /
       (dx + (d_vol_p2o - d_vol_m1o) / dy);
 
-    const RealType limited_grad_variable = MinmodLimiter(grad_m1o,grad_p1o) ;
+    const RealType limited_grad_variable = VanAlbadaLimiter(grad_m1o,grad_p1o) ;
     gradient_variable[cell_ooo] = limited_grad_variable; 
   }
 
@@ -744,7 +744,7 @@ void ReconstructGradientNodalXPeriodicBoundary(index_t nx,
     const RealType grad_p1o = (variable_p1o - variable_ooo ) /
       (dx + dt * (velocity_p1o - velocity_ooo));
 
-    const RealType limited_grad_variable = MinmodLimiter(grad_m1o,grad_p1o) ;
+    const RealType limited_grad_variable = VanAlbadaLimiter(grad_m1o,grad_p1o) ;
     gradient_variable[node_ooo] = limited_grad_variable;    
     
   } 
@@ -772,7 +772,7 @@ void ReconstructGradientNodalXPeriodicBoundary(index_t nx,
     const RealType grad_p1o = (variable_p1o - variable_ooo ) /
       (dx + dt * (velocity_p1o - velocity_ooo));
 
-    const RealType limited_grad_variable = MinmodLimiter(grad_m1o,grad_p1o) ;
+    const RealType limited_grad_variable = VanAlbadaLimiter(grad_m1o,grad_p1o) ;
     gradient_variable[node_ooo] = limited_grad_variable;    
     
   }  
@@ -922,7 +922,7 @@ void ReconstructGradientYPeriodicBoundary(index_t nx,
     const RealType grad_op1 = (variable_op1 - variable_ooo ) /
       (dy + (d_vol_op2 - d_vol_om1) / dx);
 
-    const RealType limited_grad_variable = MinmodLimiter(grad_om1,grad_op1) ;
+    const RealType limited_grad_variable = VanAlbadaLimiter(grad_om1,grad_op1) ;
     gradient_variable[cell_ooo] = limited_grad_variable;
   }
 
@@ -955,7 +955,7 @@ void ReconstructGradientYPeriodicBoundary(index_t nx,
     const RealType grad_op1 = (variable_op1 - variable_ooo ) /
       (dy + (d_vol_op2 - d_vol_om1) / dx);
 
-    const RealType limited_grad_variable = MinmodLimiter(grad_om1,grad_op1) ;
+    const RealType limited_grad_variable = VanAlbadaLimiter(grad_om1,grad_op1) ;
     gradient_variable[cell_ooo] = limited_grad_variable;
 
   }
@@ -1097,7 +1097,7 @@ void ReconstructGradientNodalYPeriodicBoundary(index_t nx,
     const RealType grad_op1 = (variable_op1 - variable_ooo ) /
       (dy + dt * (velocity_op1 - velocity_ooo));
 
-    const RealType limited_grad_variable = MinmodLimiter(grad_om1,grad_op1) ;
+    const RealType limited_grad_variable = VanAlbadaLimiter(grad_om1,grad_op1) ;
     gradient_variable[node_ooo] = limited_grad_variable;
       
   }
@@ -1125,7 +1125,7 @@ void ReconstructGradientNodalYPeriodicBoundary(index_t nx,
     const RealType grad_op1 = (variable_op1 - variable_ooo ) /
       (dy + dt * (velocity_op1 - velocity_ooo));
 
-    const RealType limited_grad_variable = MinmodLimiter(grad_om1,grad_op1) ;
+    const RealType limited_grad_variable = VanAlbadaLimiter(grad_om1,grad_op1) ;
     gradient_variable[node_ooo] = limited_grad_variable;
       
   }
@@ -1282,7 +1282,7 @@ void ReconstructGradientXBoundaryRt(index_t nx,
     const RealType grad_p1o = (variable_p1o - variable_ooo ) /
       (dx + (d_vol_p2o - d_vol_m1o) / dy);
 
-    const RealType limited_grad_variable = MinmodLimiter(grad_m1o,grad_p1o) ;
+    const RealType limited_grad_variable = VanAlbadaLimiter(grad_m1o,grad_p1o) ;
     gradient_variable[cell_ooo] = limited_grad_variable;   
     
   } 
@@ -1317,7 +1317,7 @@ void ReconstructGradientXBoundaryRt(index_t nx,
     const RealType grad_p1o = (variable_p1o - variable_ooo ) /
       (dx + (d_vol_p2o - d_vol_m1o) / dy);
 
-    const RealType limited_grad_variable = MinmodLimiter(grad_m1o,grad_p1o) ;
+    const RealType limited_grad_variable = VanAlbadaLimiter(grad_m1o,grad_p1o) ;
     gradient_variable[cell_ooo] = limited_grad_variable; 
   }
 
@@ -1453,7 +1453,7 @@ void ReconstructGradientNodalXBoundaryRt(index_t nx,
     const RealType grad_p1o = (variable_p1o - variable_ooo ) /
       (dx + dt * (velocity_p1o - velocity_ooo));
 
-    const RealType limited_grad_variable = MinmodLimiter(grad_m1o,grad_p1o) ;
+    const RealType limited_grad_variable = VanAlbadaLimiter(grad_m1o,grad_p1o) ;
     gradient_variable[node_ooo] = limited_grad_variable;    
     
   } 
@@ -1481,7 +1481,7 @@ void ReconstructGradientNodalXBoundaryRt(index_t nx,
     const RealType grad_p1o = (variable_p1o - variable_ooo ) /
       (dx + dt * (velocity_p1o - velocity_ooo));
 
-    const RealType limited_grad_variable = MinmodLimiter(grad_m1o,grad_p1o) ;
+    const RealType limited_grad_variable = VanAlbadaLimiter(grad_m1o,grad_p1o) ;
     gradient_variable[node_ooo] = limited_grad_variable;    
     
   }  
@@ -1598,7 +1598,7 @@ void ReconstructGradientYBoundaryRt(index_t nx,
     const RealType grad_op1 = (variable_op1 - variable_ooo ) /
       (dy + (d_vol_op2 - d_vol_om1) / dx);
 
-    const RealType limited_grad_variable = MinmodLimiter(grad_om1,grad_op1) ;
+    const RealType limited_grad_variable = VanAlbadaLimiter(grad_om1,grad_op1) ;
     gradient_variable[cell_ooo] = limited_grad_variable;
   }
 
@@ -1631,7 +1631,7 @@ void ReconstructGradientYBoundaryRt(index_t nx,
     const RealType grad_op1 = (variable_op1 - variable_ooo ) /
       (dy + (d_vol_op2 - d_vol_om1) / dx);
 
-    const RealType limited_grad_variable = MinmodLimiter(grad_om1,grad_op1) ;
+    const RealType limited_grad_variable = VanAlbadaLimiter(grad_om1,grad_op1) ;
     gradient_variable[cell_ooo] = limited_grad_variable;
 
   }
@@ -1726,7 +1726,7 @@ void ReconstructGradientNodalYBoundaryRt(index_t nx,
     const RealType grad_op1 = (variable_op1 - variable_ooo ) /
       (dy + dt * (velocity_op1 - velocity_ooo));
 
-    const RealType limited_grad_variable = MinmodLimiter(grad_om1,grad_op1) ;
+    const RealType limited_grad_variable = VanAlbadaLimiter(grad_om1,grad_op1) ;
     gradient_variable[node_ooo] = limited_grad_variable;
       
   }
@@ -1754,7 +1754,7 @@ void ReconstructGradientNodalYBoundaryRt(index_t nx,
     const RealType grad_op1 = (variable_op1 - variable_ooo ) /
       (dy + dt * (velocity_op1 - velocity_ooo));
 
-    const RealType limited_grad_variable = MinmodLimiter(grad_om1,grad_op1) ;
+    const RealType limited_grad_variable = VanAlbadaLimiter(grad_om1,grad_op1) ;
     gradient_variable[node_ooo] = limited_grad_variable;
       
   }
