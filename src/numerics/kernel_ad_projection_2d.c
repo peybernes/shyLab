@@ -376,7 +376,8 @@ void MassProjectIntensiveVariableX(index_t nx,
 				   //const RealType* RESTRICT mass_flux,
 				   const RealType* RESTRICT in_cell_variable,
 				   const RealType* RESTRICT in_variable_flux,
-				   const RealType* RESTRICT out_cell_mass,
+				   const RealType* RESTRICT mass_flux,
+				   RealType* RESTRICT out_cell_mass,
 				   RealType* RESTRICT out_cell_variable) {
   
 #pragma omp parallel for
@@ -396,9 +397,19 @@ void MassProjectIntensiveVariableX(index_t nx,
       const RealType face_variable_prev = in_variable_flux[prev_face];
       const RealType face_variable_next = in_variable_flux[next_face];
 
-      /// mass and variable
+      // dmass
+      const RealType mass_flux_prev = mass_flux[prev_face];
+      const RealType mass_flux_next = mass_flux[next_face];
+
+      /// mass
       const RealType in_cell_mass_ooo = in_cell_mass[cell_ooo];
-      const RealType out_cell_mass_ooo = out_cell_mass[cell_ooo];
+      
+      const RealType out_cell_mass_ooo = 
+	in_cell_mass_ooo +  mass_flux_prev - mass_flux_next;
+
+      out_cell_mass[cell_ooo] = out_cell_mass_ooo; 
+
+      /// variable
       
       const RealType in_cell_variable_ooo = in_cell_variable[cell_ooo];
       
@@ -425,7 +436,8 @@ void MassProjectIntensiveVariableY(index_t nx,
 				   //const RealType* RESTRICT mass_flux,
 				   const RealType* RESTRICT in_cell_variable,
 				   const RealType* RESTRICT in_variable_flux,
-				   const RealType* RESTRICT out_cell_mass,
+				   const RealType* RESTRICT mass_flux,
+				   RealType* RESTRICT out_cell_mass,
 				   RealType* RESTRICT out_cell_variable) {
 
 #pragma omp parallel for
@@ -445,10 +457,19 @@ void MassProjectIntensiveVariableY(index_t nx,
       const RealType face_variable_prev = in_variable_flux[prev_face];
       const RealType face_variable_next = in_variable_flux[next_face];
 
-      /// mass and variable
+      // dmass
+      const RealType mass_flux_prev = mass_flux[prev_face];
+      const RealType mass_flux_next = mass_flux[next_face];
+
+      /// mass
       const RealType in_cell_mass_ooo = in_cell_mass[cell_ooo];
-      const RealType out_cell_mass_ooo = out_cell_mass[cell_ooo];
       
+      const RealType out_cell_mass_ooo = 
+	in_cell_mass_ooo +  mass_flux_prev - mass_flux_next;
+
+      out_cell_mass[cell_ooo] = out_cell_mass_ooo; 
+
+      /// variable
       const RealType in_cell_variable_ooo = in_cell_variable[cell_ooo];
       
       const RealType out_cell_variable_ooo = in_cell_mass_ooo * in_cell_variable_ooo +
