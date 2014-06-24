@@ -422,7 +422,7 @@ void MassProjectIntensiveVariableX(index_t nx,
 
   }  
 
-}// Total function manual optimist count  4 load  1 store     1 Fma  1 add  1 div  
+}// Total function manual optimist count  4 load  2 store     1 Fma  3 add  1 div  
 
 
 void MassProjectIntensiveVariableY(index_t nx, 
@@ -446,7 +446,7 @@ void MassProjectIntensiveVariableY(index_t nx,
 
       // dmass
       const RealType mass_flux_prev = mass_flux[prev_face]; // 1 load
-      const RealType mass_flux_next = mass_flux[next_face]; // 0 load (cache)
+      const RealType mass_flux_next = mass_flux[next_face]; // 1 load
 
       /// mass
       const RealType in_cell_mass_ooo = in_cell_mass[cell_ooo]; // 1 load
@@ -477,8 +477,7 @@ void MassProjectIntensiveVariableY(index_t nx,
 
   }  
 
-} //total function  manual optimist count - 5 load  1  store    1 fma  1 add 1 div
-
+} //total function  manual optimist count - 6 load  2  store    1 fma  3 add 1 div
 
 void ProjectNodalIntensiveVariableX(index_t nx, 
 				    index_t ny, 
