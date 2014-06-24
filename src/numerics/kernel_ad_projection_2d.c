@@ -376,7 +376,8 @@ void MassProjectIntensiveVariableX(index_t nx,
 				   //const RealType* RESTRICT mass_flux,
 				   const RealType* RESTRICT in_cell_variable,
 				   const RealType* RESTRICT in_variable_flux,
-				   const RealType* RESTRICT out_cell_mass,
+				   const RealType* RESTRICT mass_flux,
+				   RealType* RESTRICT out_cell_mass,
 				   RealType* RESTRICT out_cell_variable) {
   
 #pragma omp parallel for
@@ -389,17 +390,22 @@ void MassProjectIntensiveVariableX(index_t nx,
       const index_t next_face = CellFaceP1O(cell_ooo, iy, nx);
 
       // dmass
-      //      const RealType mass_flux_prev = mass_flux[prev_face];
-      //      const RealType mass_flux_next = mass_flux[next_face];
+      const RealType mass_flux_prev = mass_flux[prev_face]; // 1 load
+      const RealType mass_flux_next = mass_flux[next_face]; // 0 load (cache)
+
+      /// mass
+      const RealType in_cell_mass_ooo = in_cell_mass[cell_ooo]; // 1 load
+      
+      const RealType out_cell_mass_ooo = 
+	in_cell_mass_ooo +  mass_flux_prev - mass_flux_next; // 2 add
+
+      out_cell_mass[cell_ooo] = out_cell_mass_ooo; // 1 Store
 
       // reconstruct face variable
       const RealType face_variable_prev = in_variable_flux[prev_face]; // 1 load
       const RealType face_variable_next = in_variable_flux[next_face]; // 0 load (cache)
 
-      /// mass and variable
-      const RealType in_cell_mass_ooo = in_cell_mass[cell_ooo];      //1 load
-      const RealType out_cell_mass_ooo = out_cell_mass[cell_ooo];    // 1 load
-      
+      /// variable     
       const RealType in_cell_variable_ooo = in_cell_variable[cell_ooo]; // 1 load
       
       const RealType out_cell_variable_ooo = 
@@ -425,7 +431,8 @@ void MassProjectIntensiveVariableY(index_t nx,
 				   //const RealType* RESTRICT mass_flux,
 				   const RealType* RESTRICT in_cell_variable,
 				   const RealType* RESTRICT in_variable_flux,
-				   const RealType* RESTRICT out_cell_mass,
+				   const RealType* RESTRICT mass_flux,
+				   RealType* RESTRICT out_cell_mass,
 				   RealType* RESTRICT out_cell_variable) {
 
 #pragma omp parallel for
@@ -438,17 +445,22 @@ void MassProjectIntensiveVariableY(index_t nx,
       const index_t next_face = CellFaceOP1(cell_ooo, iy, nx);
 
       // dmass
-      // const RealType mass_flux_prev = mass_flux[prev_face];
-      // const RealType mass_flux_next = mass_flux[next_face];
+      const RealType mass_flux_prev = mass_flux[prev_face]; // 1 load
+      const RealType mass_flux_next = mass_flux[next_face]; // 0 load (cache)
+
+      /// mass
+      const RealType in_cell_mass_ooo = in_cell_mass[cell_ooo]; // 1 load
+      
+      const RealType out_cell_mass_ooo = // 2 add
+	in_cell_mass_ooo +  mass_flux_prev - mass_flux_next;
+
+      out_cell_mass[cell_ooo] = out_cell_mass_ooo; // 1 store
 
       // reconstruct face variable
       const RealType face_variable_prev = in_variable_flux[prev_face]; // 1 load
       const RealType face_variable_next = in_variable_flux[next_face]; // 1 load
 
-      /// mass and variable
-      const RealType in_cell_mass_ooo = in_cell_mass[cell_ooo];   // 1 load
-      const RealType out_cell_mass_ooo = out_cell_mass[cell_ooo]; // 1 load
-      
+      /// variable
       const RealType in_cell_variable_ooo = in_cell_variable[cell_ooo]; // 1 load
       
       const RealType out_cell_variable_ooo = in_cell_mass_ooo * in_cell_variable_ooo +   // 1 FMA   1 ADD
