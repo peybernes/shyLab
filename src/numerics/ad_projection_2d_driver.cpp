@@ -41,7 +41,7 @@ void AdProjection2dXDriver(const std::string BoundaryConditions,
 			   std::vector<RealType>& time_compute_volume_fluxes_X,
 			   std::vector<RealType>& time_gradient_X,
 			   std::vector<RealType>& time_mass_reconstruct_o2_X,
-			   std::vector<RealType>& time_project_mass_X,
+			   //			   std::vector<RealType>& time_project_mass_X,
 			   std::vector<RealType>& time_reconstruct_energy_o2_X,
 			   std::vector<RealType>& time_project_energy_X,
 			   std::vector<RealType>& time_gradient_nodal_X,
@@ -53,7 +53,7 @@ void AdProjection2dXDriver(const std::string BoundaryConditions,
   struct timespec time_end;
 
   //========================
-  //    Projection X _mass .
+  //    Mass flux computation Projection X .
   //========================
         
   clock_gettime(CLOCK_REALTIME, &time_begin);
@@ -88,14 +88,14 @@ void AdProjection2dXDriver(const std::string BoundaryConditions,
   clock_gettime(CLOCK_REALTIME, &time_end);
   time_periodic_boundary.push_back(diff(time_begin, time_end));
   
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ProjectMassX(nx, ny, in_cell_mass, mass_flux_x, out_cell_mass);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_project_mass_X.push_back(diff(time_begin, time_end));
+  //  clock_gettime(CLOCK_REALTIME, &time_begin);
+  //  ProjectMassX(nx, ny, in_cell_mass, mass_flux_x, out_cell_mass);
+  //  clock_gettime(CLOCK_REALTIME, &time_end);
+  //  time_project_mass_X.push_back(diff(time_begin, time_end));
     
            
   // ========================
-  //     Projection X _ e. (projection of mass*energy then back to e )
+  //     Projection X _ e. (projection of mass*energy then back to e ) and mass
   // ========================
   
   clock_gettime(CLOCK_REALTIME, &time_begin);
@@ -123,8 +123,8 @@ void AdProjection2dXDriver(const std::string BoundaryConditions,
   time_periodic_boundary.push_back(diff(time_begin, time_end));
   
   clock_gettime(CLOCK_REALTIME, &time_begin);
-  MassProjectIntensiveVariableX(nx, ny , in_cell_mass, e_lag, energy_flux_x, out_cell_mass,
-				out_e);
+  MassProjectIntensiveVariableX(nx, ny , in_cell_mass, e_lag, energy_flux_x, mass_flux_x, 
+				out_cell_mass, out_e);
   clock_gettime(CLOCK_REALTIME, &time_end);
   time_project_energy_X.push_back(diff(time_begin, time_end));
   
@@ -223,7 +223,7 @@ void AdProjection2dYDriver(const std::string BoundaryConditions,
 			   std::vector<RealType>& time_compute_volume_fluxes_Y,
 			   std::vector<RealType>& time_gradient_Y,
 			   std::vector<RealType>& time_mass_reconstruct_o2_Y,
-			   std::vector<RealType>& time_project_mass_Y,
+			   //			   std::vector<RealType>& time_project_mass_Y,
 			   std::vector<RealType>& time_reconstruct_energy_o2_Y,
 			   std::vector<RealType>& time_project_energy_Y,
 			   std::vector<RealType>& time_gradient_nodal_Y,
@@ -242,7 +242,7 @@ void AdProjection2dYDriver(const std::string BoundaryConditions,
      
 
   //==============
-  // mass Y
+  // Mass flux computation Projection Y
   //==============
 
   clock_gettime(CLOCK_REALTIME, &time_begin);
@@ -278,10 +278,10 @@ void AdProjection2dYDriver(const std::string BoundaryConditions,
   clock_gettime(CLOCK_REALTIME, &time_end);
   time_periodic_boundary.push_back(diff(time_begin, time_end));
      
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ProjectMassY(nx, ny, in_cell_mass, mass_flux_y, out_cell_mass);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_project_mass_Y.push_back(diff(time_begin, time_end));
+  //  clock_gettime(CLOCK_REALTIME, &time_begin);
+  //  ProjectMassY(nx, ny, in_cell_mass, mass_flux_y, out_cell_mass);
+  //  clock_gettime(CLOCK_REALTIME, &time_end);
+  //  time_project_mass_Y.push_back(diff(time_begin, time_end));
      
      
   //==============
@@ -314,8 +314,8 @@ void AdProjection2dYDriver(const std::string BoundaryConditions,
      
      
   clock_gettime(CLOCK_REALTIME, &time_begin);
-  MassProjectIntensiveVariableY(nx, ny , in_cell_mass,e_lag, energy_flux_y, out_cell_mass,
-				out_e);
+  MassProjectIntensiveVariableY(nx, ny , in_cell_mass,e_lag, energy_flux_y, mass_flux_y,
+				out_cell_mass, out_e);
   clock_gettime(CLOCK_REALTIME, &time_end);
   time_project_energy_Y.push_back(diff(time_begin, time_end));
         

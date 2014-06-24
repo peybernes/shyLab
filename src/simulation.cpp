@@ -817,7 +817,7 @@ void Simulation::Run() {
 			      time_compute_volume_fluxes_X,
 			      time_gradient_X,
 			      time_mass_reconstruct_o2_X,
-			      time_project_mass_X,
+			      //			      time_project_mass_X,
 			      time_reconstruct_energy_o2_X,
 			      time_project_energy_X,
 			      time_gradient_nodal_X,
@@ -865,7 +865,7 @@ void Simulation::Run() {
 			      time_compute_volume_fluxes_Y,
 			      time_gradient_Y,
 			      time_mass_reconstruct_o2_Y,
-			      time_project_mass_Y,
+			      //			      time_project_mass_Y,
 			      time_reconstruct_energy_o2_Y,
 			      time_project_energy_Y,
 			      time_gradient_nodal_Y,
@@ -1044,8 +1044,8 @@ void Simulation::Run() {
   PrintTimings(time_mass_reconstruct_o2_X,       "ReconstructMassFluxOrder2X             ");
   PrintTimings(time_mass_reconstruct_o2_Y,       "ReconstructMassFluxOrder2Y             ");
   std::cerr << "\n";
-  PrintTimings(time_project_mass_X,              "ProjectMassX                           ");
-  PrintTimings(time_project_mass_Y,              "ProjectMassY                           ");
+  //  PrintTimings(time_project_mass_X,              "ProjectMassX                           ");
+  //  PrintTimings(time_project_mass_Y,              "ProjectMassY                           ");
   std::cerr << "\n";
   PrintTimings(time_reconstruct_energy_o2_X,     "ReconstructIntensiveVariableFluxOrder2X");
   PrintTimings(time_reconstruct_energy_o2_Y,     "ReconstructIntensiveVariableFluxOrder2Y");
