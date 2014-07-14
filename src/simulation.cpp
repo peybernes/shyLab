@@ -922,13 +922,12 @@ void Simulation::Run() {
 				time_gradient_nodal_Y,
 				time_project_nodal_velocity_Y,
 				time_periodic_boundary); 
-	    
-	  std::swap(in_cell_mass, out_cell_mass); 
-	  std::swap(in_u, out_u); 
-	  std::swap(in_v, out_v);
-	  std::swap(in_e, out_e);
 
-
+	  std::swap(in_cell_mass, out_cell_mass);
+	  std::swap(u_lag, out_u);
+	  std::swap(v_lag, out_v);
+	  std::swap(e_lag, out_e);
+	  
 // Projection X
 	  AdProjection2dXDriver(//in
 				numerical_params.BoundaryConditions,
@@ -971,12 +970,11 @@ void Simulation::Run() {
 				time_gradient_nodal_X,
 				time_project_nodal_velocity_X,
 				time_periodic_boundary);
-	    
-	  std::swap(in_cell_mass, out_cell_mass);
-	  std::swap(u_lag, out_u);
-	  std::swap(v_lag, out_v);
-	  std::swap(e_lag, out_e);
 
+	  std::swap(in_cell_mass, out_cell_mass); 
+	  std::swap(in_u, out_u); 
+	  std::swap(in_v, out_v);
+	  std::swap(in_e, out_e);
 	}
 	
       } else if (numerical_params.TypeOfProjection == "DirectProjection") {
