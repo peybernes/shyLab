@@ -608,6 +608,7 @@ void Simulation::Run() {
   // Node local variables.
   RealType* gradient_v = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
   RealType* gradient_u = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+
   // INIT
   RealType CFL = 0.3;
 
