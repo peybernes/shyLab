@@ -53,7 +53,7 @@ IF(${CMAKE_CXX_COMPILER} MATCHES "icpc")
 #standart
 set(CMAKE_CXX_FLAGS "-g -O2")
 #current vecto and profing options
-#set(CMAKE_CXX_FLAGS "-g -O3 -xAVX -vec-report"
+#set(CMAKE_CXX_FLAGS "-g -O3 -xAVX -vec-report")
 #old vectorisation option
 #set(CMAKE_CXX_FLAGS "-g -xsse4.2 -O3")
 #set(CMAKE_CXX_FLAGS "-O3 -xCORE-AVX2 -vec-report2")
