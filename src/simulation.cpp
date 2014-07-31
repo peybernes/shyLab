@@ -1,4 +1,4 @@
-/// Implementation of simulation.hpp
+ /// Implementation of simulation.hpp
 
 #include "simulation.hpp"
 
@@ -26,6 +26,9 @@
 #include "grid/structured_grid.hpp"
 #include "variables/variable_metadata.hpp"
 #include "euler_riemann_analytic_solver.hpp"
+
+
+//#include <likwid.h>
 
 #include <ctime>
 
@@ -608,8 +611,8 @@ void Simulation::Run() {
   // Node local variables.
   RealType* gradient_v = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
   RealType* gradient_u = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
-
-  // INIT
+  
+// INIT
   RealType CFL = 0.3;
 
 #pragma omp parallel for
@@ -690,6 +693,9 @@ void Simulation::Run() {
   std::cerr << "Type of Boundary Conditions : " << numerical_params.BoundaryConditions << "\n";      
   std::cerr << "Type of Projection : " << numerical_params.TypeOfProjection << "\n";      
 
+  //likwid_markerInit(); //init
+  //likwid_markerThreadInit(); //init for deamon access and/or multithread profiling
+
   while (!timetable.IsFinished(clock)) {
     
     if (process_rank == 0)
@@ -752,7 +758,7 @@ void Simulation::Run() {
       std::cerr << "          dt = " << dt << "\n";
    
       // Lagrange 2D algorithm for compressible Euler equations.
-      
+     
       Lagrange2dDriver(//in
 		       numerical_params.BoundaryConditions,
 		       nx,
@@ -779,7 +785,7 @@ void Simulation::Run() {
 		       time_periodic_boundary,
 		       time_lagrange_correction,
 		       time_lagrange_velocity_correction);
-  
+   
       // Projection 2D algorithm for compressible Euler equations.
   
       if (numerical_params.TypeOfProjection == "AdProjection") {
@@ -826,62 +832,14 @@ void Simulation::Run() {
 				time_gradient_nodal_X,
 				time_project_nodal_velocity_X,
 				time_periodic_boundary);
-	    
+	
 	  std::swap(in_cell_mass, out_cell_mass);
 	  std::swap(u_lag, out_u);
 	  std::swap(v_lag, out_v);
 	  std::swap(e_lag, out_e);
 	
 	  // Projection Y
-	  AdProjection2dYDriver(//in
-				numerical_params.BoundaryConditions,
-				nx,
-				ny,
-				nb_faces_x,
-				nb_faces_y,
-				nb_cells,
-				nb_nodes,
-				dx,
-				dy,
-				dt,
-				halo_width,
-				predicted_v,
-				e_lag,
-				u_lag,
-				v_lag,
-				in_cell_mass, 
-				//out
-				out_u,
-				out_v,
-				out_e,
-				out_cell_mass,
-				directional_lagrangian_volume_y,
-				directional_lagrangian_density_y,
-				volume_fluxes_y,
-				mass_flux_y,
-				energy_flux_y,
-				density_gradient,
-				energy_gradient,
-				gradient_u,
-				gradient_v,
-				//timing
-				time_compute_volume_fluxes_Y,
-				time_gradient_Y,
-				time_mass_reconstruct_o2_Y,
-				//			      time_project_mass_Y,
-				time_reconstruct_energy_o2_Y,
-				time_project_energy_Y,
-				time_gradient_nodal_Y,
-				time_project_nodal_velocity_Y,
-				time_periodic_boundary); 
-	    
-	  std::swap(in_cell_mass, out_cell_mass); 
-	  std::swap(in_u, out_u); 
-	  std::swap(in_v, out_v);
-	  std::swap(in_e, out_e);
-	  
-	} else { // !clock.iter()%2  Y then X projection
- // Projection Y
+	
 	  AdProjection2dYDriver(//in
 				numerical_params.BoundaryConditions,
 				nx,
@@ -924,12 +882,63 @@ void Simulation::Run() {
 				time_project_nodal_velocity_Y,
 				time_periodic_boundary); 
 
+	  std::swap(in_cell_mass, out_cell_mass); 
+	  std::swap(in_u, out_u); 
+	  std::swap(in_v, out_v);
+	  std::swap(in_e, out_e);
+	  
+	} else { // !clock.iter()%2  Y then X projection
+ // Projection Y
+	
+	  AdProjection2dYDriver(//in
+				numerical_params.BoundaryConditions,
+				nx,
+				ny,
+				nb_faces_x,
+				nb_faces_y,
+				nb_cells,
+				nb_nodes,
+				dx,
+				dy,
+				dt,
+				halo_width,
+				predicted_v,
+				e_lag,
+				u_lag,
+				v_lag,
+				in_cell_mass, 
+				//out
+				out_u,
+				out_v,
+				out_e,
+				out_cell_mass,
+				directional_lagrangian_volume_y,
+				directional_lagrangian_density_y,
+				volume_fluxes_y,
+				mass_flux_y,
+				energy_flux_y,
+				density_gradient,
+				energy_gradient,
+				gradient_u,
+				gradient_v,
+				//timing
+				time_compute_volume_fluxes_Y,
+				time_gradient_Y,
+				time_mass_reconstruct_o2_Y,
+				//			      time_project_mass_Y,
+				time_reconstruct_energy_o2_Y,
+				time_project_energy_Y,
+				time_gradient_nodal_Y,
+				time_project_nodal_velocity_Y,
+				time_periodic_boundary); 
+	 
 	  std::swap(in_cell_mass, out_cell_mass);
 	  std::swap(u_lag, out_u);
 	  std::swap(v_lag, out_v);
 	  std::swap(e_lag, out_e);
 	  
 // Projection X
+	
 	  AdProjection2dXDriver(//in
 				numerical_params.BoundaryConditions,
 				nx,
@@ -1031,7 +1040,7 @@ void Simulation::Run() {
 				 time_gradient_nodal_Y,
 				 time_project_nodal_velocity_Y,
 				 time_periodic_boundary);
-	
+
 	std::swap(in_cell_mass, out_cell_mass); 
 	std::swap(in_u, out_u); 
 	std::swap(in_v, out_v);
@@ -1122,7 +1131,7 @@ void Simulation::Run() {
     }
   }
 
-  
+  //likwid_markerClose(); // stop likwid 
   time = get_time() - time;
 
   std::cerr << "Elapsed time for simulation: " << time << "s\n";

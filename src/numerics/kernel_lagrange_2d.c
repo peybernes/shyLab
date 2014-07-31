@@ -2,6 +2,8 @@
 #include "cartesian_connectivity.h"
 #include "kernel_tools.h"
 
+//#include <likwid.h>
+
 #include <cassert>
 #include <cstdio>
 #include <algorithm>
@@ -68,9 +70,10 @@ void LagrangePressurePredicted(int nx,
   
 #pragma omp parallel for
   for (int iy = 0; iy < ny; ++iy) {
+
     for (int ix = 0; ix < nx; ++ix) {
 
-      SHY_ASM_COMMENT("LagrangePressurePredicted -- INNER LOOP BEGIN");
+      //SHY_ASM_COMMENT("LagrangePressurePredicted -- INNER LOOP BEGIN");
 
       //DATA LOAD
       const int cell_ooo = nx * iy + ix; 
@@ -156,9 +159,12 @@ void LagrangePressurePredictedOptimised(int nx,
   
 #pragma omp parallel for
   for (int iy = 0; iy < ny; ++iy) {
+    //likwid_markerStartRegion("Lagrange_pressure_predicted_opt");
+
+#pragma unroll (UnrollFactor)
     for (int ix = 0; ix < nx; ++ix) {
 
-      SHY_ASM_COMMENT("LagrangePressurePredicted -- INNER LOOP BEGIN");
+      //SHY_ASM_COMMENT("LagrangePressurePredicted -- INNER LOOP BEGIN");
 
       // BEGIN DATA LOAD.
       const int cell_ooo = nx * iy + ix; 
@@ -232,9 +238,10 @@ void LagrangePressurePredictedOptimised(int nx,
       out_pseudo_pressure[cell_ooo] = q_ooo;
       // END DATA STORE.
 
-      SHY_ASM_COMMENT("LagrangePressurePredicted - INNER LOOP END");
+      //SHY_ASM_COMMENT("LagrangePressurePredicted - INNER LOOP END");
 
-    }
+    }// inner loop
+    //likwid_markerStopRegion("Lagrange_pressure_predicted_opt");
   }
 }
 
@@ -255,9 +262,11 @@ void LagrangeVelocityPredicted(int nx,
 
 #pragma omp parallel for
   for (int iy = 1; iy < ny; ++iy) {
+    //likwid_markerStartRegion("lagrange_velocity_pred");
+#pragma unroll (UnrollFactor)
     for (int ix = 1; ix < nx; ++ix) {
 
-      SHY_ASM_COMMENT("LagrangeVelocityPredicted -- INNER LOOP BEGIN");
+      //SHY_ASM_COMMENT("LagrangeVelocityPredicted -- INNER LOOP BEGIN");
 
       const int node_ooo = (nx + 1) * iy + ix; 
 
@@ -272,9 +281,10 @@ void LagrangeVelocityPredicted(int nx,
       out_velocity_x[node_ooo] = out_u_x;
       out_velocity_y[node_ooo] = out_u_y;
       
-      SHY_ASM_COMMENT("LagrangeVelocityPredicted -- INNER LOOP END");
+      //SHY_ASM_COMMENT("LagrangeVelocityPredicted -- INNER LOOP END");
   
     }
+    //likwid_markerStopRegion("lagrange_velocity_pred");
   }
 }
 
@@ -356,9 +366,11 @@ void LagrangeCorrectionOptimised(int nx,
 
 #pragma omp parallel for
   for (int iy = 0; iy < ny; ++iy) {
+    //likwid_markerStartRegion("lag_correction_opt");
+#pragma unroll (UnrollFactor)
     for (int ix = 0; ix < nx ; ++ix) {
 
-      SHY_ASM_COMMENT("LagrangeCorrection -- INNER LOOP BEGIN");
+      //SHY_ASM_COMMENT("LagrangeCorrection -- INNER LOOP BEGIN");
 
       //DATA LOAD
       const int cell_ooo = nx * iy + ix;
@@ -398,8 +410,9 @@ void LagrangeCorrectionOptimised(int nx,
       out_energy[cell_ooo] = e_lag_ooo;
 
       // 10 ADD, 5 MUL, 1 DIV : approx 22 FLOPS
-      SHY_ASM_COMMENT("LagrangeCorrection -- INNER LOOP END");
+      //SHY_ASM_COMMENT("LagrangeCorrection -- INNER LOOP END");
     }
+    //likwid_markerStopRegion("lag_correction_opt");
   }
 }
 
@@ -415,9 +428,11 @@ void LagrangeVelocityCorrection(int nx,
 
 #pragma omp parallel for
   for (int iy = 0; iy < ny+1; ++iy) {
+    //likwid_markerStartRegion("lag_velocity_cor");
+#pragma unroll (UnrollFactor)
     for (int ix = 0; ix < nx+1 ; ++ix) {
 
-      SHY_ASM_COMMENT("LagrangeVelocityCorrection -- INNER LOOP BEGIN");
+      //SHY_ASM_COMMENT("LagrangeVelocityCorrection -- INNER LOOP BEGIN");
 
       const int node_ooo = iy * (nx + 1) + ix;
 
@@ -434,9 +449,10 @@ void LagrangeVelocityCorrection(int nx,
       lagrangian_velocity_y[node_ooo] = v_lag;
 
       // TOTAL : 4 FLOPS, 4 FP LOADS, 2 FP stores.
-      SHY_ASM_COMMENT("LagrangeVelocityCorrection -- INNER LOOP END");
+      //SHY_ASM_COMMENT("LagrangeVelocityCorrection -- INNER LOOP END");
 
     }
+    //likwid_markerStopRegion("lag_velocity_cor");
   }
 }
 

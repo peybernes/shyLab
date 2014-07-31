@@ -16,29 +16,48 @@ ENDIF(NOT CMAKE_BUILD_TYPE)
 project(Shy)
 message(STATUS "Configuring Shy")
 
-set(LD_LIBRARY_PATH "${LD_LIBRARY_PATH}" "${CMAKE_SOURCE_DIR}/external/muparser/lib " "${CMAKE_SOURCE_DIR}/external/iaca-lin32/lib")
+set(LD_LIBRARY_PATH "${LD_LIBRARY_PATH}" "${CMAKE_SOURCE_DIR}/external/muparser/lib ")
 
+#g++ or icpc
 set (CMAKE_C_COMPILER g++)
 set (CMAKE_CXX_COMPILER g++)
+#set (CMAKE_C_COMPILER icpc)
+#set (CMAKE_CXX_COMPILER icpc)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 
+
 IF(CMAKE_COMPILER_IS_GNUCXX)
-#set(CMAKE_C_FLAGS "-g -ffast-math -ftree-vectorize -ftree-vectorizer-verbose=2 -O3")
+#current gcc options for profling 
+#set(CMAKE_C_FLAGS "-g -O3 -ftree-vectorize")
+#set(CMAKE_CXX_FLAGS "-g -O3")
+#standart option
 set(CMAKE_C_FLAGS "-g -O2")
 set(CMAKE_CXX_FLAGS "-g -O2")
+#old option for vectorisation
+#set(CMAKE_C_FLAGS "-g -ffast-math -ftree-vectorize -ftree-vectorizer-verbose=2 -O3")
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
+
 IF(${CMAKE_C_COMPILER} MATCHES "icpc")
-#set(CMAKE_C_FLAGS "-g -O3 -xsse4.2 -fp-model fast=2 -no-prec-div -no-prec-sqrt -fimf-domain-exclusion=15 -vec-report")
+#standart
 set(CMAKE_C_FLAGS "-g -O2")
+#current options for avx vecto and profiling
+#set(CMAKE_C_FLAGS "-g -O3 -xAVX -vec-report")
+#old vectorisation options
+#set(CMAKE_C_FLAGS "-g -O3 -xsse4.2 -fp-model fast=2 -no-prec-div -no-prec-sqrt -fimf-domain-exclusion=15 -vec-report")
 #set(CMAKE_C_FLAGS "-O3 -xAVX -fimf-domain-exclusion=15 -vec-report2 -openmp")
 ENDIF( ${CMAKE_C_COMPILER} MATCHES "icpc" )
 
 IF(${CMAKE_CXX_COMPILER} MATCHES "icpc")
+#standart
+set(CMAKE_CXX_FLAGS "-g -O2")
+#current vecto and profing options
+#set(CMAKE_CXX_FLAGS "-g -O3 -xAVX -vec-report"
+#old vectorisation option
 #set(CMAKE_CXX_FLAGS "-g -xsse4.2 -O3")
 #set(CMAKE_CXX_FLAGS "-O3 -xCORE-AVX2 -vec-report2")
-set(CMAKE_CXX_FLAGS "-O3 -xAVX -openmp")
+#set(CMAKE_CXX_FLAGS "-O3 -xAVX -openmp")
 ENDIF( ${CMAKE_CXX_COMPILER} MATCHES "icpc" )
 
 
@@ -50,8 +69,11 @@ ENDIF( ${CMAKE_CXX_COMPILER} MATCHES "icpc" )
 #  ADD_DEFINITIONS("-DLOW_ENDIAN")
 # ENDIF (WORDS_BIGENDIAN)
 
-ADD_DEFINITIONS(" -DRealType=double -I${CMAKE_SOURCE_DIR}/external -I${CMAKE_SOURCE_DIR}/external/iaca-lin32/include")
-
+#standart
+ADD_DEFINITIONS(" -DNDEBUG -DRealType=double -DUnrollFactor=4 -I${CMAKE_SOURCE_DIR}/external")
+#profiling likwid
+#ADD_DEFINITIONS(" -DNDEBUG -DRealType=double -DUnrollFactor=4 -DLIKWIDPERFORMON -I${CMAKE_SOURCE_DIR}/external")
+#may add this for iaca linking but source files are not instrumented -I${CMAKE_SOURCE_DIR}/external/iaca-lin32/include")
 add_executable(
     shy
     src/clock.cpp
@@ -127,6 +149,12 @@ target_link_libraries(shy ${MUPARSER_LIBRARIES})
 
 set(REALTIME_LIBRARY "rt")
 target_link_libraries(shy ${REALTIME_LIBRARY})
+
+#profiling
+#set(LIKWID_LIBRARY "likwid")
+#target_link_libraries(shy ${LIKWID_LIBRARY})
+
+
 
 add_subdirectory(src)
 

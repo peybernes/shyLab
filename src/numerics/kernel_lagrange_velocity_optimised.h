@@ -14,7 +14,7 @@ const RealType m_ne = in_mass[cell_NE];
 const RealType p_ne = in_pressure[cell_NE];
 const RealType q_ne = in_pseudo_pressure[cell_NE];
 
-SHY_ASM_COMMENT("LagrangeVelocityPredicted -- COMPUTE BEGIN");
+//SHY_ASM_COMMENT("LagrangeVelocityPredicted -- COMPUTE BEGIN");
 
 const RealType one = 1.0;
 const RealType half = 0.5;
@@ -45,4 +45,4 @@ const RealType out_u_y  =
 
 // TOTAL : 15 ADD, 9 MUL, 1 DIV. approx 31 FLOP
 
-SHY_ASM_COMMENT("LagrangeVelocityPredicted -- COMPUTE END");
+//SHY_ASM_COMMENT("LagrangeVelocityPredicted -- COMPUTE END");

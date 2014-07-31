@@ -1,4 +1,6 @@
 // -*- c++ -*- (for emacs users)
+//#include <likwid.h> // perf profiling
+
 #include "kernel_ad_projection_2d.h"
 
 #include <cassert>
@@ -22,6 +24,8 @@ void ComputeDirectionalLagrangianQuantitiesX(index_t nx,
   {
 #pragma omp  for
     for (index_t iy = 0; iy < ny; ++iy) {
+      //likwid_markerStartRegion("directionnnal_lagrangianXpart1");
+#pragma unroll (UnrollFactor)
       for (index_t ix = 0; ix < nx + 1; ++ix) {
       
 	const index_t face_ooo = ((nx + 1) * iy) + ix;
@@ -41,10 +45,13 @@ void ComputeDirectionalLagrangianQuantitiesX(index_t nx,
 	volume_fluxes[face_ooo] = volume_flux;                        // 1 store                   
 
       }
+      //likwid_markerStopRegion("directionnnal_lagrangianXpart1");
     }  
     
 #pragma omp for
     for (index_t iy = 0; iy < ny; ++iy) {
+      //likwid_markerStartRegion("directionnnal_lagrangianXpart2");
+#pragma unroll (UnrollFactor)
       for (index_t ix = 0; ix < nx; ++ix) {
 
 	const index_t cell_ooo = (nx * iy) + ix;
@@ -71,6 +78,7 @@ void ComputeDirectionalLagrangianQuantitiesX(index_t nx,
 	assert(0.0 < current_directional_lagrangian_density);
       
       }
+      //likwid_markerStopRegion("directionnnal_lagrangianXpart2");
     }  
   }
 } // total function manual optimist count --  3 Load + 3 Store    2 MUL 2 FMA 1 Add 1 DIV  
@@ -90,6 +98,9 @@ void ComputeDirectionalLagrangianQuantitiesY(index_t nx,
   {
 #pragma omp for
     for (index_t iy = 0; iy < ny + 1; ++iy) {
+      //likwid_markerStartRegion("directionnnal_lagrangianYpart1");
+       //#pragma unroll (UnrollFactor)
+#pragma simd
       for (index_t ix = 0; ix < nx; ++ix) {
 
 	const index_t face_ooo = (nx * iy) + ix;
@@ -108,11 +119,14 @@ void ComputeDirectionalLagrangianQuantitiesY(index_t nx,
       
 	volume_fluxes[face_ooo] = volume_flux;     // 1 Store
 
-      }
+     }
+      //likwid_markerStopRegion("directionnnal_lagrangianYpart1");
     }  
 
 #pragma omp for
     for (index_t iy = 0; iy < ny; ++iy) {
+      //likwid_markerStartRegion("directionnnal_lagrangianYpart2");
+#pragma unroll (UnrollFactor)
       for (index_t ix = 0; ix < nx; ++ix) {
 
 	const index_t cell_ooo = (nx * iy) + ix;
@@ -138,6 +152,7 @@ void ComputeDirectionalLagrangianQuantitiesY(index_t nx,
 	assert(0.0 < current_directional_lagrangian_density);
       
       }
+      //likwid_markerStopRegion("directionnnal_lagrangianYpart2");
     }  
   }
 }// total function manual optimist count  5 Load + 3 Store    2 MUL 2 FMA 1 Add 1 DIV  
@@ -382,6 +397,8 @@ void MassProjectIntensiveVariableX(index_t nx,
   
 #pragma omp parallel for
   for (index_t iy = 0; iy < ny; ++iy) {
+    //likwid_markerStartRegion("massProjectIntensiveX");
+#pragma unroll (UnrollFactor)
     for (index_t ix = 0; ix < nx; ++ix) {
 
       const index_t cell_ooo = (nx * iy) + ix;
@@ -419,7 +436,7 @@ void MassProjectIntensiveVariableX(index_t nx,
       out_cell_variable[cell_ooo] = out_cell_variable_ooo / out_cell_mass_ooo;  // 1 Div
                                                                                 // 1 Store
     }
-
+    //likwid_markerStopRegion("massProjectIntensiveX");
   }  
 
 }// Total function manual optimist count  4 load  2 store     1 Fma  3 add  1 div  
@@ -437,6 +454,8 @@ void MassProjectIntensiveVariableY(index_t nx,
 
 #pragma omp parallel for
   for (index_t iy = 0; iy < ny; ++iy) {
+    //likwid_markerStartRegion("massProjectIntensiveY");
+#pragma unroll (UnrollFactor)
     for (index_t ix = 0; ix < nx; ++ix) {
 
       const index_t cell_ooo = (nx * iy) + ix;
@@ -474,7 +493,7 @@ void MassProjectIntensiveVariableY(index_t nx,
                                                                                  //1 Store
       
     }
-
+    //likwid_markerStopRegion("massProjectIntensiveY");
   }  
 
 } //total function  manual optimist count - 6 load  2  store    1 fma  3 add 1 div
@@ -491,6 +510,8 @@ void ProjectNodalIntensiveVariableX(index_t nx,
   //Boucle sur les noeuds
 #pragma omp parallel for
   for (index_t iy = halo_width; iy < ny + 1 - halo_width; ++iy) {
+    //likwid_markerStartRegion("massProjectNodalIntensiveX");
+#pragma unroll (UnrollFactor)
     for (index_t ix = halo_width; ix < nx + 1 - halo_width; ++ix) {
 
       const index_t node_ooo = ((nx + 1) * iy) + ix;
@@ -536,7 +557,8 @@ void ProjectNodalIntensiveVariableX(index_t nx,
       out_vx[node_ooo] = out_moment_ooo / out_node_mass_ooo; 
 
     }
-  }  
+    //likwid_markerStopRegion("massProjectNodalIntensiveX");
+ }  
 
 }
 
@@ -553,6 +575,8 @@ void ProjectNodalIntensiveVariableY(index_t nx,
   //Boucle sur les noeuds
 #pragma omp parallel for
   for (index_t iy = halo_width; iy < ny + 1 - halo_width; ++iy) {
+    //likwid_markerStartRegion("massProjectNodalIntensiveY");
+#pragma unroll (UnrollFactor)
     for (index_t ix = halo_width; ix < nx + 1 - halo_width; ++ix) {
 
       const index_t node_ooo = ((nx + 1) * iy) + ix;
@@ -597,7 +621,8 @@ void ProjectNodalIntensiveVariableY(index_t nx,
       out_vy[node_ooo] = out_moment_ooo / out_node_mass_ooo; 
     
     }
-  }  
+    //likwid_markerStopRegion("massProjectNodalIntensiveY");
+ }  
 
 }
 
@@ -610,10 +635,20 @@ void ReconstructGradientX(index_t nx,
 			  const RealType* RESTRICT lag_variable,
 			  RealType* RESTRICT gradient_variable) {
 
+  
+ 
+  
+  
+
 #pragma omp parallel for
   for (index_t iy = 0; iy < ny; ++iy) {
+    //likwid_markerStartRegion("gradX"); // 0 over Head perf measurment   
+#pragma unroll (UnrollFactor)
     for (index_t ix = 1; ix < nx - 1; ++ix) {
     
+     
+
+
       const int cell_ooo = iy * nx + ix;
       const int cell_m1o = CellCellM1O(cell_ooo, nx);
       const int cell_p1o = CellCellP1O(cell_ooo, nx);
@@ -642,9 +677,12 @@ void ReconstructGradientX(index_t nx,
       const RealType limited_grad_variable = VanAlbadaLimiter(grad_m1o, grad_p1o); // VanAlbada  : 4 FMA  3 Mul  1 logic  1 Div     || ( minmod 2 logic  3 mul  1 min  2 abs)
       gradient_variable[cell_ooo] = limited_grad_variable; // 1 store
       
-    }
-  } 
 
+     
+    }//inner loop
+    //likwid_markerStopRegion("gradX"); // perf counter
+  } // outer loop
+ 
 }// function manual optimist count - 2 load 1 store    6 fma  3 mul  4 add   4 div  (1 logic) 
 
 
@@ -660,6 +698,8 @@ void ReconstructMassFluxOrder2X(index_t nx,
   
 #pragma omp parallel for
   for (index_t iy = 0; iy < ny; ++iy) {
+    //likwid_markerStartRegion("massFluxO2X");
+#pragma unroll (UnrollFactor)
     for (index_t ix = 1; ix < nx; ++ix) {
       
       
@@ -695,6 +735,7 @@ void ReconstructMassFluxOrder2X(index_t nx,
       mass_flux[face_ooo] = mass_flux_ooo; // 1 store
 
     }
+    //likwid_markerStopRegion("massFluxO2X");
   }
 
 } // total function manual optimist count -  3 load  1 store       7 fma  3 mul 1add   2 abs  1 div
@@ -713,6 +754,8 @@ void ReconstructIntensiveVariableFluxOrder2X(index_t nx,
   
 #pragma omp parallel for
   for (index_t iy = 0; iy < ny; ++iy) {
+    //likwid_markerStartRegion("fluxO2X");
+#pragma unroll (UnrollFactor)
     for (index_t ix = 1; ix < nx; ++ix) {
       
       const index_t face_ooo = ((nx + 1) * iy) + ix;
@@ -748,7 +791,8 @@ void ReconstructIntensiveVariableFluxOrder2X(index_t nx,
       variable_flux[face_ooo] = variable_flux_ooo; // 1 store
 
     }
-  }
+    //likwid_markerStopRegion("fluxO2X");
+ }
 
 } //total function manual optimist count  4 load  1 store   7 fma  3 mul  1 add  2abs 1 div 
 
@@ -764,6 +808,8 @@ void ReconstructGradientNodalX(index_t nx,
 
 #pragma omp parallel for
   for (index_t iy = 0; iy < ny + 1; ++iy) {
+    //likwid_markerStartRegion("gradientNodalX");
+#pragma unroll (UnrollFactor)
     for (index_t ix = 1; ix < nx; ++ix) {
     
       const int node_ooo = iy * (nx + 1) + ix;
@@ -790,7 +836,8 @@ void ReconstructGradientNodalX(index_t nx,
       gradient_variable[node_ooo] = limited_grad_variable; // 1 store
       
     }
-  } 
+    //likwid_markerStopRegion("gradientNodalX");
+ } 
 
 } //total function manual optimist count  --   2 load  1 store   6 fma  3 mul 4 add  3 div  (1 logic)
 
@@ -811,6 +858,8 @@ void ProjectNodalIntensiveVariableOrder2X(index_t nx,
   //Boucle sur les noeuds
 #pragma omp parallel for
   for (index_t iy = halo_width; iy < ny + 1 - halo_width; ++iy) {
+    //likwid_markerStartRegion("projectVariableNodalX");
+#pragma unroll (UnrollFactor)
     for (index_t ix = halo_width; ix < nx + 1 - halo_width; ++ix) {
 
       const index_t node_ooo = ((nx + 1) * iy) + ix;
@@ -838,6 +887,7 @@ void ProjectNodalIntensiveVariableOrder2X(index_t nx,
       
       out_variable[node_ooo] = out_nodal_variable ; // 1 store
     }
+    //likwid_markerStopRegion("projectVariableNodalX");
   }
 
 } //total function manual optimist count -- 9 load 1 strore   12 fma  10 add  5 mul 1 div
@@ -852,6 +902,8 @@ void ReconstructGradientY(index_t nx,
 
 #pragma omp parallel for
   for (index_t iy = 1; iy < ny - 1; ++iy) {
+    //likwid_markerStartRegion("gradY");
+#pragma unroll (UnrollFactor)
     for (index_t ix = 0; ix < nx; ++ix) {
 
       const int cell_ooo = iy * nx + ix;
@@ -882,6 +934,7 @@ void ReconstructGradientY(index_t nx,
       const RealType limited_grad_variable = VanAlbadaLimiter(grad_om1,grad_op1) ;// VanAlbada  : 4 FMA  3 Mul  1 logic  1 Div 
       gradient_variable[cell_ooo] = limited_grad_variable; // 1 store
     }
+    //likwid_markerStopRegion("gradY");
   }
 
 } // end ReconstructGradientY
@@ -903,6 +956,8 @@ void ReconstructMassFluxOrder2Y(index_t nx,
 
 #pragma omp parallel for
   for (index_t iy = 1; iy < ny; ++iy) {
+    //likwid_markerStartRegion("massFluxO2Y");
+#pragma unroll (UnrollFactor)
     for (index_t ix = 0; ix < nx; ++ix) {
       
       
@@ -937,6 +992,7 @@ void ReconstructMassFluxOrder2Y(index_t nx,
       mass_flux[face_ooo] = mass_flux_ooo; // 1 store
 
     }
+    //likwid_markerStopRegion("massFluxO2Y");
   }
 
 } //end ReconstructMassFluxOrder2Y
@@ -957,6 +1013,8 @@ void ReconstructIntensiveVariableFluxOrder2Y(index_t nx,
 
 #pragma omp parallel for
   for (index_t iy = 1; iy < ny; ++iy) {
+    //likwid_markerStartRegion("FluxO2Y");
+#pragma unroll (UnrollFactor)
     for (index_t ix = 0; ix < nx; ++ix) {
       
       const index_t face_ooo = (nx * iy) + ix;
@@ -991,6 +1049,7 @@ void ReconstructIntensiveVariableFluxOrder2Y(index_t nx,
   
 
     }
+    //likwid_markerStopRegion("FluxO2Y");
   }
 } // end ReconstructIntensiveVariableFluxOrder2Y
 // total function manual optimist count - 7 load 1 store-- 7 fma  1add  3mul   1 div  2 abs
@@ -1006,6 +1065,8 @@ void ReconstructGradientNodalY(index_t nx,
 
 #pragma omp parallel for
   for (index_t iy = 1; iy < ny; ++iy) {
+    //likwid_markerStartRegion("gradientNodalY");
+#pragma unroll (UnrollFactor)
     for (index_t ix = 0; ix < nx + 1; ++ix) {
     
       const int node_ooo = iy * (nx + 1) + ix;
@@ -1032,7 +1093,8 @@ void ReconstructGradientNodalY(index_t nx,
       gradient_variable[node_ooo] = limited_grad_variable; // 1 store
       
     }
-  } 
+    //likwid_markerStopRegion("gradientNodalY");
+ } 
 
 } // end ReconstructGradientNodalY
 // total function optimist manual count -- 6 load 1 store -- 6 fma  4 add 3 mul 1 div (1logic)
@@ -1054,6 +1116,8 @@ void ProjectNodalIntensiveVariableOrder2Y(index_t nx,
   //Boucle sur les noeuds
 #pragma omp parallel for
   for (index_t iy = halo_width; iy < ny + 1 - halo_width; ++iy) {
+    //likwid_markerStartRegion("projectVariableNodalY");
+#pragma unroll (UnrollFactor)
     for (index_t ix = halo_width; ix < nx + 1 - halo_width; ++ix) {
 
       const index_t node_ooo = ((nx + 1) * iy) + ix;
@@ -1080,6 +1144,7 @@ void ProjectNodalIntensiveVariableOrder2Y(index_t nx,
 
       out_variable[node_ooo] = out_nodal_variable ; // 1 store
     }
+    //likwid_markerStopRegion("projectVariableNodalY");
   }
 
 } //end ProjectNodalIntensiveVariableOrder2Y
