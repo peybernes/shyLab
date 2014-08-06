@@ -3,11 +3,6 @@
       const RealType in_vx_p1o = in_vx[node_p1o];
       const RealType in_vx_om1 = in_vx[node_om1];
       const RealType in_vx_op1 = in_vx[node_op1];
-      const RealType in_vy_ooo = in_vy[node_ooo];
-      const RealType in_vy_om1 = in_vy[node_om1];
-      const RealType in_vy_op1 = in_vy[node_op1];
-      const RealType in_vy_m1o = in_vy[node_m1o];
-      const RealType in_vy_p1o = in_vy[node_p1o];
 
       const RealType cell_mass_m1m1 = lag_cell_mass[cellm1m1];
       const RealType cell_mass_p1m1 = lag_cell_mass[cellp1m1];

@@ -28,7 +28,7 @@ set(CMAKE_VERBOSE_MAKEFILE on)
 
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
-#current gcc options for profling 
+#current gcc options for profling
 #set(CMAKE_C_FLAGS "-g -O3 -ftree-vectorize")
 #set(CMAKE_CXX_FLAGS "-g -O3")
 #standart option
@@ -64,9 +64,9 @@ ENDIF( ${CMAKE_CXX_COMPILER} MATCHES "icpc" )
 # INCLUDE(TestBigEndian)
 # TEST_BIG_ENDIAN(WORDS_BIGENDIAN)
 # IF (WORDS_BIGENDIAN)
-#  ADD_DEFINITIONS("-DBIG_ENDIAN")
+# ADD_DEFINITIONS("-DBIG_ENDIAN")
 # ELSE (WORDS_BIGENDIAN)
-#  ADD_DEFINITIONS("-DLOW_ENDIAN")
+# ADD_DEFINITIONS("-DLOW_ENDIAN")
 # ENDIF (WORDS_BIGENDIAN)
 
 #standart
@@ -85,21 +85,23 @@ add_executable(
     src/io/event.cpp
     src/io/init.cpp
     src/io/output.cpp
-    src/numerics/kernel_advection_fv_uw_1_2d.c
-    src/numerics/kernel_advection_fv_uw_1_3d.c
-    src/numerics/kernel_advection_fv_uw_2_2d.c
-    src/numerics/kernel_advection_fv_uw_2_3d.c
-    src/numerics/kernel_advection_fv_uw_kappa_2d.c
-    src/numerics/kernel_advection_fv_uw_kappa_3d.c
-    src/numerics/kernel_advection_fv_central_compact_explicit_2d.c
-    src/numerics/kernel_compressible_euler_fv_uw_kappa_2d.c
     src/numerics/kernel_ad_projection_2d.c
     src/numerics/kernel_direct_projection_2d.c
     src/numerics/kernel_lagrange_2d.c
     src/numerics/kernel_ad_projection_2d_boundary_conditions.c
+    src/numerics/kernel_direct_projection_2d_boundary_conditions.c
     src/numerics/kernel_ad_projection_2d_boundary_interface.cpp
+    src/numerics/kernel_direct_projection_2d_boundary_interface.cpp
+    src/numerics/kernel_multimat_interface_2d.c
+    src/numerics/kernel_multimat_interface_2d_boundary_conditions.c
+    src/numerics/kernel_multimat_interface_2d_boundary_interface.cpp
     src/numerics/lagrange_2d_driver.cpp
+    src/numerics/lagrange_2d_default_driver.cpp
+    src/numerics/lagrange_2d_multimat_interface_driver.cpp
     src/numerics/ad_projection_2d_driver.cpp
+    src/numerics/ad_projection_2d_monomat_driver.cpp
+    src/numerics/ad_projection_2d_multimat_mix_driver.cpp
+    src/numerics/ad_projection_2d_multimat_interface_driver.cpp
     src/numerics/direct_projection_2d_driver.cpp
     src/math_parser.cpp
     src/mpi_boundary_condition.cpp

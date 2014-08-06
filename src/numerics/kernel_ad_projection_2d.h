@@ -104,8 +104,8 @@ void MassProjectIntensiveVariableX(index_t nx,
 				   //const RealType* mass_flux,
 				   const RealType* in_cell_variable,
 				   const RealType* in_face_variable,
-				   const RealType* mass_flux,
-				   RealType* out_cell_mass,
+				   //const RealType* mass_flux,
+				   const RealType* out_cell_mass,
 				   RealType* out_cell_variable);
 
 void MassProjectIntensiveVariableY(index_t nx, 
@@ -114,8 +114,8 @@ void MassProjectIntensiveVariableY(index_t nx,
 				   //const RealType* mass_flux,
 				   const RealType* in_cell_variable,
 				   const RealType* in_face_variable,
-				   const RealType* mass_flux,
-				   RealType* out_cell_mass,
+				   //const RealType* mass_flux,
+				   const RealType* out_cell_mass,
 				   RealType* out_cell_variable);
  
 

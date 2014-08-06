@@ -22,23 +22,10 @@ void ProjectNodalIntensiveVariableDirect(index_t nx,
 				         const RealType* lag_cell_mass,
 				         const RealType* out_cell_mass,
 				         const RealType* in_vx,
-				         const RealType* in_vy,
 				         const RealType*  mass_flux_x,
 				         const RealType*  mass_flux_y,
-				         RealType* out_vx,
-				         RealType* out_vy);
+				         RealType* out_vx);
 
-void ProjectNodalIntensiveVariablePeriodicBoundaryDirect(index_t nx, 
-				                 index_t ny, 
-				                 index_t halo_width,
-				                 const RealType* lag_cell_mass,
-				                 const RealType* out_cell_mass,
-				                 const RealType* in_vx,
-				                 const RealType* in_vy,
-				                 const RealType*  mass_flux_x,
-				                 const RealType*  mass_flux_y,
-				                 RealType* out_vx,
-				                 RealType* out_vy);
 
 void MassProjectIntensiveVariableDirect(index_t nx, 
 				        index_t ny, 
@@ -50,6 +37,25 @@ void MassProjectIntensiveVariableDirect(index_t nx,
 				        const RealType* in_face_variable_y,
 				        const RealType* out_cell_mass,
 				        RealType* out_cell_variable);
+
+
+void ProjectNodalIntensiveVariableOrder2Direct(index_t nx, 
+						  index_t ny, 
+						  index_t halo_width,
+						  const RealType dx,
+						  const RealType dy,
+						  const RealType dt,
+						  const RealType* lag_cell_mass,
+						  const RealType* out_cell_mass,
+						  const RealType* u_velocity_pred,
+						  const RealType* v_velocity_pred,
+						  const RealType* in_variable,
+						  const RealType* gradient_variable_x,
+						  const RealType* gradient_variable_y,
+						  const RealType* mass_flux_x,
+						  const RealType* mass_flux_y,
+						  RealType* out_variable);
+
 
  
 

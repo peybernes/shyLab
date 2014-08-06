@@ -33,6 +33,8 @@ struct NumericalParams {
   std::string BoundaryConditions;
   //! Type of Projection
   std::string TypeOfProjection;
+  //! Number of Materials
+  std::string TypeOfModel;
   NumericalParams();
   void save(ptree &pt);
   void load(ptree &pt);

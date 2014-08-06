@@ -1,0 +1,134 @@
+// -*- js -*- (for emacs users)
+{
+    "Simulation": {
+
+	"Clock": { "time": "0.0",
+		   "iteration": "0" },
+
+	"Timetable": { "iend": "999" },
+	
+	"Grid": { "name": "grid",
+		  "nx": "1200",
+		  "ny": "120",
+		  "xmin": "0.0",
+		  "xmax": "1.0",
+		  "ymin": "0.0",
+		  "ymax": "0.1" },
+
+ 	"NumericalParams": { "BoundaryConditions": "Wall",
+			     "TypeOfProjection": "AdProjection",
+			     "TypeOfModel": "MultimaterialInterface" },
+
+	"Variables": {
+
+	    "directional_lagrangian_volume"  : {"support": "cell"},
+	    "directional_lagrangian_density"  : {"support": "cell"},
+	    "directional_lagrangian_density_1"  : {"support": "cell"},
+	    "directional_lagrangian_density_2"  : {"support": "cell"},
+	    "directional_lagrangian_volume_y"  : {"support": "cell"},
+	    "directional_lagrangian_density_y"  : {"support": "cell"},
+	    "directional_lagrangian_density_1_y"  : {"support": "cell"},
+	    "directional_lagrangian_density_2_y"  : {"support": "cell"},
+
+	    "in_rho"  : {"support": "cell"},
+	    "out_rho" : {"support": "cell"},
+
+	    "in_rho_1"  : {"support": "cell"},
+	    "out_rho_1" : {"support": "cell"},
+
+	    "in_rho_2"  : {"support": "cell"},
+	    "out_rho_2" : {"support": "cell"},
+
+	    "in_cell_mass"  : {"support": "cell"},
+	    "out_cell_mass" : {"support": "cell"},
+	    "in_cell_mass_1"  : {"support": "cell"},
+	    "out_cell_mass_1" : {"support": "cell"},
+	    "in_cell_mass_2"  : {"support": "cell"},
+	    "out_cell_mass_2" : {"support": "cell"},
+
+	    "in_cell_volumic_fraction"  : {"support": "cell"},
+	    "out_cell_volumic_fraction" : {"support": "cell"},
+
+	    "in_c_1"  : {"support": "cell"},
+	    "out_c_1" : {"support": "cell"},
+
+	    "in_c_2"  : {"support": "cell"},
+	    "out_c_2" : {"support": "cell"},
+
+	    "in_e"  : {"support": "cell"},
+	    "out_e" : {"support": "cell"},
+
+	    "in_e_1"  : {"support": "cell"},
+	    "out_e_1" : {"support": "cell"},
+
+	    "in_e_2"  : {"support": "cell"},
+	    "out_e_2" : {"support": "cell"},
+
+	    "in_pressure"  : {"support": "cell"},
+	    "in_pressure_1"  : {"support": "cell"},
+	    "in_pressure_2"  : {"support": "cell"},
+
+	    "rho_ref" : {"support": "cell"},
+	    "p_ref" : {"support": "cell"},
+
+	    "lagrangian_u"  : {"support": "vertice"},
+	    "lagrangian_v"  : {"support": "vertice"},
+
+	    "in_u"  : {"support": "vertice"},
+	    "in_v"  : {"support": "vertice"},
+
+	    "predicted_u"  : {"support": "vertice"},
+	    "predicted_v"  : {"support": "vertice"},
+
+	    "out_u" : {"support": "vertice"},
+	    "out_v" : {"support": "vertice"},
+
+	    "u_ref" : {"support": "vertice"}
+
+	},
+
+    	"Events": {
+    	
+	    "InitVariable": { "name": "in_rho_1",
+    			      "expression": "1.0" },
+
+	    "InitVariable": { "name": "out_rho_1",
+    			      "expression": "in_rho_1" },
+
+	    "InitVariable": { "name": "in_rho_2",
+    			      "expression": "0.125" },
+
+	    "InitVariable": { "name": "out_rho_2",
+    			      "expression": "in_rho_2" },
+
+	    "InitVariable": { "name": "in_cell_volumic_fraction",
+    			      "expression": "(x < 0.5) ? 1.0 : 0.0" },
+
+	    "InitVariable": { "name": "out_cell_volumic_fraction",
+    			      "expression": "in_cell_volumic_fraction" },
+
+	    "InitVariable": { "name": "in_e_1",
+    			      "expression": "2.5" },
+
+	    "InitVariable": { "name": "out_e_1",
+    			      "expression": "in_e_1" },
+
+	    "InitVariable": { "name": "in_e_2",
+    			      "expression": "2.0" },
+
+	    "InitVariable": { "name": "out_e_2",
+    			      "expression": "in_e_2" },
+
+	    "OutputSimulation": { "filename": "tmp/res/sim%i",
+	    			  "Timetable": {"istep": "100"}},
+
+	    "OutputCartesianLine": { "filename": "tmp/res/profile%i",
+	    			     "direction": "x",
+	    			     "indice": "4",
+	    			     "Timetable": {"istep": "200"}}
+
+			      
+    	}
+    	
+    }
+}

@@ -5,7 +5,7 @@
 	"Clock": { "time": "0.0",
 		   "iteration": "0" },
 
-	"Timetable": { "iend": "999" },
+	"Timetable": { "iend": "1200" },
 	
 	"Grid": { "name": "grid",
 		  "nx": "80",
@@ -15,25 +15,57 @@
 		  "ymin": "0.0",
 		  "ymax": "1.0" },
 
- 	"NumericalParams": { "BoundaryConditions": "Wall" },
+ 	"NumericalParams": { "BoundaryConditions": "periodic",
+			     "TypeOfProjection": "DirectProjection" },
 
 	"Variables": {
 
 	    "directional_lagrangian_volume"  : {"support": "cell"},
 	    "directional_lagrangian_density"  : {"support": "cell"},
+	    "directional_lagrangian_density_1"  : {"support": "cell"},
+	    "directional_lagrangian_density_2"  : {"support": "cell"},
 	    "directional_lagrangian_volume_y"  : {"support": "cell"},
 	    "directional_lagrangian_density_y"  : {"support": "cell"},
+	    "directional_lagrangian_density_1_y"  : {"support": "cell"},
+	    "directional_lagrangian_density_2_y"  : {"support": "cell"},
 
 	    "in_rho"  : {"support": "cell"},
 	    "out_rho" : {"support": "cell"},
 
+	    "in_rho_1"  : {"support": "cell"},
+	    "out_rho_1" : {"support": "cell"},
+
+	    "in_rho_2"  : {"support": "cell"},
+	    "out_rho_2" : {"support": "cell"},
+
 	    "in_cell_mass"  : {"support": "cell"},
 	    "out_cell_mass" : {"support": "cell"},
+	    "in_cell_mass_1"  : {"support": "cell"},
+	    "out_cell_mass_1" : {"support": "cell"},
+	    "in_cell_mass_2"  : {"support": "cell"},
+	    "out_cell_mass_2" : {"support": "cell"},
+
+	    "in_cell_volumic_fraction"  : {"support": "cell"},
+	    "out_cell_volumic_fraction" : {"support": "cell"},
+
+	    "in_c_1"  : {"support": "cell"},
+	    "out_c_1" : {"support": "cell"},
+
+	    "in_c_2"  : {"support": "cell"},
+	    "out_c_2" : {"support": "cell"},
 
 	    "in_e"  : {"support": "cell"},
 	    "out_e" : {"support": "cell"},
 
+	    "in_e_1"  : {"support": "cell"},
+	    "out_e_1" : {"support": "cell"},
+
+	    "in_e_2"  : {"support": "cell"},
+	    "out_e_2" : {"support": "cell"},
+
 	    "in_pressure"  : {"support": "cell"},
+	    "in_pressure_1"  : {"support": "cell"},
+	    "in_pressure_2"  : {"support": "cell"},
 
 	    "rho_ref" : {"support": "cell"},
 	    "p_ref" : {"support": "cell"},
@@ -69,10 +101,10 @@
 	    "InitVariable": { "name": "out_e",
     			      "expression": "in_e" },
 
-	    "OutputSimulation": { "filename": "result/sim%i",
+	    "OutputSimulation": { "filename": "/tmp/res/sim%i",
 	    			  "Timetable": {"istep": "100"}},
 
-	    "OutputCartesianLine": { "filename": "result/profile%i",
+	    "OutputCartesianLine": { "filename": "/tmp/res/profile%i",
 	    			     "direction": "y",
 	    			     "indice": "9",
 	    			     "Timetable": {"istep": "200"}}

@@ -24,6 +24,30 @@ inline index_t CellCellOM1(index_t cell_oo, index_t nx) {
 
 }
 
+inline index_t CellCellM1M1(index_t cell_oo, index_t nx) {
+
+  return cell_oo - nx - 1;
+
+}
+
+inline index_t CellCellP1M1(index_t cell_oo, index_t nx) {
+
+  return cell_oo - nx + 1;
+
+}
+
+inline index_t CellCellM1P1(index_t cell_oo, index_t nx) {
+
+  return cell_oo + nx - 1;
+
+}
+
+inline index_t CellCellP1P1(index_t cell_oo, index_t nx) {
+
+  return cell_oo + nx + 1;
+
+}
+
 inline index_t CellFaceP1O(index_t cell_oo, index_t iy, index_t nx) {
 
   return cell_oo + iy + 1;

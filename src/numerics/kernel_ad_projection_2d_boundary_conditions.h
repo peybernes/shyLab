@@ -319,6 +319,32 @@ void ProjectNodalIntensiveVariableUyXWallBoundary(index_t nx,
 					    const RealType* mass_flux,
 					    RealType* out_vx);
 
+void ProjectNodalIntensiveVariableOrder2UxXWallBoundary(index_t nx, 
+							index_t ny, 
+							index_t halo_width,
+							const RealType dy,
+							const RealType dt,
+							const RealType* lag_cell_mass,
+							const RealType* out_cell_mass,
+							const RealType* u_velocity_pred,
+							const RealType* in_variable,
+							const RealType* gradient_variable,
+							const RealType* mass_flux,
+							RealType* out_variable);
+
+void ProjectNodalIntensiveVariableOrder2UyXWallBoundary(index_t nx, 
+							index_t ny, 
+							index_t halo_width,
+							const RealType dy,
+							const RealType dt,
+							const RealType* lag_cell_mass,
+							const RealType* out_cell_mass,
+							const RealType* u_velocity_pred,
+							const RealType* in_variable,
+							const RealType* gradient_variable,
+							const RealType* mass_flux,
+							RealType* out_variable);
+
 void ReconstructMassFluxOrder2YWallBoundary(index_t nx, 
 					index_t ny, 
 					index_t halo_width,
@@ -357,6 +383,32 @@ void ProjectNodalIntensiveVariableUyYWallBoundary(index_t nx,
 					    const RealType* in_vy,
 					    const RealType* mass_flux,
 					    RealType* out_vy);
+
+void ProjectNodalIntensiveVariableOrder2UxYWallBoundary(index_t nx, 
+							index_t ny, 
+							index_t halo_width,
+							const RealType dy,
+							const RealType dt,
+							const RealType* lag_cell_mass,
+							const RealType* out_cell_mass,
+							const RealType* v_velocity_pred,
+							const RealType* in_variable,
+							const RealType* gradient_variable,
+							const RealType* mass_flux,
+							RealType* out_variable);
+
+void ProjectNodalIntensiveVariableOrder2UyYWallBoundary(index_t nx, 
+							index_t ny, 
+							index_t halo_width,
+							const RealType dy,
+							const RealType dt,
+							const RealType* lag_cell_mass,
+							const RealType* out_cell_mass,
+							const RealType* v_velocity_pred,
+							const RealType* in_variable,
+							const RealType* gradient_variable,
+							const RealType* mass_flux,
+							RealType* out_variable);
 
 #ifdef __cplusplus
 }

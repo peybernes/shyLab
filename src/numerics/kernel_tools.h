@@ -39,11 +39,11 @@
 extern "C" {
 #endif
 
-  static inline RealType EquationOfState(RealType gamma, RealType rho, RealType e) {
+  static inline RealType EquationOfState(RealType gamma, RealType rho, RealType e, RealType pi) {
     
     const RealType one = 1.0;
     
-    return  (gamma - one) * rho * e;
+    return  (gamma - one) * rho * e - pi;
   
   }
  
@@ -57,6 +57,13 @@ extern "C" {
     
   }
  
+
+  static inline RealType SpeedOfSound(RealType gamma, RealType rho, RealType p, RealType pi) {
+        
+    return  sqrt((gamma * p + pi) / rho);
+  
+  }
+
 
   static inline RealType MySign(RealType x) {
 
@@ -78,6 +85,7 @@ extern "C" {
     const RealType two = 2.0;
     
     return ( ((a * b) * (a + b )) * ((a * a + b * b) > 0.) / (a * a + b * b + epsilon) );
+	//return 0.;
   }
 
   /// Van Leer kappa scheme
@@ -92,8 +100,8 @@ extern "C" {
     const RealType one_quarter = 0.25;
     const RealType one = 1.0;
 
-    return (in + one_quarter * s * dx * (((one - kappa * s) * delta_minus) + ((one + kappa * s) * delta_plus)));
-
+    // return (in + one_quarter * s * dx * (((one - kappa * s) * delta_minus) + ((one + kappa * s) * delta_plus)));
+    return 0.0;
   }  
 
   static inline RealType ReconstructValueRightKappa(RealType in, RealType s, RealType kappa, RealType dx, RealType delta_minus, RealType delta_plus) {

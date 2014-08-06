@@ -177,10 +177,12 @@ void ProjectNodalIntensiveVariableOrder2XBoundary(std::string BoundaryConditions
   }
   else if (BoundaryConditions == "Wall") {
     if (variable_projected == "project_ux") {
-      ProjectNodalIntensiveVariableUxXWallBoundary(nx, ny, halo_width, lag_cell_mass, out_cell_mass, in_variable, mass_flux, out_variable);
+            ProjectNodalIntensiveVariableOrder2UxXWallBoundary(nx, ny, halo_width, dx, dt, lag_cell_mass, out_cell_mass, u_velocity_pred, in_variable, gradient_variable, mass_flux, out_variable);
+	    //ProjectNodalIntensiveVariableUxXWallBoundary(nx, ny, halo_width, lag_cell_mass, out_cell_mass, in_variable, mass_flux, out_variable);
     }
     else if (variable_projected == "project_uy") {
-      ProjectNodalIntensiveVariableUyXWallBoundary(nx, ny, halo_width, lag_cell_mass, out_cell_mass, in_variable, mass_flux, out_variable);
+      //ProjectNodalIntensiveVariableUyXWallBoundary(nx, ny, halo_width, lag_cell_mass, out_cell_mass, in_variable, mass_flux, out_variable);
+            ProjectNodalIntensiveVariableOrder2UyXWallBoundary(nx, ny, halo_width, dx, dt, lag_cell_mass, out_cell_mass, u_velocity_pred, in_variable, gradient_variable, mass_flux, out_variable);
     }
   }
   else{
@@ -311,10 +313,12 @@ void ProjectNodalIntensiveVariableOrder2YBoundary(std::string BoundaryConditions
   }
   else if (BoundaryConditions == "Wall") {
     if (variable_projected == "project_ux") {
-      ProjectNodalIntensiveVariableUxYWallBoundary(nx, ny, halo_width, lag_cell_mass, out_cell_mass, in_variable, mass_flux, out_variable);
+       ProjectNodalIntensiveVariableOrder2UxYWallBoundary(nx, ny, halo_width, dy, dt, lag_cell_mass, out_cell_mass, v_velocity_pred, in_variable, gradient_variable, mass_flux, out_variable);
+       //ProjectNodalIntensiveVariableUxYWallBoundary(nx, ny, halo_width, lag_cell_mass, out_cell_mass, in_variable, mass_flux, out_variable);
     }
     else if (variable_projected == "project_uy") {
-      ProjectNodalIntensiveVariableUyYWallBoundary(nx, ny, halo_width, lag_cell_mass, out_cell_mass, in_variable, mass_flux, out_variable);
+       ProjectNodalIntensiveVariableOrder2UyYWallBoundary(nx, ny, halo_width, dy, dt, lag_cell_mass, out_cell_mass, v_velocity_pred, in_variable, gradient_variable, mass_flux, out_variable);
+       //ProjectNodalIntensiveVariableUyYWallBoundary(nx, ny, halo_width, lag_cell_mass, out_cell_mass, in_variable, mass_flux, out_variable);
     }
   }
   else{
