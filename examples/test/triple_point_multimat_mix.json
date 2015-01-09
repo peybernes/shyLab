@@ -16,7 +16,7 @@
 		  "ymax": "3.0" },
 
  	"NumericalParams": { "BoundaryConditions": "Wall",
-			     "TypeOfProjection": "DirectProjection",
+			     "TypeOfProjection": "DirectProjectionCornerFluxes",
 			     "TypeOfModel": "MultimaterialMix" },
 
 	"Variables": {
@@ -113,25 +113,19 @@
 	    "InitVariable": { "name": "out_c_2",
     			      "expression": "in_c_2" },
 
-	    "InitVariable": { "name": "in_e_1",
-    			      "expression": "0.25" },
+	    "InitVariable": { "name": "in_pressure_1",
+    			      "expression": "0.1" },
 
-	    "InitVariable": { "name": "out_e_1",
-    			      "expression": "in_e_1" },
+	    "InitVariable": { "name": "in_pressure_2",
+    			      "expression": "(x < 1.5) ? 1.0 : 0.1" },
 
-	    "InitVariable": { "name": "in_e_2",
-    			      "expression": "(x < 1.5) ? 2.5 : 2.0" },
-
-	    "InitVariable": { "name": "out_e_2",
-    			      "expression": "in_e_2" },
-
-	    "OutputSimulation": { "filename": "/tmp/resad/sim%i",
+	    "OutputSimulation": { "filename": "/tmp/res/sim%i",
 	    			  "Timetable": {"istep": "100"}},
 
-	    "OutputCartesianLine": { "filename": "/tmp/resad/profile%i",
+	    "OutputCartesianLine": { "filename": "/tmp/res/profile%i",
 	    			     "direction": "x",
 	    			     "indice": "4",
-	    			     "Timetable": {"istep": "20"}}
+	    			     "Timetable": {"istep": "100"}}
 
 			      
     	}

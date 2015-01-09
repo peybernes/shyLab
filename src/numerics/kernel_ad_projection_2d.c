@@ -693,7 +693,7 @@ void ReconstructGradientX(index_t nx,
       const RealType grad_p1o = (variable_p1o - variable_ooo) /     //2 add 1 FMA  1 div
 	(dx + (d_vol_p2o - d_vol_m1o) * one_over_dy);
 
-      const RealType limited_grad_variable = VanAlbadaLimiter(grad_m1o, grad_p1o); // VanAlbada  : 4 FMA  3 Mul  1 logic  1 Div     || ( minmod 2 logic  3 mul  1 min  2 abs)
+      const RealType limited_grad_variable = VanLeerLimiter(grad_m1o, grad_p1o); // VanAlbada  : 4 FMA  3 Mul  1 logic  1 Div     || ( minmod 2 logic  3 mul  1 min  2 abs)
       gradient_variable[cell_ooo] = limited_grad_variable; // 1 store
       
 
@@ -851,7 +851,7 @@ void ReconstructGradientNodalX(index_t nx,
       const RealType grad_p1o = (variable_p1o - variable_ooo ) / //2 add 1 fma  1 div 
        	(dx + dt * (velocity_p1o - velocity_ooo));
 
-      const RealType limited_grad_variable = VanAlbadaLimiter(grad_m1o,grad_p1o) ; // VanAlbada  : 4 FMA  3 Mul  1 logic  1 Div   
+      const RealType limited_grad_variable = VanLeerLimiter(grad_m1o,grad_p1o) ; // VanAlbada  : 4 FMA  3 Mul  1 logic  1 Div   
       gradient_variable[node_ooo] = limited_grad_variable; // 1 store
       
     }
@@ -950,7 +950,7 @@ void ReconstructGradientY(index_t nx,
       const RealType grad_op1 = (variable_op1 - variable_ooo )  /  //2 add 1 fma 1 div
 	(dy + (d_vol_op2 - d_vol_om1) *one_over_dx);
 
-      const RealType limited_grad_variable = VanAlbadaLimiter(grad_om1,grad_op1) ;// VanAlbada  : 4 FMA  3 Mul  1 logic  1 Div 
+      const RealType limited_grad_variable = VanLeerLimiter(grad_om1,grad_op1) ;// VanAlbada  : 4 FMA  3 Mul  1 logic  1 Div 
       gradient_variable[cell_ooo] = limited_grad_variable; // 1 store
     }
     //likwid_markerStopRegion("gradY");
@@ -1108,7 +1108,7 @@ void ReconstructGradientNodalY(index_t nx,
       const RealType grad_op1 = (variable_op1 - variable_ooo ) / //1 fma 2 add 1 div
        	(dy + dt * (velocity_op1 - velocity_ooo));
 
-      const RealType limited_grad_variable = VanAlbadaLimiter(grad_om1,grad_op1) ;// VanAlbada  : 4 FMA  3 Mul  (1 logic)  1 Div 
+      const RealType limited_grad_variable = VanLeerLimiter(grad_om1,grad_op1) ;// VanAlbada  : 4 FMA  3 Mul  (1 logic)  1 Div 
       gradient_variable[node_ooo] = limited_grad_variable; // 1 store
       
     }

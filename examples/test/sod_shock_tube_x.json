@@ -5,18 +5,18 @@
 	"Clock": { "time": "0.0",
 		   "iteration": "0" },
 
-	"Timetable": { "iend": "1200" },
+	"Timetable": { "iend": "999" },
 	
 	"Grid": { "name": "grid",
-		  "nx": "800",
-		  "ny": "80",
+		  "nx": "400",
+		  "ny": "40",
 		  "xmin": "0.0",
 		  "xmax": "1.0",
 		  "ymin": "0.0",
 		  "ymax": "0.1" },
 
  	"NumericalParams": { "BoundaryConditions": "Wall",
-			     "TypeOfProjection": "DirectProjection" },
+			     "TypeOfProjection": "DirectProjectionCornerFluxes" },
 
 	"Variables": {
 
@@ -94,19 +94,16 @@
 	    "InitVariable": { "name": "out_rho",
     			      "expression": "in_rho" },
 
-	    "InitVariable": { "name": "in_e",
-    			      "expression": "(x < 0.5) ? 2.5 : 2.0" },
+	    "InitVariable": { "name": "in_pressure",
+    			      "expression": "(x < 0.5) ? 1.0 : 0.1" },
 
-	    "InitVariable": { "name": "out_e",
-    			      "expression": "in_e" },
-
-	    "OutputSimulation": { "filename": "/tmp/res/sim%i",
+	    "OutputSimulation": { "filename": "/tmp/resbis/sim%i",
 	    			  "Timetable": {"istep": "100"}},
 
-	    "OutputCartesianLine": { "filename": "/tmp/res/profile%i",
+	    "OutputCartesianLine": { "filename": "/tmp/resbis/profile%i",
 	    			     "direction": "x",
 	    			     "indice": "4",
-	    			     "Timetable": {"istep": "200"}}
+	    			     "Timetable": {"istep": "100"}}
 
 			      
     	}

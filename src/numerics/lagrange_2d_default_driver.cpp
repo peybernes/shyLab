@@ -27,6 +27,8 @@ void Lagrange2dDefaultDriver(const std::string BoundaryConditions,
 			     RealType* RESTRICT e_lag,
 			     RealType* RESTRICT u_lag,
 			     RealType* RESTRICT v_lag,
+			     RealType* RESTRICT in_X_x,
+			     RealType* RESTRICT in_X_y,
 			     //timing
 			     std::vector<RealType>& time_lagrange_pressure_predicted,
 			     std::vector<RealType>& time_lagrange_velocity_predicted,
@@ -40,7 +42,7 @@ void Lagrange2dDefaultDriver(const std::string BoundaryConditions,
   //
 
   clock_gettime(CLOCK_REALTIME, &time1);
-  LagrangePressurePredictedOptimised(nx, ny, dt, dx, dy, gamma, pi, in_cell_mass, in_e, in_u, in_v,
+  LagrangePressurePredictedOptimised(nx, ny, dt, dx, dy, gamma, pi, in_cell_mass, in_e, in_u, in_v, in_X_x, in_X_y,
 				     in_p , predicted_pressure, cell_pseudo_pressure);
   clock_gettime(CLOCK_REALTIME, &time2);
   time_lagrange_pressure_predicted.push_back(diff(time1, time2)); 
@@ -59,7 +61,7 @@ void Lagrange2dDefaultDriver(const std::string BoundaryConditions,
     
   clock_gettime(CLOCK_REALTIME, &time1);
   LagrangeCorrectionOptimised(nx, ny, dt, dx, dy, in_cell_mass, in_e, predicted_pressure,cell_pseudo_pressure, predicted_u, predicted_v,
-			      e_lag);
+			      in_X_x, in_X_y,e_lag);
   clock_gettime(CLOCK_REALTIME, &time2);
   time_lagrange_correction.push_back(diff(time1, time2)); 
     

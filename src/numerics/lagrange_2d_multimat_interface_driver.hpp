@@ -42,6 +42,8 @@ void Lagrange2dMultimatInterfaceDriver(const std::string BoundaryConditions,
 				       RealType* e_2_lag,
 				       RealType* u_lag,
 				       RealType* v_lag,
+				       RealType* in_X_x,
+				       RealType* in_X_y,
 				       //timing
 				       std::vector<RealType>& time_lagrange_pressure_predicted,
 				       std::vector<RealType>& time_lagrange_velocity_predicted,

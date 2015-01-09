@@ -28,7 +28,7 @@ set(CMAKE_VERBOSE_MAKEFILE on)
 
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
-#current gcc options for profling
+#current gcc options for profling 
 #set(CMAKE_C_FLAGS "-g -O3 -ftree-vectorize")
 #set(CMAKE_CXX_FLAGS "-g -O3")
 #standart option
@@ -53,7 +53,7 @@ IF(${CMAKE_CXX_COMPILER} MATCHES "icpc")
 #standart
 set(CMAKE_CXX_FLAGS "-g -O2")
 #current vecto and profing options
-#set(CMAKE_CXX_FLAGS "-g -O3 -xAVX -vec-report")
+#set(CMAKE_CXX_FLAGS "-g -O3 -xAVX -vec-report"
 #old vectorisation option
 #set(CMAKE_CXX_FLAGS "-g -xsse4.2 -O3")
 #set(CMAKE_CXX_FLAGS "-O3 -xCORE-AVX2 -vec-report2")
@@ -64,9 +64,9 @@ ENDIF( ${CMAKE_CXX_COMPILER} MATCHES "icpc" )
 # INCLUDE(TestBigEndian)
 # TEST_BIG_ENDIAN(WORDS_BIGENDIAN)
 # IF (WORDS_BIGENDIAN)
-# ADD_DEFINITIONS("-DBIG_ENDIAN")
+#  ADD_DEFINITIONS("-DBIG_ENDIAN")
 # ELSE (WORDS_BIGENDIAN)
-# ADD_DEFINITIONS("-DLOW_ENDIAN")
+#  ADD_DEFINITIONS("-DLOW_ENDIAN")
 # ENDIF (WORDS_BIGENDIAN)
 
 #standart
@@ -87,11 +87,14 @@ add_executable(
     src/io/output.cpp
     src/numerics/kernel_ad_projection_2d.c
     src/numerics/kernel_direct_projection_2d.c
+    src/numerics/kernel_direct_projection_corner_fluxes_2d.c
     src/numerics/kernel_lagrange_2d.c
     src/numerics/kernel_ad_projection_2d_boundary_conditions.c
     src/numerics/kernel_direct_projection_2d_boundary_conditions.c
+    src/numerics/kernel_direct_projection_corner_fluxes_2d_boundary_conditions.c
     src/numerics/kernel_ad_projection_2d_boundary_interface.cpp
     src/numerics/kernel_direct_projection_2d_boundary_interface.cpp
+    src/numerics/kernel_direct_projection_corner_fluxes_2d_boundary_interface.cpp
     src/numerics/kernel_multimat_interface_2d.c
     src/numerics/kernel_multimat_interface_2d_boundary_conditions.c
     src/numerics/kernel_multimat_interface_2d_boundary_interface.cpp
@@ -103,6 +106,13 @@ add_executable(
     src/numerics/ad_projection_2d_multimat_mix_driver.cpp
     src/numerics/ad_projection_2d_multimat_interface_driver.cpp
     src/numerics/direct_projection_2d_driver.cpp
+    src/numerics/direct_projection_2d_monomat_driver.cpp
+    src/numerics/direct_projection_2d_multimat_mix_driver.cpp
+    src/numerics/direct_projection_2d_multimat_interface_driver.cpp
+    src/numerics/direct_projection_corner_fluxes_2d_driver.cpp
+    src/numerics/direct_projection_corner_fluxes_2d_monomat_driver.cpp
+    src/numerics/direct_projection_corner_fluxes_2d_multimat_mix_driver.cpp
+    src/numerics/direct_projection_corner_fluxes_2d_multimat_interface_driver.cpp
     src/math_parser.cpp
     src/mpi_boundary_condition.cpp
     src/numerical_core.c

@@ -5,18 +5,18 @@
 	"Clock": { "time": "0.0",
 		   "iteration": "0" },
 
-	"Timetable": { "iend": "999" },
+	"Timetable": { "iend": "49" },
 	
 	"Grid": { "name": "grid",
-		  "nx": "200",
-		  "ny": "20",
+		  "nx": "10",
+		  "ny": "3",
 		  "xmin": "0.0",
 		  "xmax": "1.0",
 		  "ymin": "0.0",
-		  "ymax": "0.1" },
+		  "ymax": "0.3" },
 
  	"NumericalParams": { "BoundaryConditions": "periodic",
-			     "TypeOfProjection": "AdProjection",
+			     "TypeOfProjection": "DirectProjectionCornerFluxes",
 			     "TypeOfModel": "MultimaterialInterface" },
 
 	"Variables": {
@@ -101,37 +101,31 @@
 	    "InitVariable": { "name": "out_rho_2",
     			      "expression": "in_rho_2" },
 
-	    "InitVariable": { "name": "in_e_1",
+	    "InitVariable": { "name": "in_pressure_1",
     			      "expression": "1.0" },
 
-	    "InitVariable": { "name": "out_e_1",
-    			      "expression": "in_e_1" },
-
-	    "InitVariable": { "name": "in_e_2",
+	    "InitVariable": { "name": "in_pressure_2",
     			      "expression": "1.0" },
-
-	    "InitVariable": { "name": "out_e_2",
-    			      "expression": "in_e_2" },
 
 	    "InitVariable": { "name": "in_cell_volumic_fraction",
-    			      "expression": "(abs(x-0.5) < 0.1) ? 1.0 : 0.0" },
+    			      "expression": "((abs(x-0.8) < 0.05) && (y < 0.12) && (y > 0.11))? 1.0 : 0.0" },
 
 	    "InitVariable": { "name": "out_cell_volumic_fraction",
     			      "expression": "in_cell_volumic_fraction" },
 
 	    "InitVariable": { "name": "in_u",
-    			      "expression": "0.4" },
+    			      "expression": "10.0" },
 
 	    "InitVariable": { "name": "in_v",
     			      "expression": "0.0" },
 
-	    "OutputSimulation": { "filename": "tmp/res/sim%i",
-	    			  "Timetable": {"istep": "100"}},
+	    "OutputSimulation": { "filename": "/tmp/res/sim%i",
+	    			  "Timetable": {"istep": "1"}},
 
-	    "OutputCartesianLine": { "filename": "tmp/res/profile%i",
+	    "OutputCartesianLine": { "filename": "/tmp/res/profile%i",
 	    			     "direction": "x",
 	    			     "indice": "4",
-	    			     "Timetable": {"istep": "20"}}
+	    			     "Timetable": {"istep": "1"}}
 
 			      
     	}

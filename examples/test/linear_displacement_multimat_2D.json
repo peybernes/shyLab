@@ -5,19 +5,20 @@
 	"Clock": { "time": "0.0",
 		   "iteration": "0" },
 
-	"Timetable": { "iend": "999" },
+	"Timetable": { "iend": "1199" },
 	
 	"Grid": { "name": "grid",
 		  "nx": "100",
 		  "ny": "100",
 		  "xmin": "0.0",
-		  "xmax": "20.0",
+		  "xmax": "2.0",
 		  "ymin": "0.0",
-		  "ymax": "20.0" },
+		  "ymax": "2.0" },
 
  	"NumericalParams": { "BoundaryConditions": "periodic",
 			     "TypeOfProjection": "AdProjection",
-			     "TypeOfModel": "MultimaterialInterface" },
+			     "TypeOfModel": "MultimaterialInterface",
+			     "CFL": "0.1" },
 
 	"Variables": {
 
@@ -101,37 +102,31 @@
 	    "InitVariable": { "name": "out_rho_2",
     			      "expression": "in_rho_2" },
 
-	    "InitVariable": { "name": "in_e_1",
+	    "InitVariable": { "name": "in_pressure_1",
     			      "expression": "1.0" },
 
-	    "InitVariable": { "name": "out_e_1",
-    			      "expression": "in_e_1" },
-
-	    "InitVariable": { "name": "in_e_2",
+	    "InitVariable": { "name": "in_pressure_2",
     			      "expression": "1.0" },
-
-	    "InitVariable": { "name": "out_e_2",
-    			      "expression": "in_e_2" },
 
 	    "InitVariable": { "name": "in_cell_volumic_fraction",
-    			      "expression": "(((x < 7.0) && (x > 5.0)) && ((y < 7.0) && (y > 5.0))) ? 1.0 : 0.0" },
+    			      "expression": "(((x < 0.6) && (x > 0.2)) && ((y < 0.6) && (y > 0.2))) ? 1.0 : 0.0" },
 
 	    "InitVariable": { "name": "out_cell_volumic_fraction",
     			      "expression": "in_cell_volumic_fraction" },
 
 	    "InitVariable": { "name": "in_u",
-    			      "expression": "1.0" },
+    			      "expression": "5.0" },
 
 	    "InitVariable": { "name": "in_v",
-    			      "expression": "0.3" },
+    			      "expression": "5.0" },
 
-	    "OutputSimulation": { "filename": "tmp/res/sim%i",
-	    			  "Timetable": {"istep": "100"}},
+	    "OutputSimulation": { "filename": "/tmp/resad/sim%i",
+	    			  "Timetable": {"istep": "200"}},
 
-	    "OutputCartesianLine": { "filename": "tmp/res/profile%i",
+	    "OutputCartesianLine": { "filename": "/tmp/resad/profile%i",
 	    			     "direction": "x",
 	    			     "indice": "4",
-	    			     "Timetable": {"istep": "20"}}
+	    			     "Timetable": {"istep": "200"}}
 
 			      
     	}

@@ -32,7 +32,7 @@ if ( (d_vol_2_m2o == 0) && (d_vol_2_m1o == 0) && (d_vol_2_p1o == 0) && (d_vol_2_
   const RealType grad_1_p1o = (variable_1_p1o - variable_1_ooo ) /
     (dx + (d_vol_1_p2o - d_vol_1_m1o) / dy);
 
-  limited_grad_variable_1 = MinmodLimiter(grad_1_m1o, grad_1_p1o);
+  limited_grad_variable_1 = VanLeerLimiter(grad_1_m1o, grad_1_p1o);
 
  } else {
 
@@ -47,7 +47,7 @@ if ( (d_vol_1_m2o == 0) && (d_vol_1_m1o == 0) && (d_vol_1_p1o == 0) && (d_vol_1_
   const RealType grad_2_p1o = (variable_2_p1o - variable_2_ooo ) /
     (dx + (d_vol_2_p2o - d_vol_2_m1o) / dy);
 
-  limited_grad_variable_2 = MinmodLimiter(grad_2_m1o, grad_2_p1o);
+  limited_grad_variable_2 = VanLeerLimiter(grad_2_m1o, grad_2_p1o);
 
  } else {
 

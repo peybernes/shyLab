@@ -453,14 +453,14 @@ void ProjectNodalIntensiveVariableOrder2BoundaryRtDirect(index_t nx,
 
 
 void ProjectNodalIntensiveVariableUxWallBoundaryDirect(index_t nx, 
-					    index_t ny, 
-					    index_t halo_width,
-					    const RealType* lag_cell_mass,
-					    const RealType* out_cell_mass,  
-					    const RealType* in_vx,
-					    const RealType* mass_flux_x,
-					    const RealType* mass_flux_y,
-					    RealType* out_vx) {
+						       index_t ny, 
+						       index_t halo_width,
+						       const RealType* lag_cell_mass,
+						       const RealType* out_cell_mass,  
+						       const RealType* in_vx,
+						       const RealType* mass_flux_x,
+						       const RealType* mass_flux_y,
+						       RealType* out_vx) {
 
 
   for (index_t iy = halo_width; iy < ny + 1 - halo_width; ++iy) {//problem not vect but boundary
@@ -635,15 +635,15 @@ void ProjectNodalIntensiveVariableUxWallBoundaryDirect(index_t nx,
 
 
 void ProjectNodalIntensiveVariableUyWallBoundaryDirect(index_t nx, 
-					    index_t ny, 
-					    index_t halo_width,
-					    const RealType* lag_cell_mass,
-					    const RealType* out_cell_mass,  
-					    const RealType* in_vx,
-					    const RealType* mass_flux_x,
-					    const RealType* mass_flux_y,
-					    RealType* out_vx) {
-
+						       index_t ny, 
+						       index_t halo_width,
+						       const RealType* lag_cell_mass,
+						       const RealType* out_cell_mass,  
+						       const RealType* in_vx,
+						       const RealType* mass_flux_x,
+						       const RealType* mass_flux_y,
+						       RealType* out_vx) {
+  
   for (index_t iy = halo_width; iy < ny + 1 - halo_width; ++iy) {//problem not vect but boundary
   // x min 
     for (index_t ix = 0; ix < halo_width; ++ix) {
@@ -811,3 +811,250 @@ void ProjectNodalIntensiveVariableUyWallBoundaryDirect(index_t nx,
 
 
 
+void ProjectNodalIntensiveVariableOrder2UxWallBoundaryDirect(index_t nx, 
+							     index_t ny, 
+							     index_t halo_width,
+							     const RealType dx,
+							     const RealType dy,
+							     const RealType dt,
+							     const RealType* RESTRICT lag_cell_mass,
+							     const RealType* RESTRICT out_cell_mass,  
+							     const RealType* RESTRICT u_velocity_pred,
+							     const RealType* RESTRICT v_velocity_pred,
+							     const RealType* RESTRICT in_variable,
+							     const RealType* RESTRICT gradient_variable_x,
+							     const RealType* RESTRICT gradient_variable_y,
+							     const RealType* RESTRICT mass_flux_x,
+							     const RealType* RESTRICT mass_flux_y,
+							     RealType* RESTRICT out_variable) {
+
+  
+  for (index_t iy = halo_width; iy < ny + 1 - halo_width; ++iy) {//problem not vect but boundary
+  // x min 
+    for (index_t ix = 0; ix < halo_width; ++ix) {
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+
+      out_variable[node_ooo] = 0.; 
+ 
+    }
+  // x max
+    for (index_t ix = nx; ix < nx + 1; ++ix) {
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+
+      out_variable[node_ooo] = 0.; 
+
+    }
+  } // end X boundary 
+
+
+  //ymin
+  for (index_t iy = 0; iy < halo_width; ++iy) {
+    for (index_t ix = halo_width; ix < nx + 1 - halo_width; ++ix) {//problem not vect but boundary 
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+	
+      index_t node_m1o = NodeNodeM1O(node_ooo, iy, nx);
+      index_t node_p1o = NodeNodeP1O(node_ooo, iy, nx);
+      index_t node_om1 = NodeNodeOP1(node_ooo, iy, nx);
+      index_t node_op1 = NodeNodeOP1(node_ooo, iy, nx);
+          
+      index_t cellm1m1 = NodeCellM1P1(node_ooo, iy, nx);
+      index_t cellp1m1 = NodeCellP1P1(node_ooo, iy, nx);
+      index_t cellm1p1 = NodeCellM1P1(node_ooo, iy, nx);
+      index_t cellp1p1 = NodeCellP1P1(node_ooo, iy, nx);
+
+      const index_t facexm1m1 = NodeFaceXM1P1(node_ooo, iy, nx);
+      const index_t facexoom1 = NodeFaceXOOP1(node_ooo, iy, nx); 
+      const index_t facexp1m1 = NodeFaceXP1P1(node_ooo, iy, nx);
+      const index_t facexm1p1 = NodeFaceXM1P1(node_ooo, iy, nx);
+      const index_t facexoop1 = NodeFaceXOOP1(node_ooo, iy, nx);
+      const index_t facexp1p1 = NodeFaceXP1P1(node_ooo, iy, nx);
+      const index_t faceym1m1 = NodeFaceYM1P1(node_ooo, iy, nx);
+      const index_t faceym1oo = NodeFaceYM1OO(node_ooo, iy, nx);
+      const index_t faceym1p1 = NodeFaceYM1P1(node_ooo, iy, nx);
+      const index_t faceyp1p1 = NodeFaceYP1P1(node_ooo, iy, nx);
+      const index_t faceyp1oo = NodeFaceYP1OO(node_ooo, iy, nx);
+      const index_t faceyp1m1 = NodeFaceYP1P1(node_ooo, iy, nx);
+
+#include "direct_projection_nodal_o2_2d_computation.h"
+
+      out_variable[node_ooo] = out_nodal_variable ;
+
+    }
+  }
+
+  //ymax
+  for (index_t iy = ny; iy < ny + 1; ++iy) {
+    for (index_t ix = halo_width; ix < nx + 1 - halo_width; ++ix) {//problem not vect but boundary 
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+	
+      index_t node_m1o = NodeNodeM1O(node_ooo, iy, nx);
+      index_t node_p1o = NodeNodeP1O(node_ooo, iy, nx);    
+      index_t node_om1 = NodeNodeOM1(node_ooo, iy, nx);
+      index_t node_op1 = NodeNodeOM1(node_ooo, iy, nx);
+      
+      index_t cellm1m1 = NodeCellM1M1(node_ooo, iy, nx);
+      index_t cellp1m1 = NodeCellP1M1(node_ooo, iy, nx);
+      index_t cellm1p1 = NodeCellM1M1(node_ooo, iy, nx);
+      index_t cellp1p1 = NodeCellP1M1(node_ooo, iy, nx);
+ 
+      const index_t facexm1m1 = NodeFaceXM1M1(node_ooo, iy, nx);
+      const index_t facexoom1 = NodeFaceXOOM1(node_ooo, iy, nx);
+      const index_t facexp1m1 = NodeFaceXP1M1(node_ooo, iy, nx);
+      const index_t facexm1p1 = NodeFaceXM1M1(node_ooo, iy, nx);
+      const index_t facexoop1 = NodeFaceXOOM1(node_ooo, iy, nx);
+      const index_t facexp1p1 = NodeFaceXP1M1(node_ooo, iy, nx);
+      const index_t faceym1m1 = NodeFaceYM1M1(node_ooo, iy, nx);
+      const index_t faceym1oo = NodeFaceYM1OO(node_ooo, iy, nx);
+      const index_t faceym1p1 = NodeFaceYM1M1(node_ooo, iy, nx);
+      const index_t faceyp1p1 = NodeFaceYP1M1(node_ooo, iy, nx);
+      const index_t faceyp1oo = NodeFaceYP1OO(node_ooo, iy, nx);
+      const index_t faceyp1m1 = NodeFaceYP1M1(node_ooo, iy, nx);
+
+#include "direct_projection_nodal_o2_2d_computation.h"
+
+      out_variable[node_ooo] = out_nodal_variable ;
+
+    } 
+  } // end Y boundary
+
+  //corners
+  {
+    const index_t node_cmm = 0;
+    const index_t node_cpm = nx;
+    const index_t node_cmp = ny * (nx + 1) ;
+    const index_t node_cpp = (nx + 1) * (ny + 1) - 1;
+    out_variable[node_cmm] = 0.;
+    out_variable[node_cpm] = 0.;
+    out_variable[node_cpp] = 0.;
+    out_variable[node_cmp] = 0.;
+  }
+
+} // end  ProjectNodalIntensiveVariableOrder2UxWallBoundaryDirect
+
+
+
+void ProjectNodalIntensiveVariableOrder2UyWallBoundaryDirect(index_t nx, 
+							     index_t ny, 
+							     index_t halo_width,
+							     const RealType dx,
+							     const RealType dy,
+							     const RealType dt,
+							     const RealType* RESTRICT lag_cell_mass,
+							     const RealType* RESTRICT out_cell_mass,  
+							     const RealType* RESTRICT u_velocity_pred,
+							     const RealType* RESTRICT v_velocity_pred,
+							     const RealType* RESTRICT in_variable,
+							     const RealType* RESTRICT gradient_variable_x,
+							     const RealType* RESTRICT gradient_variable_y,
+							     const RealType* RESTRICT mass_flux_x,
+							     const RealType* RESTRICT mass_flux_y,
+							     RealType* RESTRICT out_variable) {			
+  
+  
+  for (index_t iy = halo_width; iy < ny + 1 - halo_width; ++iy) {//problem not vect but boundary
+  // x min 
+    for (index_t ix = 0; ix < halo_width; ++ix) {
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+
+      const index_t node_p1o = NodeNodeP1O(node_ooo, iy, nx);     
+      const index_t node_m1o = NodeNodeP1O(node_ooo, iy, nx);     
+      const index_t node_om1 = NodeNodeOM1(node_ooo, iy, nx);
+      const index_t node_op1 = NodeNodeOP1(node_ooo, iy, nx);
+
+      const index_t cellp1m1 = NodeCellP1M1(node_ooo, iy, nx);
+      const index_t cellp1p1 = NodeCellP1P1(node_ooo, iy, nx);
+      const index_t cellm1m1 = NodeCellP1M1(node_ooo, iy, nx);
+      const index_t cellm1p1 = NodeCellP1P1(node_ooo, iy, nx);
+
+      const index_t facexoom1 = NodeFaceXOOM1(node_ooo, iy, nx);
+      const index_t facexoop1 = NodeFaceXOOP1(node_ooo, iy, nx);
+      const index_t facexp1p1 = NodeFaceXP1P1(node_ooo, iy, nx);
+      const index_t facexp1m1 = NodeFaceXP1M1(node_ooo, iy, nx);
+      const index_t facexm1p1 = NodeFaceXP1P1(node_ooo, iy, nx);
+      const index_t facexm1m1 = NodeFaceXP1M1(node_ooo, iy, nx);
+      const index_t faceym1p1 = NodeFaceYP1P1(node_ooo, iy, nx);
+      const index_t faceym1oo = NodeFaceYP1OO(node_ooo, iy, nx);
+      const index_t faceym1m1 = NodeFaceYP1M1(node_ooo, iy, nx);
+      const index_t faceyp1p1 = NodeFaceYP1P1(node_ooo, iy, nx);
+      const index_t faceyp1oo = NodeFaceYP1OO(node_ooo, iy, nx);
+      const index_t faceyp1m1 = NodeFaceYP1M1(node_ooo, iy, nx);
+
+#include "direct_projection_nodal_o2_2d_computation.h"
+
+      out_variable[node_ooo] = out_nodal_variable ;
+
+    }
+  // x max
+    for (index_t ix = nx; ix < nx + 1; ++ix) {
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+
+      const index_t node_m1o = NodeNodeM1O(node_ooo, iy, nx);
+      const index_t node_p1o = NodeNodeM1O(node_ooo, iy, nx);
+      const index_t node_om1 = NodeNodeOM1(node_ooo, iy, nx);
+      const index_t node_op1 = NodeNodeOP1(node_ooo, iy, nx);
+
+      const index_t cellm1m1 = NodeCellM1M1(node_ooo, iy, nx);
+      const index_t cellm1p1 = NodeCellM1P1(node_ooo, iy, nx);
+      const index_t cellp1m1 = NodeCellM1M1(node_ooo, iy, nx);
+      const index_t cellp1p1 = NodeCellM1P1(node_ooo, iy, nx);
+
+      const index_t facexm1m1 = NodeFaceXM1M1(node_ooo, iy, nx);
+      const index_t facexm1p1 = NodeFaceXM1P1(node_ooo, iy, nx);
+      const index_t facexoom1 = NodeFaceXOOM1(node_ooo, iy, nx);
+      const index_t facexoop1 = NodeFaceXOOP1(node_ooo, iy, nx);
+      const index_t facexp1m1 = NodeFaceXM1M1(node_ooo, iy, nx);
+      const index_t facexp1p1 = NodeFaceXM1P1(node_ooo, iy, nx);
+      const index_t faceym1p1 = NodeFaceYM1P1(node_ooo, iy, nx);
+      const index_t faceym1oo = NodeFaceYM1OO(node_ooo, iy, nx);
+      const index_t faceym1m1 = NodeFaceYM1M1(node_ooo, iy, nx);
+      const index_t faceyp1p1 = NodeFaceYM1P1(node_ooo, iy, nx);
+      const index_t faceyp1oo = NodeFaceYM1OO(node_ooo, iy, nx);
+      const index_t faceyp1m1 = NodeFaceYM1M1(node_ooo, iy, nx);
+
+#include "direct_projection_nodal_o2_2d_computation.h"
+
+      out_variable[node_ooo] = out_nodal_variable ;
+    }
+  } // end X boundary 
+
+
+  //ymin
+  for (index_t iy = 0; iy < halo_width; ++iy) {
+    for (index_t ix = halo_width; ix < nx + 1 - halo_width; ++ix) {//problem not vect but boundary 
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+	
+      out_variable[node_ooo] = 0.; 
+
+    }
+  }
+  //ymax
+  for (index_t iy = ny; iy < ny + 1; ++iy) {
+    for (index_t ix = halo_width; ix < nx + 1 - halo_width; ++ix) {//problem not vect but boundary 
+
+      const index_t node_ooo = ((nx + 1) * iy) + ix;
+	
+      out_variable[node_ooo] = 0.; 
+
+    } // end Y boundary
+  }
+
+  //corners
+  {
+    const index_t node_cmm = 0;
+    const index_t node_cpm = nx;
+    const index_t node_cmp = ny * (nx + 1) ;
+    const index_t node_cpp = (nx + 1) * (ny + 1) - 1;
+    out_variable[node_cmm] = 0.;
+    out_variable[node_cpm] = 0.;
+    out_variable[node_cpp] = 0.;
+    out_variable[node_cmp] = 0.;
+  }
+
+} // end  ProjectNodalIntensiveVariableOrder2UyWallBoundaryDirect

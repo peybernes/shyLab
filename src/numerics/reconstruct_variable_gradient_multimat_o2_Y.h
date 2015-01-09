@@ -32,7 +32,7 @@ if ( (d_vol_2_om2 == 0) && (d_vol_2_om1 == 0) && (d_vol_2_op1 == 0) && (d_vol_2_
   const RealType grad_1_op1 = (variable_1_op1 - variable_1_ooo ) /
     (dx + (d_vol_1_op2 - d_vol_1_om1) / dy);
 
-  limited_grad_variable_1 = MinmodLimiter(grad_1_om1, grad_1_op1);
+  limited_grad_variable_1 = VanLeerLimiter(grad_1_om1, grad_1_op1);
 
  } else {
 
@@ -47,7 +47,7 @@ if ( (d_vol_1_om2 == 0) && (d_vol_1_om1 == 0) && (d_vol_1_op1 == 0) && (d_vol_1_
   const RealType grad_2_op1 = (variable_2_op1 - variable_2_ooo ) /
     (dx + (d_vol_2_op2 - d_vol_2_om1) / dy);
 
-  limited_grad_variable_2 = MinmodLimiter(grad_2_om1, grad_2_op1);
+  limited_grad_variable_2 = VanLeerLimiter(grad_2_om1, grad_2_op1);
 
  } else {
 

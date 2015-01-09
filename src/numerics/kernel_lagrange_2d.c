@@ -8,25 +8,27 @@
 #include <cstdio>
 #include <algorithm>
 
-RealType TimeStep(int nx,
-		  int ny,
-		  const RealType dx,
-		  const RealType dy,
-		  const RealType CFL,
-		  const RealType gamma,
-		  const RealType pi,
-		  const RealType* RESTRICT density,
-		  const RealType* RESTRICT pressure,
-		  const RealType* RESTRICT in_velocity_x,
-		  const RealType* RESTRICT in_velocity_y) {
+RealType TimeStepSGPC(int nx,
+		      int ny,
+		      const RealType dx,
+		      const RealType dy,
+		      const RealType CFL,
+		      const RealType gamma,
+		      const RealType pi,
+		      const RealType* RESTRICT density,
+		      const RealType* RESTRICT pressure,
+		      const RealType* RESTRICT in_velocity_x,
+		      const RealType* RESTRICT in_velocity_y) {
   RealType max_velocity = 0.0;
-  
+  RealType fluid_velocity = 0.0;
+  RealType total_velocity = 0.0;
+
   #pragma omp parallel 
   {
     //    #pragma omp for reduction(max:max_velocity) nowait
     for (int iy = 0; iy < ny + 1; ++iy) {
       for (int ix = 0; ix < nx + 1; ++ix) {
-	max_velocity = std::max(max_velocity,in_velocity_x[iy * (nx + 1) + ix]);
+	fluid_velocity = std::max(fluid_velocity,fabs(in_velocity_x[iy * (nx + 1) + ix]));
       }
     }
 
@@ -34,7 +36,7 @@ RealType TimeStep(int nx,
     //    #pragma omp for reduction(max:max_velocity) nowait
     for (int iy = 0; iy < ny + 1; ++iy) {
       for (int ix = 0; ix < nx + 1; ++ix) {
-	max_velocity =  std::max(max_velocity,in_velocity_y[iy * (nx + 1) + ix]);
+	fluid_velocity =  std::max(fluid_velocity,fabs(in_velocity_y[iy * (nx + 1) + ix]));
       }
     }
 
@@ -45,7 +47,8 @@ RealType TimeStep(int nx,
 	const RealType	p_ooo = pressure[iy * nx + ix];
 	const RealType rho_ooo =  density[iy * nx + ix];
 	const RealType speed_of_sound = SpeedOfSound(gamma, rho_ooo, p_ooo, pi);
-	max_velocity =  std::max(max_velocity,speed_of_sound);
+	total_velocity =  fluid_velocity + speed_of_sound;
+	max_velocity =  std::max(max_velocity,total_velocity);
       }
     }
   }
@@ -148,6 +151,8 @@ void LagrangePressurePredictedOptimised(int nx,
 					const RealType* RESTRICT in_energy,	 
 					const RealType* RESTRICT in_velocity_x,
 					const RealType* RESTRICT in_velocity_y,
+					const RealType* RESTRICT in_X_x,
+					const RealType* RESTRICT in_X_y,
 					RealType* RESTRICT out_pressure,
 					RealType* RESTRICT out_predicted_pressure,
 					RealType* RESTRICT out_pseudo_pressure) {
@@ -189,20 +194,45 @@ void LagrangePressurePredictedOptimised(int nx,
 
       const RealType e_ooo = in_energy[cell_ooo];
       
+      const RealType node_SW_x = in_X_x[node_SW];
+      const RealType node_SW_y = in_X_y[node_SW];
+      const RealType node_SE_x = in_X_x[node_SE];
+      const RealType node_SE_y = in_X_y[node_SE];
+      const RealType node_NW_x = in_X_x[node_NW];
+      const RealType node_NW_y = in_X_y[node_NW];
+      const RealType node_NE_x = in_X_x[node_NE];
+      const RealType node_NE_y = in_X_y[node_NE];
+
       // END DATA LOAD.
 
       // BEGIN COMPUTE.
-      
-      const RealType rho_ooo = one_over_dx * one_over_dy * mass_ooo; // 2 MUL
+
+      const RealType volume_cell = 0.5*fabs(((node_NE_x-node_SW_x)*(node_NW_y-node_SE_y) - (node_NE_y-node_SW_y)*(node_NW_x-node_SE_x)));
+
+      const RealType node_SW_pred_x = node_SW_x + ux_sw * half * dt;
+      const RealType node_SW_pred_y = node_SW_y + uy_sw * half * dt;
+      const RealType node_SE_pred_x = node_SE_x + ux_se * half * dt;
+      const RealType node_SE_pred_y = node_SE_y + uy_se * half * dt;
+      const RealType node_NW_pred_x = node_NW_x + ux_nw * half * dt;
+      const RealType node_NW_pred_y = node_NW_y + uy_nw * half * dt;
+      const RealType node_NE_pred_x = node_NE_x + ux_ne * half * dt;
+      const RealType node_NE_pred_y = node_NE_y + uy_ne * half * dt;
+
+      const RealType volume_cell_predicted = 0.5*fabs(((node_NE_pred_x-node_SW_pred_x)*(node_NW_pred_y-node_SE_pred_y) - (node_NE_pred_y-node_SW_pred_y)*(node_NW_pred_x-node_SE_pred_x)));
+
+      //      const RealType rho_ooo = one_over_dx * one_over_dy * mass_ooo; // 2 MUL
+      const RealType rho_ooo = mass_ooo / volume_cell; // 2 MUL
       const RealType one_over_rho_ooo = one / rho_ooo; // 1 DIV
+      const RealType one_over_mass_ooo = one / mass_ooo; // 1 DIV
 
       const RealType p_ooo = EquationOfState(gamma, rho_ooo, e_ooo, pi); // 1 MUL, 1 FMA
       
       const RealType delta_ux = half * ((ux_se + ux_ne) - (ux_sw + ux_nw)); // 2 ADD, 1 FMA
       const RealType delta_uy = half * ((uy_nw + uy_ne) - (uy_sw + uy_se)); // 2 ADD, 1 FMA
       
-      const RealType delta_volume = half * dt * (delta_ux * dy + delta_uy * dx); // 3 MUL, 1 FMA
-      
+      //const RealType delta_volume_ooo = half * dt * (delta_ux * dy + delta_uy * dx); // 3 MUL, 1 FMA
+      const RealType delta_volume_ooo = volume_cell_predicted - volume_cell;
+
       const RealType delta_velocity = delta_ux + delta_uy; // 1 ADD
 
       // Formulas below valid for perfect gas law and stiffened gas.
@@ -217,15 +247,16 @@ void LagrangePressurePredictedOptimised(int nx,
       const RealType q_ooo = rho_ooo * delta_velocity_minus * 
 	((linear_pseudo_coeff * cs) + (quadratic_pseudo_coeff * delta_velocity_minus)); // 3 MUL, 1 FMA
       
-      const RealType div_u_ooo =
-	(one_over_dx * delta_ux + one_over_dy * delta_uy); // 1 MUL, 1 FMA
+      //const RealType div_u_ooo =
+      //(one_over_dx * delta_ux + one_over_dy * delta_uy); // 1 MUL, 1 FMA
+
+      const RealType e_predicted_ooo = e_ooo 
+	- half * (p_ooo + q_ooo) * delta_volume_ooo * one_over_mass_ooo; // 1 FMA, 3 MUL, 1 ADD
       
-      const RealType e_lag_ooo = e_ooo 
-	- half * dt * (p_ooo + q_ooo) * div_u_ooo * one_over_rho_ooo; // 1 FMA, 3 MUL, 1 ADD
+      //const RealType predicted_rho_ooo = mass_ooo / (dx * dy + delta_volume_ooo); // 1 DIV, 1 FMA
+      const RealType predicted_rho_ooo = mass_ooo / volume_cell_predicted; // 1 DIV, 1 FMA
       
-      const RealType predicted_rho_ooo = mass_ooo / (dx * dy + delta_volume); // 1 DIV, 1 FMA
-      
-      const RealType out_predicted_p_ooo = EquationOfState(gamma, predicted_rho_ooo, e_lag_ooo, pi); // 1 MUL, 1 FMA
+      const RealType out_predicted_p_ooo = EquationOfState(gamma, predicted_rho_ooo, e_predicted_ooo, pi); // 1 MUL, 1 FMA
 
       // END COMPUTE.
       // Summary : 7 ADD, 17 MUL, 9 FMA, 2 DIV, 1 ABS, 1 SQRT
@@ -244,7 +275,6 @@ void LagrangePressurePredictedOptimised(int nx,
     //likwid_markerStopRegion("Lagrange_pressure_predicted_opt");
   }
 }
-
 
 void LagrangeVelocityPredicted(int nx,
 			       int ny,
@@ -358,6 +388,8 @@ void LagrangeCorrectionOptimised(int nx,
 				 const RealType* RESTRICT in_pseudo_pressure,
 				 const RealType* RESTRICT in_velocity_x,
 				 const RealType* RESTRICT in_velocity_y,
+				 const RealType* RESTRICT in_X_x,
+				 const RealType* RESTRICT in_X_y,
 				 RealType* RESTRICT out_energy) {
 
   const RealType one = 1.0;
@@ -398,14 +430,38 @@ void LagrangeCorrectionOptimised(int nx,
 
       const RealType half = 0.5;
       
+      const RealType node_SW_x = in_X_x[node_SW];
+      const RealType node_SW_y = in_X_y[node_SW];
+      const RealType node_SE_x = in_X_x[node_SE];
+      const RealType node_SE_y = in_X_y[node_SE];
+      const RealType node_NW_x = in_X_x[node_NW];
+      const RealType node_NW_y = in_X_y[node_NW];
+      const RealType node_NE_x = in_X_x[node_NE];
+      const RealType node_NE_y = in_X_y[node_NE];
+
+      const RealType volume_cell = 0.5*fabs(((node_NE_x-node_SW_x)*(node_NW_y-node_SE_y) - (node_NE_y-node_SW_y)*(node_NW_x-node_SE_x)));
+
+      const RealType node_SW_lag_x = node_SW_x + ux_sw * dt;
+      const RealType node_SW_lag_y = node_SW_y + uy_sw * dt;
+      const RealType node_SE_lag_x = node_SE_x + ux_se * dt;
+      const RealType node_SE_lag_y = node_SE_y + uy_se * dt;
+      const RealType node_NW_lag_x = node_NW_x + ux_nw * dt;
+      const RealType node_NW_lag_y = node_NW_y + uy_nw * dt;
+      const RealType node_NE_lag_x = node_NE_x + ux_ne * dt;
+      const RealType node_NE_lag_y = node_NE_y + uy_ne * dt;
+
+      const RealType volume_cell_lag = 0.5*fabs(((node_NE_lag_x-node_SW_lag_x)*(node_NW_lag_y-node_SE_lag_y) - (node_NE_lag_y-node_SW_lag_y)*(node_NW_lag_x-node_SE_lag_x)));
+
       const RealType one_over_mass_ooo = one / mass_ooo; // 1 DIV
 
-      const RealType div_u_ooo = half * // 3 MUL, 6 ADD
-      (one_over_dx * (ux_se + ux_ne - ux_sw - ux_nw) +
-       one_over_dy * (uy_nw + uy_ne - uy_sw - uy_se));
+      const RealType delta_volume_ooo = volume_cell_lag - volume_cell;
+
+      //const RealType div_u_ooo = half * // 3 MUL, 6 ADD
+      //(one_over_dx * (ux_se + ux_ne - ux_sw - ux_nw) +
+      // one_over_dy * (uy_nw + uy_ne - uy_sw - uy_se));
       
       const RealType e_lag_ooo = e_ooo // 2 MUL, 4 ADD
-	- dt * (p_ooo + q_ooo) * div_u_ooo * dx * dy * one_over_mass_ooo;
+	- (p_ooo + q_ooo) * delta_volume_ooo * one_over_mass_ooo;
       
       out_energy[cell_ooo] = e_lag_ooo;
 
@@ -664,7 +720,7 @@ void WallBoundaryVelocityPrediction(int nx,
     const int cell_SW  = cell_NW;
     const int cell_SE  = cell_NE;
 
-#include "kernel_lagrange_velocity.h"
+#include "kernel_lagrange_velocity_optimised.h"
 
     out_velocity_x[node_ooo] = out_u_x; 
 
@@ -679,7 +735,7 @@ void WallBoundaryVelocityPrediction(int nx,
     const int cell_NW  = cell_SW;
     const int cell_NE  = cell_SE;
 
-#include "kernel_lagrange_velocity.h"
+#include "kernel_lagrange_velocity_optimised.h"
 
     out_velocity_x[node_ooo] = out_u_x; 
 
@@ -705,7 +761,7 @@ void WallBoundaryVelocityPrediction(int nx,
     const int cell_SW  = cell_SE;
     const int cell_NW  = cell_NE;
 
-#include "kernel_lagrange_velocity.h"
+#include "kernel_lagrange_velocity_optimised.h"
 
     out_velocity_y [node_ooo] = out_u_y;
  }
@@ -719,7 +775,7 @@ void WallBoundaryVelocityPrediction(int nx,
     const int cell_SE  = cell_SW;
     const int cell_NE  = cell_NW;
 
-#include "kernel_lagrange_velocity.h"
+#include "kernel_lagrange_velocity_optimised.h"
 
     out_velocity_y [node_ooo] = out_u_y;
  }

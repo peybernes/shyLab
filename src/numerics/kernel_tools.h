@@ -35,6 +35,14 @@
 /* #endif */
 
 
+// Epsilons for projection multimat interface
+#define epsilon_check 1.0e-6
+#define epsilon_proj 1.0e-8
+#define epsilon_dvol_fraction 0.
+#define epsilon_face 1.0e-6
+#define epsilon_corner (epsilon_face) * (epsilon_face)
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,8 +50,9 @@ extern "C" {
   static inline RealType EquationOfState(RealType gamma, RealType rho, RealType e, RealType pi) {
     
     const RealType one = 1.0;
-    
-    return  (gamma - one) * rho * e - pi;
+    const RealType p = (gamma - one) * rho * e - pi;
+
+    return std::max(p,0.0);
   
   }
  
@@ -57,6 +66,15 @@ extern "C" {
     
   }
  
+
+  static inline RealType EnergyEOS(RealType gamma, RealType rho, RealType p, RealType pi) {
+    
+    const RealType one = 1.0;
+    
+    return  (p + pi) / ((gamma - one) * rho);
+  
+  }
+
 
   static inline RealType SpeedOfSound(RealType gamma, RealType rho, RealType p, RealType pi) {
         
@@ -74,18 +92,28 @@ extern "C" {
 
   static inline RealType MinmodLimiter(RealType a, RealType b) {
 
-    return (a < 0 ? -1.0 : 1.0 ) * (a * b > 0) * std::min(fabs(a),fabs(b));
+   return (a < 0 ? -1.0 : 1.0 ) * (a * b > 0) * std::min(fabs(a),fabs(b));
 
+  }
+
+  static inline RealType VanLeerLimiter(RealType a, RealType b) {
+
+   const RealType epsilon = 1.0e-14;
+
+   return (a * b + fabs(a) * fabs(b)) * ((a * a + b * b) > 0.) / (a + b + epsilon);
+   //return 0.;
+ 
   }
 
   /// Van Albada limiter (reference : Nishikawa 2008, carbuncle free solver)
   static inline RealType VanAlbadaLimiter(RealType a, RealType b) {
   
-    const RealType epsilon = 1.0e-14;
-    const RealType two = 2.0;
+   const RealType epsilon = 1.0e-14;
+   const RealType two = 2.0;
     
-    return ( ((a * b) * (a + b )) * ((a * a + b * b) > 0.) / (a * a + b * b + epsilon) );
-	//return 0.;
+   return ( ((a * b) * (a + b )) * ((a * a + b * b) > 0.) / (a * a + b * b + epsilon) );
+   //return 0.;
+
   }
 
   /// Van Leer kappa scheme

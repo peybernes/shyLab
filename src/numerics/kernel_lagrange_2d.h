@@ -7,17 +7,17 @@ typedef int index_t;
 extern "C" {
 #endif
 
-RealType TimeStep(int nx,
-		  int ny,
-		  const RealType dx,
-		  const RealType dy,
-		  const RealType CFL,
-		  const RealType gamma,
-		  const RealType pi,
-		  const RealType* density,
-		  const RealType* pressure,
-		  const RealType* in_velocity_x,
-		  const RealType* in_velocity_y);
+RealType TimeStepSGPC(int nx,
+		      int ny,
+		      const RealType dx,
+		      const RealType dy,
+		      const RealType CFL,
+		      const RealType gamma,
+		      const RealType pi,
+		      const RealType* density,
+		      const RealType* pressure,
+		      const RealType* in_velocity_x,
+		      const RealType* in_velocity_y);
 
 
 void LagrangePressurePredicted(int nx,
@@ -46,6 +46,8 @@ void LagrangePressurePredictedOptimised(int nx,
 					const RealType* in_enery,	 
 					const RealType* in_velocity_x,
 					const RealType* in_velocity_y,
+					const RealType* in_X_x,
+					const RealType* in_X_y,
 					RealType* out_pressure,
 					RealType* out_predicted_pressure,
 					RealType* out_pseudo_pressure);
@@ -87,6 +89,8 @@ void LagrangeCorrectionOptimised(int nx,
 				 const RealType* in_pseudo_pressure,
 				 const RealType* in_velocity_x,
 				 const RealType* in_velocity_y,
+				 const RealType* in_X_x,
+				 const RealType* in_X_y,
 				 RealType* out_enery);
 
 

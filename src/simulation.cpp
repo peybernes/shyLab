@@ -10,6 +10,10 @@
 #endif // HAVE_MPI
 #include <numeric>
 #include <string>
+#include <iostream>
+#include <fstream>
+
+using namespace std;
 
 #include <boost/foreach.hpp>
 #include <boost/timer.hpp>
@@ -640,6 +644,25 @@ void Simulation::Run() {
   RealType* energy_flux_2_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
   RealType* energy_flux_2_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
 
+  RealType* reconstructed_density_faces_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
+  RealType* reconstructed_density_faces_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
+  RealType* reconstructed_density_1_faces_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
+  RealType* reconstructed_density_1_faces_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
+  RealType* reconstructed_density_2_faces_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
+  RealType* reconstructed_density_2_faces_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
+
+  RealType* reconstructed_energy_faces_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
+  RealType* reconstructed_energy_faces_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
+  RealType* reconstructed_energy_1_faces_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
+  RealType* reconstructed_energy_1_faces_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
+  RealType* reconstructed_energy_2_faces_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
+  RealType* reconstructed_energy_2_faces_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
+
+  RealType* reconstructed_concentration_faces_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
+  RealType* reconstructed_concentration_faces_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
+
+  RealType* bool_check_fluxes_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
+  RealType* bool_check_fluxes_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
 
   RealType* concentration_flux_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
   RealType* concentration_flux_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
@@ -647,7 +670,7 @@ void Simulation::Run() {
   //  const int ALIGN_BYTES = 64;
 
   // Cell local variables.
-   RealType* predicted_pressure = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* predicted_pressure = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* predicted_pressure_1 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* predicted_pressure_2 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* cell_pseudo_pressure = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
@@ -660,26 +683,173 @@ void Simulation::Run() {
   RealType* density_gradient_y = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* density_1_gradient_y = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* density_2_gradient_y = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* density_gradient_diag = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* density_1_gradient_diag = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* density_2_gradient_diag = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* density_gradient_antidiag = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* density_1_gradient_antidiag = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* density_2_gradient_antidiag = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* energy_gradient = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* energy_1_gradient = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* energy_2_gradient = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* energy_gradient_y = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* energy_1_gradient_y = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* energy_2_gradient_y = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* energy_gradient_diag = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* energy_1_gradient_diag = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* energy_2_gradient_diag = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* energy_gradient_antidiag = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* energy_1_gradient_antidiag = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* energy_2_gradient_antidiag = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* concentration_gradient = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* concentration_gradient_y = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* concentration_gradient_diag = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* concentration_gradient_antidiag = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* interface_normal_x = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* interface_normal_y = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* in_rho_0 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* in_cell_volumic_fraction_0 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
 
   // Node local variables.
   RealType* gradient_v = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
   RealType* gradient_v_y = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+  RealType* gradient_v_diag = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+  RealType* gradient_v_antidiag = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
   RealType* gradient_u = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
   RealType* gradient_u_y = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
-  
+  RealType* gradient_u_diag = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+  RealType* gradient_u_antidiag = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+  RealType* mass_corner_fluxes = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+  RealType* mass_1_corner_fluxes = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+  RealType* mass_2_corner_fluxes = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+  RealType* volume_fluxes_corner = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+  RealType* volume_fluxes_1_corner = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+  RealType* volume_fluxes_2_corner = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+  RealType* energy_flux_corner = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+  RealType* energy_flux_1_corner = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+  RealType* energy_flux_2_corner = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+  RealType* concentration_flux_corner = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+  index_t* sign_x_corner_fluxes = (index_t*) memalign(ALIGN_BYTES, nb_nodes * sizeof(index_t));
+  index_t* sign_y_corner_fluxes = (index_t*) memalign(ALIGN_BYTES, nb_nodes * sizeof(index_t));
+  RealType* in_X_x = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+  RealType* in_X_y = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
+
+  /*
+   // FOR TEST HAAS
+
+  //RealType xC = 57.0;
+  //RealType yC = 4.45;
+  //RealType r = 2.5;
+  //If change, change in file_init --> INIT_MMX/  
+  ifstream file_ini_HAAS("../INIT_MMX/fracs_HAAS.plt", ios::in);
+  if (file_ini_HAAS) {
+    string line;
+    index_t ix, iy;
+    RealType vol_fraction_1, vol_fraction_2;
+    
+    while (getline(file_ini_HAAS,line)) {
+      file_ini_HAAS >> ix >> iy >> vol_fraction_2 >> vol_fraction_1;
+      index_t cell_ooo = (iy - 1) * nx + (ix - 1);
+      in_cell_volumic_fraction[cell_ooo] = vol_fraction_1;
+    }
+    file_ini_HAAS.close();
+  } else {   
+    cout << "Impossible to open INIT FILE !" << endl;
+  }
+  */
+
+
+  /*  
+  // FOR TEST IMPACT ED
+
+  //RealType xC = 5.0;
+  //RealType yC = 0.0;
+  //RealType r = 2.0;
+  //If change, change in file_init --> INIT_MMX/  
+  ifstream file_ini_IMPACT("../INIT_MMX/fracs_IMPACT.plt", ios::in);
+  if (file_ini_IMPACT) {
+    string line;
+    index_t ix, iy;
+    RealType vol_fraction_1, vol_fraction_2, x;
+    
+    while (getline(file_ini_IMPACT,line)) {
+      file_ini_IMPACT >> ix >> iy >> vol_fraction_2 >> vol_fraction_1;
+      index_t cell_ooo = (iy - 1) * nx + (ix - 1);
+      in_cell_volumic_fraction[cell_ooo] = vol_fraction_1;
+      x = (ix - 1) * dx;
+      if ((x < 1.5) || (x == 1.5)) {
+	in_cell_volumic_fraction[cell_ooo] = 1.0;
+      }
+    }
+    file_ini_IMPACT.close();
+  } else {   
+    cout << "Impossible to open INIT FILE !" << endl;
+  }
+  */
+
+
+
+  /*
+  // FOR TEST IMPACT ED SQUARE
+  RealType xC = 5.0;
+  RealType yC = 0.0;
+  RealType r = 2.0;
+  for (index_t ix = 0; ix < nx; ix++) {
+    for (index_t iy = 0; iy < ny; iy++) {
+      index_t cell_ooo = nx * iy + ix;
+      RealType x = ix * dx;
+      RealType y = iy * dy;
+      RealType d = std::max(fabs(x - xC), fabs(y - yC));
+      if ((d < r) || (d == r) || (x < 1.5) || (x == 1.5)) {
+	in_cell_volumic_fraction[cell_ooo] = 1.0;
+      }
+    }
+  }
+  */
+
+  /*
+  // FOR ADVECTION OF A TILTED SQUARE TEST
+  RealType xC = 0.4;
+  RealType yC = 0.4;
+  RealType r = 0.2;
+  for (index_t ix = 0; ix < nx; ix++) {
+    for (index_t iy = 0; iy < ny; iy++) {
+      index_t cell_ooo = nx * iy + ix;
+      RealType x = ix * dx;
+      RealType y = iy * dy;
+      RealType d = fabs(x - xC) + fabs(y - yC);
+      if ((d < r) || (d ==r)) {
+	in_rho[cell_ooo] = 10.;
+	//in_cell_volumic_fraction[cell_ooo] = 1.;
+      }
+    }
+  }
+  */
+
+  /*
+  // FOR ADVECTION OF A CIRCLE TEST
+  RealType xC = 1.4;
+  RealType yC = 1.4;
+  RealType r = 0.2;
+  for (index_t ix = 0; ix < nx; ix++) {
+    for (index_t iy = 0; iy < ny; iy++) {
+      index_t cell_ooo = nx * iy + ix;
+      RealType x = ix * dx;
+      RealType y = iy * dy;
+      RealType d2 = (x - xC) * (x - xC) + (y - yC) * (y - yC);
+      RealType d = std::sqrt(d2);
+      if ((d < r) || (d ==r)) {
+	//in_rho[cell_ooo] = 10.;
+	in_cell_volumic_fraction[cell_ooo] = 1.;
+      }
+    }
+  }
+  */
+
+
 // INIT
 
-//#pragma omp parallel for
+#pragma omp parallel for
   for (int iy = 0; iy < ny; ++iy) {
     for (int ix = 0; ix < nx; ++ix) {
 
@@ -695,7 +865,8 @@ void Simulation::Run() {
 	in_cell_mass[cell_ooo] = in_rho[cell_ooo] * cell_volumes[cell_ooo];
 	out_cell_mass[cell_ooo] = in_cell_mass[cell_ooo];
 
-	in_p[cell_ooo] = EquationOfState(physical_params.gamma, in_rho[cell_ooo], in_e[cell_ooo], physical_params.pi);
+	in_e[cell_ooo] = EnergyEOS(physical_params.gamma, in_rho[cell_ooo], in_p[cell_ooo], physical_params.pi);
+	out_e[cell_ooo] = in_e[cell_ooo];
 
       } else if (numerical_params.TypeOfModel == "MultimaterialMix") {
 	
@@ -707,10 +878,15 @@ void Simulation::Run() {
 	
 	in_cell_mass[cell_ooo] = in_rho[cell_ooo] * cell_volumes[cell_ooo];
 	
-	in_p[cell_ooo] =  EquationOfState(physical_params.gamma_1, in_rho_1[cell_ooo], in_e_1[cell_ooo], physical_params.pi_1);
+	in_e_1[cell_ooo] =  EnergyEOS(physical_params.gamma_1, in_rho_1[cell_ooo], in_p_1[cell_ooo], physical_params.pi_1);
+	out_e_1[cell_ooo] = in_e_1[cell_ooo];	
+	in_e_2[cell_ooo] =  EnergyEOS(physical_params.gamma_2, in_rho_2[cell_ooo], in_p_2[cell_ooo], physical_params.pi_2);
+	out_e_2[cell_ooo] = in_e_2[cell_ooo];
 	
 	in_e[cell_ooo] = in_e_1[cell_ooo] * in_c_1[cell_ooo] + in_e_2[cell_ooo] * in_c_2[cell_ooo];
-	out_e[cell_ooo] = in_e[cell_ooo];	
+	out_e[cell_ooo] = in_e[cell_ooo];
+
+	in_p[cell_ooo] = in_p_1[cell_ooo];
 
       } else if (numerical_params.TypeOfModel == "MultimaterialInterface") {
 	
@@ -718,16 +894,6 @@ void Simulation::Run() {
 	const RealType vol_fraction2 = 1.0 - vol_fraction1;
 	const RealType vol_fraction_1 = vol_fraction1 / (vol_fraction1 + vol_fraction2);
 	const RealType vol_fraction_2 = vol_fraction2 / (vol_fraction1 + vol_fraction2);
-
-	if (vol_fraction_1 == 0.0) {
-	  in_rho_1[cell_ooo] = 0.0;
-	  in_e_1[cell_ooo] = 0.0;
-	}
-
-	if (vol_fraction_2 == 0.0) {
-	  in_rho_2[cell_ooo] = 0.0;
-	  in_e_2[cell_ooo] = 0.0;
-	}
 	
 	in_cell_mass_1[cell_ooo] = in_rho_1[cell_ooo] * cell_volumes[cell_ooo] * vol_fraction_1;
 	out_cell_mass_1[cell_ooo] = in_cell_mass_1[cell_ooo];
@@ -737,19 +903,29 @@ void Simulation::Run() {
 	in_cell_mass[cell_ooo] = in_cell_mass_1[cell_ooo] + in_cell_mass_2[cell_ooo];
 	out_cell_mass[cell_ooo] = in_cell_mass[cell_ooo];
 	
-	in_c_1[cell_ooo] = in_cell_mass_1[cell_ooo] / in_cell_mass[cell_ooo];
-	out_c_1[cell_ooo] = in_c_1[cell_ooo];
-	in_c_2[cell_ooo] = in_cell_mass_2[cell_ooo] / in_cell_mass[cell_ooo];
-	out_c_2[cell_ooo] = in_c_2[cell_ooo];
-	
 	in_rho[cell_ooo] = in_cell_mass[cell_ooo] / cell_volumes[cell_ooo];
 	out_rho[cell_ooo] = in_rho[cell_ooo];
 	
+	in_e_1[cell_ooo] =  EnergyEOS(physical_params.gamma_1, in_rho_1[cell_ooo], in_p_1[cell_ooo], physical_params.pi_1);
+	out_e_1[cell_ooo] = in_e_1[cell_ooo];	
+	in_e_2[cell_ooo] =  EnergyEOS(physical_params.gamma_2, in_rho_2[cell_ooo], in_p_2[cell_ooo], physical_params.pi_2);
+	out_e_2[cell_ooo] = in_e_2[cell_ooo];
+
+	if (vol_fraction_1 == 0.0) {
+	  in_rho_1[cell_ooo] = 0.0;
+	  in_e_1[cell_ooo] = 0.0;
+	  in_p_1[cell_ooo] = 0.0;
+	}
+
+	if (vol_fraction_2 == 0.0) {
+	  in_rho_2[cell_ooo] = 0.0;
+	  in_e_2[cell_ooo] = 0.0;
+	  in_p_2[cell_ooo] = 0.0;
+	}
+
 	in_e[cell_ooo] = ( in_e_1[cell_ooo] * in_cell_mass_1[cell_ooo] + in_e_2[cell_ooo] * in_cell_mass_2[cell_ooo] ) / in_cell_mass[cell_ooo];
 	out_e[cell_ooo] = in_e[cell_ooo];
-	
-	in_p_1[cell_ooo] = EquationOfState(physical_params.gamma_1, in_rho_1[cell_ooo], in_e_1[cell_ooo], physical_params.pi_1);
-	in_p_2[cell_ooo] = EquationOfState(physical_params.gamma_2, in_rho_2[cell_ooo], in_e_2[cell_ooo], physical_params.pi_2);
+
 	in_p[cell_ooo] = in_p_1[cell_ooo] * vol_fraction_1 + in_p_2[cell_ooo] * vol_fraction_2;
 	
       } else {
@@ -757,7 +933,8 @@ void Simulation::Run() {
 	in_cell_mass[cell_ooo] = in_rho[cell_ooo] * cell_volumes[cell_ooo];
 	out_cell_mass[cell_ooo] = in_cell_mass[cell_ooo];
 
-	in_p[cell_ooo] = EquationOfState(physical_params.gamma, in_rho[cell_ooo], in_e[cell_ooo], physical_params.pi);
+	in_e[cell_ooo] = EnergyEOS(physical_params.gamma, in_rho[cell_ooo], in_p[cell_ooo], physical_params.pi);
+	out_e[cell_ooo] = in_e[cell_ooo];
 
       }	
             
@@ -781,8 +958,18 @@ void Simulation::Run() {
       v_lag[node_ooo] = 0.0;
       gradient_u[node_ooo] = 0.0;
       gradient_v[node_ooo] = 0.0;
+      in_X_x[node_ooo] = m_grid.xmin() + ix * dx ; 
+      in_X_y[node_ooo] = m_grid.xmin() + iy * dy ;
     }
   }
+
+  //For computation of the L2 error
+#pragma omp parallel for
+  for (index_t cell = 0; cell < nx * ny; cell++) {
+    in_rho_0[cell] = in_rho[cell];
+    in_cell_volumic_fraction_0[cell] = in_cell_volumic_fraction[cell];
+  }
+
 
   std::vector<RealType> time_compressible_euler_physical_to_conservative_0;
   std::vector<RealType> time_compressible_euler_fv_uw_kappa_2d_x_0;
@@ -835,6 +1022,7 @@ void Simulation::Run() {
 
   //likwid_markerInit(); //init
   //likwid_markerThreadInit(); //init for deamon access and/or multithread profiling
+    index_t ret = 0;
 
   while (!timetable.IsFinished(clock)) {
     
@@ -842,7 +1030,121 @@ void Simulation::Run() {
       std::cerr << "\n"
 		<< "Time " << clock.time() << ", iteration " << clock.iter()
 		<< "\n";
+
+
+    /*   
+    //FOR TEST ADVECTION RETURN ONLY
+    if (clock.time() < 0.2399) {
+      for (index_t node = 0; node < nb_nodes; node++) {
+	in_u[node] = 5.;
+	in_v[node] = 5.;
+      }
+    } else {
+      for (index_t node = 0; node < nb_nodes; node++) {
+	in_u[node] = -5.;
+	in_v[node] = -5.;
+      }
+    }      
+
+    for (index_t cell = 0; cell < nb_cells; cell++) {
+      in_p[cell] = 1.;
+      in_e[cell] = EnergyEOS(physical_params.gamma, in_rho[cell], in_p[cell], physical_params.pi);
+    }
+
+    if ((clock.time() > 0.2399) && (ret == 0)) {
+      for (index_t node = 0; node < nb_nodes; node++) {
+	in_u[node] = - in_u[node];
+	in_v[node] = - in_v[node];
+	ret = 1;
+      }
+    }      
+   */ 
+
     
+    /*    
+    //FOR TEST SOLID ROTATION ONLY
+    RealType x0 = 2.0;
+    RealType y0 = 2.0;
+    RealType omega0 = 2 * PI * 1000 * 100;
+    for (index_t ix = 0; ix < nx + 1; ix++) {
+      for (index_t iy = 0; iy < ny + 1; iy++) {
+	index_t node_ooo = (nx + 1) * iy + ix;
+	RealType x = ix * dx;
+	RealType y = iy * dy;
+	in_u[node_ooo] = - (y - y0) * omega0;
+	in_v[node_ooo] = (x - x0) * omega0;
+      }
+    }
+
+    for (index_t ix = 0; ix < nx; ix++) {
+      { index_t iy = 0;
+	index_t cell_ooo = nx * iy + ix;
+	in_rho[cell_ooo] = 0.1;
+      }
+      { index_t iy = 1;
+	index_t cell_ooo = nx * iy + ix;
+	in_rho[cell_ooo] = 0.1;
+      }
+      { index_t iy = ny - 1;
+	index_t cell_ooo = nx * iy + ix;
+	in_rho[cell_ooo] = 0.1;
+      }
+      { index_t iy = ny - 2;
+	index_t cell_ooo = nx * iy + ix;
+	in_rho[cell_ooo] = 0.1;
+      }
+    }
+    for (index_t iy = 0; iy < ny; iy++) {
+      { index_t ix = 0;
+	index_t cell_ooo = nx * iy + ix;
+	in_rho[cell_ooo] = 0.1;
+      }
+      { index_t ix = 1;
+	index_t cell_ooo = nx * iy + ix;
+	in_rho[cell_ooo] = 0.1;
+      }
+      { index_t ix = nx - 1;
+	index_t cell_ooo = nx * iy + ix;
+	in_rho[cell_ooo] = 0.1;
+      }
+      { index_t ix = nx - 2;
+	index_t cell_ooo = nx * iy + ix;
+	in_rho[cell_ooo] = 0.1;
+      }
+    }
+    in_u[0] = 0.;
+    in_v[0] = 0.;
+    //in_rho[0] = 0.1;
+    in_u[nx] = 0.;
+    in_v[nx] = 0.;
+    //in_rho[nx - 1] = 0.1;
+    in_u[(nx + 1) * ny] = 0.;
+    in_v[(nx + 1) * ny] = 0.;
+    //in_rho[nx * (ny - 1)] = 0.1;
+    in_u[(nx + 1) * ny + nx] = 0.;
+    in_v[(nx + 1) * ny + nx] = 0.;
+    //in_rho[nx * ny - 1] = 0.1;
+
+    for (index_t cell = 0; cell < nb_cells; cell++) {
+      in_p_2[cell] = 1.0e5*10;
+      in_e_2[cell] = EnergyEOS(physical_params.gamma_2, in_rho_2[cell], in_p_2[cell], physical_params.pi_2);
+    }
+    */       
+
+    
+    /*
+    // FOR TEST IMPACT ED DEBUG
+    RealType M_1_tot = 0.0;
+    RealType M_2_tot = 0.0;
+    RealType M_tot = 0.0;   
+ 
+    for (index_t cell = 0; cell < nb_cells; cell++) {
+      M_1_tot = M_1_tot + in_cell_mass_1[cell];
+      M_2_tot = M_2_tot + in_cell_mass_2[cell];
+      M_tot = M_tot + in_cell_mass[cell];
+    }
+    printf("\nM1 = %f,   M2 = %f,   M_tot = %f \n\n",M_1_tot,M_2_tot,M_tot); 
+    */
 
     // // Pack halo exchange data.
     // for (int i = 0; i < nb_processes; ++i)
@@ -879,18 +1181,23 @@ void Simulation::Run() {
 
     // Arbitrary. Should be computed using CFL constraint,
     RealType dt;
-
+	
     struct timespec time1;
     struct timespec time2;
 
     if (m_grid.dimension() == 2) {
-      
-      
 
       clock_gettime(CLOCK_REALTIME, &time1);
-      dt = TimeStep(nx, ny, dx, dy, numerical_params.CFL, physical_params.gamma, physical_params.pi, in_rho, in_p, in_u, in_v);
-      clock_gettime(CLOCK_REALTIME, &time2);
-      time_time_step.push_back(diff(time1, time2)); 
+ 
+     if ((numerical_params.TypeOfModel == "MultimaterialMix") || (numerical_params.TypeOfModel == "MultimaterialInterface")) {	
+       dt = TimeStepSGPCMultimat(nx, ny, dx, dy, numerical_params.CFL, physical_params.gamma_1, physical_params.gamma_1, physical_params.pi_1, physical_params.pi_1, in_rho_1, in_rho_2, in_p_1, in_p_2, in_cell_volumic_fraction, in_u, in_v);
+
+      } else {
+       dt = TimeStepSGPC(nx, ny, dx, dy, numerical_params.CFL, physical_params.gamma, physical_params.pi, in_rho, in_p, in_u, in_v);
+      }
+
+     clock_gettime(CLOCK_REALTIME, &time2);
+     time_time_step.push_back(diff(time1, time2)); 
 
       std::cerr << "CFL : " << numerical_params.CFL << "\n"; 
       std::cerr << "          dt = " << dt << "\n";
@@ -937,6 +1244,8 @@ void Simulation::Run() {
 		       e_2_lag,
 		       u_lag,
 		       v_lag,
+		       in_X_x,
+		       in_X_y,
 		       // timing
 		       time_lagrange_pressure_predicted,
 		       time_lagrange_velocity_predicted,
@@ -1357,29 +1666,41 @@ void Simulation::Run() {
 				 numerical_params.TypeOfModel,
 				 nx,
 				 ny,
+				 nb_faces_x,
+				 nb_faces_y,
+				 nb_cells,
+				 nb_nodes,
 				 dx,
 				 dy,
 				 dt,
 				 halo_width,
 				 physical_params.gamma_1,
 				 physical_params.gamma_2,
+				 physical_params.pi_1,
+				 physical_params.pi_2,
 				 predicted_u,
 				 predicted_v,
-				 cell_volumes,
-				 //out
 				 e_lag,
+				 e_1_lag,
+				 e_2_lag,
 				 u_lag,
 				 v_lag,
-				 in_u,
-				 in_v,
-				 in_e,
+				 in_rho_1,
+				 in_rho_2,
 				 in_cell_mass,
+				 in_cell_mass_1,
+				 in_cell_mass_2,
 				 in_c_1,
 				 in_c_2,
+				 in_cell_volumic_fraction,
+				 cell_volumes,
+				 // out
 				 out_u,
 				 out_v,
 				 out_e,
 				 out_cell_mass,
+				 out_cell_mass_1,
+				 out_cell_mass_2,
 				 out_e_1,
 				 out_e_2,
 				 out_rho,
@@ -1387,28 +1708,57 @@ void Simulation::Run() {
 				 out_rho_2,
 				 out_c_1,
 				 out_c_2,
+				 out_cell_volumic_fraction,
 				 directional_lagrangian_volume,
-				 directional_lagrangian_density,
 				 directional_lagrangian_volume_y,
+				 directional_lagrangian_density,
 				 directional_lagrangian_density_y,
+				 directional_lagrangian_density_1,
+				 directional_lagrangian_density_1_y,
+				 directional_lagrangian_density_2,
+				 directional_lagrangian_density_2_y,
 				 volume_fluxes_x,
 				 volume_fluxes_y,
+				 volume_fluxes_1_x,
+				 volume_fluxes_1_y,
+				 volume_fluxes_2_x,
+				 volume_fluxes_2_y,
 				 mass_flux_x,
 				 mass_flux_y,
+				 mass_flux_1_x,
+				 mass_flux_1_y,
+				 mass_flux_2_x,
+				 mass_flux_2_y,
 				 energy_flux_x,
 				 energy_flux_y,
+				 energy_flux_1_x,
+				 energy_flux_1_y,
+				 energy_flux_2_x,
+				 energy_flux_2_y,
 				 concentration_flux_x,
 				 concentration_flux_y,
-			         density_gradient,
-			         density_gradient_y,
-			         energy_gradient,
-			         energy_gradient_y,
+				 bool_check_fluxes_x,
+				 bool_check_fluxes_y,
+				 density_gradient,
+				 density_gradient_y,
+				 density_1_gradient,
+				 density_1_gradient_y,
+				 density_2_gradient,
+				 density_2_gradient_y,
+				 energy_gradient,
+				 energy_gradient_y,
+				 energy_1_gradient,
+				 energy_1_gradient_y,
+				 energy_2_gradient,
+				 energy_2_gradient_y,
 			         concentration_gradient,
 			         concentration_gradient_y,
 			         gradient_u,
 			         gradient_u_y,
 			         gradient_v,
 			         gradient_v_y,
+				 interface_normal_x,
+				 interface_normal_y,
 				 //timing
 				 time_compute_volume_fluxes_X,
 				 time_gradient_X,
@@ -1429,6 +1779,9 @@ void Simulation::Run() {
 				 time_periodic_boundary);
 		
 	std::swap(in_cell_mass, out_cell_mass); 
+	std::swap(in_cell_mass_1, out_cell_mass_1);
+	std::swap(in_cell_mass_2, out_cell_mass_2);
+	std::swap(in_cell_volumic_fraction, out_cell_volumic_fraction);
 	std::swap(in_u, out_u); 
 	std::swap(in_v, out_v);
 	std::swap(in_e, out_e);
@@ -1440,7 +1793,191 @@ void Simulation::Run() {
 	std::swap(in_rho_1, out_rho_1);
 	std::swap(in_rho_2, out_rho_2);
 
-      }
+      } else if (numerical_params.TypeOfProjection == "DirectProjectionCornerFluxes") {
+
+	// Direct projection 2nd order with corner fluxes
+	DirectProjectionCornerFluxes2dDriver(//in
+					     numerical_params.BoundaryConditions,
+					     numerical_params.TypeOfModel,
+					     nx,
+					     ny,
+					     nb_faces_x,
+					     nb_faces_y,
+					     nb_cells,
+					     nb_nodes,
+					     dx,
+					     dy,
+					     dt,
+					     halo_width,
+					     physical_params.gamma,
+					     physical_params.gamma_1,
+					     physical_params.gamma_2,
+					     physical_params.pi,
+					     physical_params.pi_1,
+					     physical_params.pi_2,
+					     predicted_u,
+					     predicted_v,
+					     e_lag,
+					     e_1_lag,
+					     e_2_lag,
+					     u_lag,
+					     v_lag,
+					     in_rho_1,
+					     in_rho_2,
+					     in_cell_mass,
+					     in_cell_mass_1,
+					     in_cell_mass_2,
+					     in_p,
+					     in_p_1,
+					     in_p_2,
+					     in_c_1,
+					     in_c_2,
+					     in_cell_volumic_fraction,
+					     cell_volumes,
+					     // out
+					     out_u,
+					     out_v,
+					     out_e,
+					     out_cell_mass,
+					     out_cell_mass_1,
+					     out_cell_mass_2,
+					     out_e_1,
+					     out_e_2,
+					     out_rho,
+					     out_rho_1,
+					     out_rho_2,
+					     out_c_1,
+					     out_c_2,
+					     out_cell_volumic_fraction,
+					     directional_lagrangian_volume,
+					     directional_lagrangian_volume_y,
+					     directional_lagrangian_density,
+					     directional_lagrangian_density_y,
+					     directional_lagrangian_density_1,
+					     directional_lagrangian_density_1_y,
+					     directional_lagrangian_density_2,
+					     directional_lagrangian_density_2_y,
+					     volume_fluxes_x,
+					     volume_fluxes_y,
+					     volume_fluxes_corner,
+					     volume_fluxes_1_x,
+					     volume_fluxes_1_y,
+					     volume_fluxes_1_corner,
+					     volume_fluxes_2_x,
+					     volume_fluxes_2_y,
+					     volume_fluxes_2_corner,
+					     mass_flux_x,
+					     mass_flux_y,
+					     mass_flux_1_x,
+					     mass_flux_1_y,
+					     mass_flux_2_x,
+					     mass_flux_2_y,
+					     mass_corner_fluxes,
+					     mass_1_corner_fluxes,
+					     mass_2_corner_fluxes,
+					     sign_x_corner_fluxes,
+					     sign_y_corner_fluxes,
+					     energy_flux_x,
+					     energy_flux_y,
+					     energy_flux_corner,
+					     energy_flux_1_x,
+					     energy_flux_1_y,
+					     energy_flux_1_corner,
+					     energy_flux_2_x,
+					     energy_flux_2_y,
+					     energy_flux_2_corner,
+					     concentration_flux_x,
+					     concentration_flux_y,
+					     concentration_flux_corner,
+					     bool_check_fluxes_x,
+					     bool_check_fluxes_y,
+					     density_gradient,
+					     density_gradient_y,
+					     density_gradient_diag,
+					     density_gradient_antidiag,
+					     density_1_gradient,
+					     density_1_gradient_y,
+					     density_1_gradient_diag,
+					     density_1_gradient_antidiag,
+					     density_2_gradient,
+					     density_2_gradient_y,
+					     density_2_gradient_diag,
+					     density_2_gradient_antidiag,
+					     energy_gradient,
+					     energy_gradient_y,
+					     energy_gradient_diag,
+					     energy_gradient_antidiag,
+					     energy_1_gradient,
+					     energy_1_gradient_y,
+					     energy_1_gradient_diag,
+					     energy_1_gradient_antidiag,
+					     energy_2_gradient,
+					     energy_2_gradient_y,
+					     energy_2_gradient_diag,
+					     energy_2_gradient_antidiag,
+					     concentration_gradient,
+					     concentration_gradient_y,
+					     concentration_gradient_diag,
+					     concentration_gradient_antidiag,
+					     reconstructed_density_faces_x,
+					     reconstructed_density_faces_y,
+					     reconstructed_density_1_faces_x,
+					     reconstructed_density_1_faces_y,
+					     reconstructed_density_2_faces_x,
+					     reconstructed_density_2_faces_y,
+					     reconstructed_energy_faces_x,
+					     reconstructed_energy_faces_y,
+					     reconstructed_energy_1_faces_x,
+					     reconstructed_energy_1_faces_y,
+					     reconstructed_energy_2_faces_x,
+					     reconstructed_energy_2_faces_y,
+					     reconstructed_concentration_faces_x,
+					     reconstructed_concentration_faces_y,
+					     gradient_u,
+					     gradient_u_y,
+					     gradient_u_diag,
+					     gradient_u_antidiag,
+					     gradient_v,
+					     gradient_v_y,
+					     gradient_v_diag,
+					     gradient_v_antidiag,
+					     interface_normal_x,
+					     interface_normal_y,
+					     //timing
+					     time_compute_volume_fluxes_X,
+					     time_gradient_X,
+					     time_mass_reconstruct_o2_X,
+					     time_project_mass_X,
+					     time_reconstruct_energy_o2_X,
+					     time_project_energy_X,
+					     time_gradient_nodal_X,
+					     time_project_nodal_velocity_X,
+					     time_compute_volume_fluxes_Y,
+					     time_gradient_Y,
+					     time_mass_reconstruct_o2_Y,
+					     time_project_mass_Y,
+					     time_reconstruct_energy_o2_Y,
+					     time_project_energy_Y,
+					     time_gradient_nodal_Y,
+					     time_project_nodal_velocity_Y,
+					     time_periodic_boundary);
+		
+	std::swap(in_cell_mass, out_cell_mass); 
+	std::swap(in_cell_mass_1, out_cell_mass_1);
+	std::swap(in_cell_mass_2, out_cell_mass_2);
+	std::swap(in_cell_volumic_fraction, out_cell_volumic_fraction);
+	std::swap(in_u, out_u); 
+	std::swap(in_v, out_v);
+	std::swap(in_e, out_e);
+	std::swap(in_c_1, out_c_1);
+	std::swap(in_c_2, out_c_2);
+	std::swap(in_e_1, out_e_1);
+	std::swap(in_e_2, out_e_2);
+	std::swap(in_rho, out_rho);
+	std::swap(in_rho_1, out_rho_1);
+	std::swap(in_rho_2, out_rho_2);
+
+      } 
 
 
       // Recompute the density from mass and volume. Only needed for output.
@@ -1523,6 +2060,32 @@ void Simulation::Run() {
     }
   }
 
+
+  // Computation of the L2 error
+  RealType error_L2 = 0.0;
+  RealType norm_rho_exact = 0.0;		 
+  if (numerical_params.TypeOfModel == "Monomaterial") {
+    for (index_t ix = 0; ix < nx; ix++) {
+      for (index_t iy = 0; iy < ny; iy++) {      
+	index_t cell_ooo = nx * iy + ix;
+	error_L2 = error_L2 + (in_rho[cell_ooo] - in_rho_0[cell_ooo]) * (in_rho[cell_ooo] - in_rho_0[cell_ooo]);
+	norm_rho_exact = norm_rho_exact + in_rho_0[cell_ooo] * in_rho_0[cell_ooo];      
+      }
+    }
+  } else if (numerical_params.TypeOfModel == "MultimaterialInterface") {
+    for (index_t ix = 0; ix < nx; ix++) {
+      for (index_t iy = 0; iy < ny; iy++) {      
+	index_t cell_ooo = nx * iy + ix;     
+	error_L2 = error_L2 + (in_cell_volumic_fraction[cell_ooo] - in_cell_volumic_fraction_0[cell_ooo]) * (in_cell_volumic_fraction[cell_ooo] - in_cell_volumic_fraction_0[cell_ooo]);
+	norm_rho_exact = norm_rho_exact + in_cell_volumic_fraction_0[cell_ooo] * in_cell_volumic_fraction_0[cell_ooo];
+      }
+    }
+  }
+  error_L2 = error_L2 / norm_rho_exact;
+  error_L2 = std::sqrt(error_L2);
+  // end Computation of the L2 error
+
+
   //likwid_markerClose(); // stop likwid 
   time = get_time() - time;
 
@@ -1562,9 +2125,9 @@ void Simulation::Run() {
   PrintTimings(time_project_nodal_velocity_Y,    "ProjectNodalIntensiveVariableOrder2Y   ");
 
 
-
   std::cerr << "\n";
 
+  std::cerr << "Error L2: " << error_L2 << "\n";
 
   std::cerr << "\n";
 

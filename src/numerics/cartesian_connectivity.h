@@ -181,13 +181,36 @@ inline index_t NodeNodeP1O(index_t node_oo, index_t iy, index_t nx) {
 }
 inline index_t NodeNodeOM1(index_t node_oo, index_t iy, index_t nx) {
   
-  return node_oo - (nx+ 1);
+  return node_oo - (nx + 1);
 
 }
 
 inline index_t NodeNodeOP1(index_t node_oo, index_t iy, index_t nx) {
   
   return node_oo + (nx + 1);
+
+}
+
+inline index_t NodeNodeM1M1(index_t node_oo, index_t iy, index_t nx) {
+  
+  return node_oo - (nx + 1) - 1;
+
+}
+
+inline index_t NodeNodeP1M1(index_t node_oo, index_t iy, index_t nx) {
+  
+  return node_oo - (nx + 1) + 1;
+
+}
+inline index_t NodeNodeM1P1(index_t node_oo, index_t iy, index_t nx) {
+  
+  return node_oo + (nx + 1) - 1;
+
+}
+
+inline index_t NodeNodeP1P1(index_t node_oo, index_t iy, index_t nx) {
+  
+  return node_oo + (nx + 1) + 1;
 
 }
 

@@ -5,19 +5,22 @@
 	"Clock": { "time": "0.0",
 		   "iteration": "0" },
 
-	"Timetable": { "iend": "999" },
+	"Timetable": { "end": "1.0e-3" },
 	
 	"Grid": { "name": "grid",
-		  "nx": "334",
+		  "nx": "1000",
 		  "ny": "90",
 		  "xmin": "0.0",
-		  "xmax": "33.4",
+		  "xmax": "1.0",
 		  "ymin": "0.0",
-		  "ymax": "8.9" },
+		  "ymax": "0.089" },
 
  	"NumericalParams": { "BoundaryConditions": "Wall",
 			     "TypeOfProjection": "AdProjection",
 			     "TypeOfModel": "MultimaterialInterface" },
+
+ 	"PhysicalParams": { "EOS_gamma_1" : "1.66",
+			    "EOS_gamma_2" : "1.4"  },
 
 	"Variables": {
 
@@ -107,17 +110,11 @@
 	    "InitVariable": { "name": "out_cell_volumic_fraction",
     			      "expression": "in_cell_volumic_fraction" },
 
-	    "InitVariable": { "name": "in_e_1",
-    			      "expression": "1.0" },
+	    "InitVariable": { "name": "in_presssure_1",
+    			      "expression": "1.0e5" },
 
-	    "InitVariable": { "name": "out_e_1",
-    			      "expression": "in_e_1" },
-
-	    "InitVariable": { "name": "in_e_2",
-    			      "expression": "1.0" },
-
-	    "InitVariable": { "name": "out_e_2",
-    			      "expression": "in_e_2" },
+	    "InitVariable": { "name": "in_pressure_2",
+    			      "expression": "1.0e5" },
 
 	    "InitVariable": { "name": "in_u",
     			      "expression": "0.0" },
@@ -125,13 +122,13 @@
 	    "InitVariable": { "name": "out_u",
     			      "expression": "in_u" },
 
-	    "OutputSimulation": { "filename": "tmp/res/sim%i",
-	    			  "Timetable": {"istep": "100"}},
+	    "OutputSimulation": { "filename": "/tmp/resultadi/sim%i",
+	    			  "Timetable": {"istep": "1"}},
 
-	    "OutputCartesianLine": { "filename": "tmp/res/profile%i",
+	    "OutputCartesianLine": { "filename": "/tmp/resultadi/profile%i",
 	    			     "direction": "x",
 	    			     "indice": "4",
-	    			     "Timetable": {"istep": "200"}}
+	    			     "Timetable": {"istep": "1"}}
 
 			      
     	}

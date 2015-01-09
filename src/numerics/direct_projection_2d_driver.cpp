@@ -8,32 +8,48 @@
 
 #include "kernel_tools.h"
 
-void DirectProjection2dDriver(const std::string BoundaryConditions, 
+
+
+void DirectProjection2dDriver(//in
+			      const std::string BoundaryConditions,
 			      const std::string TypeOfModel,
 			      const int nx,
 			      const int ny,
+			      const int nb_faces_x,
+			      const int nb_faces_y,
+			      const int nb_cells,
+			      const int nb_nodes,
 			      const RealType dx,
 			      const RealType dy,
 			      const RealType dt,
 			      const RealType halo_width,
 			      const RealType gamma_1,
 			      const RealType gamma_2,
+			      const RealType pi_1,
+			      const RealType pi_2,
 			      const RealType* RESTRICT predicted_u,
 			      const RealType* RESTRICT predicted_v,
+			      const RealType* RESTRICT e_lag,
+			      const RealType* RESTRICT e_1_lag,
+			      const RealType* RESTRICT e_2_lag,
+			      const RealType* RESTRICT u_lag,
+			      const RealType* RESTRICT v_lag,
+			      const RealType* RESTRICT in_rho_1,
+			      const RealType* RESTRICT in_rho_2,
+			      const RealType* RESTRICT in_cell_mass,
+			      const RealType* RESTRICT in_cell_mass_1,
+			      const RealType* RESTRICT in_cell_mass_2,
+			      const RealType* RESTRICT in_c_1,
+			      const RealType* RESTRICT in_c_2,
+			      const RealType* RESTRICT in_cell_volumic_fraction,
 			      const RealType* RESTRICT cell_volumes,
-			      RealType* RESTRICT e_lag,
-			      RealType* RESTRICT u_lag,
-			      RealType* RESTRICT v_lag,
-			      RealType* RESTRICT in_u,
-			      RealType* RESTRICT in_v,
-			      RealType* RESTRICT in_e,
-			      RealType* RESTRICT in_cell_mass,
-			      RealType* RESTRICT in_c_1,
-			      RealType* RESTRICT in_c_2,
+			      // out
 			      RealType* RESTRICT out_u,
 			      RealType* RESTRICT out_v,
 			      RealType* RESTRICT out_e,
 			      RealType* RESTRICT out_cell_mass,
+			      RealType* RESTRICT out_cell_mass_1,
+			      RealType* RESTRICT out_cell_mass_2,
 			      RealType* RESTRICT out_e_1,
 			      RealType* RESTRICT out_e_2,
 			      RealType* RESTRICT out_rho,
@@ -41,28 +57,57 @@ void DirectProjection2dDriver(const std::string BoundaryConditions,
 			      RealType* RESTRICT out_rho_2,
 			      RealType* RESTRICT out_c_1,
 			      RealType* RESTRICT out_c_2,
+			      RealType* RESTRICT out_cell_volumic_fraction,
 			      RealType* RESTRICT directional_lagrangian_volume,
-			      RealType* RESTRICT directional_lagrangian_density,
 			      RealType* RESTRICT directional_lagrangian_volume_y,
+			      RealType* RESTRICT directional_lagrangian_density,
 			      RealType* RESTRICT directional_lagrangian_density_y,
+			      RealType* RESTRICT directional_lagrangian_density_1,
+			      RealType* RESTRICT directional_lagrangian_density_1_y,
+			      RealType* RESTRICT directional_lagrangian_density_2,
+			      RealType* RESTRICT directional_lagrangian_density_2_y,
 			      RealType* RESTRICT volume_fluxes_x,
 			      RealType* RESTRICT volume_fluxes_y,
+			      RealType* RESTRICT volume_fluxes_1_x,
+			      RealType* RESTRICT volume_fluxes_1_y,
+			      RealType* RESTRICT volume_fluxes_2_x,
+			      RealType* RESTRICT volume_fluxes_2_y,
 			      RealType* RESTRICT mass_flux_x,
 			      RealType* RESTRICT mass_flux_y,
+			      RealType* RESTRICT mass_flux_1_x,
+			      RealType* RESTRICT mass_flux_1_y,
+			      RealType* RESTRICT mass_flux_2_x,
+			      RealType* RESTRICT mass_flux_2_y,
 			      RealType* RESTRICT energy_flux_x,
 			      RealType* RESTRICT energy_flux_y,
+			      RealType* RESTRICT energy_flux_1_x,
+			      RealType* RESTRICT energy_flux_1_y,
+			      RealType* RESTRICT energy_flux_2_x,
+			      RealType* RESTRICT energy_flux_2_y,
 			      RealType* RESTRICT concentration_flux_x,
 			      RealType* RESTRICT concentration_flux_y,
+			      RealType* RESTRICT bool_check_fluxes_x,
+			      RealType* RESTRICT bool_check_fluxes_y,
 			      RealType* RESTRICT density_gradient,
 			      RealType* RESTRICT density_gradient_y,
+			      RealType* RESTRICT density_1_gradient,
+			      RealType* RESTRICT density_1_gradient_y,
+			      RealType* RESTRICT density_2_gradient,
+			      RealType* RESTRICT density_2_gradient_y,
 			      RealType* RESTRICT energy_gradient,
 			      RealType* RESTRICT energy_gradient_y,
+			      RealType* RESTRICT energy_1_gradient,
+			      RealType* RESTRICT energy_1_gradient_y,
+			      RealType* RESTRICT energy_2_gradient,
+			      RealType* RESTRICT energy_2_gradient_y,
 			      RealType* RESTRICT concentration_gradient,
 			      RealType* RESTRICT concentration_gradient_y,
 			      RealType* RESTRICT gradient_u,
 			      RealType* RESTRICT gradient_u_y,
 			      RealType* RESTRICT gradient_v,
 			      RealType* RESTRICT gradient_v_y,
+			      RealType* RESTRICT interface_normal_x,
+			      RealType* RESTRICT interface_normal_y,
 			      //timing
 			      std::vector<RealType>& time_compute_volume_fluxes_X,
 			      std::vector<RealType>& time_gradient_X,
@@ -83,295 +128,25 @@ void DirectProjection2dDriver(const std::string BoundaryConditions,
 			      std::vector<RealType> time_periodic_boundary) {
 
 
-  //for timing
-  struct timespec time_begin;
-  struct timespec time_end;
-  //
-
-  //========================
-  //    Projection _ mass .
-  //========================
+  if (TypeOfModel == "Momomaterial") {
     
-      
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ComputeDirectionalLagrangianQuantitiesX(nx, ny, dt, dx, dy, predicted_u, in_cell_mass,
-					  volume_fluxes_x, directional_lagrangian_volume, directional_lagrangian_density);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_compute_volume_fluxes_X.push_back(diff(time_begin, time_end));
+    DirectProjection2dMonomaterialDriver(BoundaryConditions, nx, ny, dx, dy, dt, halo_width, predicted_u, predicted_v, cell_volumes, e_lag, u_lag, v_lag, in_cell_mass, out_u, out_v, out_e, out_cell_mass, out_rho, directional_lagrangian_volume, directional_lagrangian_volume_y, directional_lagrangian_density, directional_lagrangian_density_y, volume_fluxes_x, volume_fluxes_y, mass_flux_x, mass_flux_y, energy_flux_x, energy_flux_y, density_gradient, density_gradient_y, energy_gradient, energy_gradient_y, gradient_u, gradient_u_y, gradient_v, gradient_v_y, time_compute_volume_fluxes_X, time_gradient_X, time_mass_reconstruct_o2_X, time_project_mass_X, time_reconstruct_energy_o2_X, time_project_energy_X, time_gradient_nodal_X, time_project_nodal_velocity_X, time_compute_volume_fluxes_Y, time_gradient_Y, time_mass_reconstruct_o2_Y, time_project_mass_Y, time_reconstruct_energy_o2_Y, time_project_energy_Y, time_gradient_nodal_Y, time_project_nodal_velocity_Y, time_periodic_boundary);
+
+  } else if (TypeOfModel == "MultimaterialMix") {
     
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ComputeDirectionalLagrangianQuantitiesY(nx, ny, dt, dx, dy, predicted_v, in_cell_mass,
-					  volume_fluxes_y, directional_lagrangian_volume_y, directional_lagrangian_density_y);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_compute_volume_fluxes_Y.push_back(diff(time_begin, time_end));
+    DirectProjection2dMultimaterialMixDriver(BoundaryConditions, nx, ny, dx, dy, dt, halo_width, gamma_1, gamma_2, predicted_u, predicted_v, cell_volumes, e_lag, u_lag, v_lag, in_cell_mass, in_c_1, in_c_2, out_u, out_v, out_e, out_cell_mass, out_e_1,out_e_2, out_rho, out_rho_1, out_rho_2, out_c_1, out_c_2, directional_lagrangian_volume, directional_lagrangian_volume_y, directional_lagrangian_density, directional_lagrangian_density_y, volume_fluxes_x, volume_fluxes_y, mass_flux_x, mass_flux_y, energy_flux_x, energy_flux_y, concentration_flux_x, concentration_flux_y, density_gradient, density_gradient_y, energy_gradient, energy_gradient_y, concentration_gradient, concentration_gradient_y, gradient_u, gradient_u_y, gradient_v, gradient_v_y, time_compute_volume_fluxes_X, time_gradient_X, time_mass_reconstruct_o2_X, time_project_mass_X, time_reconstruct_energy_o2_X, time_project_energy_X, time_gradient_nodal_X, time_project_nodal_velocity_X, time_compute_volume_fluxes_Y, time_gradient_Y, time_mass_reconstruct_o2_Y, time_project_mass_Y, time_reconstruct_energy_o2_Y, time_project_energy_Y, time_gradient_nodal_Y, time_project_nodal_velocity_Y, time_periodic_boundary);
 
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientX(nx, ny, dx, dy, volume_fluxes_x, directional_lagrangian_density,
-		       density_gradient);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_gradient_X.push_back(diff(time_begin, time_end));
+  } else if (TypeOfModel == "MultimaterialInterface") {
 
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientY(nx, ny, dx, dy, volume_fluxes_y, directional_lagrangian_density_y,
-		       density_gradient_y);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_gradient_Y.push_back(diff(time_begin, time_end));   
+    DirectProjection2dMultimaterialInterfaceDriver(BoundaryConditions, nx, ny, nb_faces_x, nb_faces_y, nb_cells, nb_nodes, dx, dy, dt, halo_width, gamma_1, gamma_2, predicted_u, predicted_v, e_lag, e_1_lag, e_2_lag, u_lag, v_lag, in_rho_1, in_rho_2, in_cell_mass, in_cell_mass_1,in_cell_mass_2, in_cell_volumic_fraction, cell_volumes, out_u, out_v, out_e, out_cell_mass, out_cell_mass_1, out_cell_mass_2, out_e_1, out_e_2, out_rho, out_rho_1, out_rho_2, out_cell_volumic_fraction, directional_lagrangian_volume, directional_lagrangian_volume_y, directional_lagrangian_density, directional_lagrangian_density_y, directional_lagrangian_density_1, directional_lagrangian_density_1_y, directional_lagrangian_density_2, directional_lagrangian_density_2_y, volume_fluxes_x, volume_fluxes_y, volume_fluxes_1_x, volume_fluxes_1_y, volume_fluxes_2_x, volume_fluxes_2_y, mass_flux_x, mass_flux_y, mass_flux_1_x, mass_flux_1_y, mass_flux_2_x, mass_flux_2_y, energy_flux_x, energy_flux_y, energy_flux_1_x, energy_flux_1_y, energy_flux_2_x, energy_flux_2_y, bool_check_fluxes_x, bool_check_fluxes_y, density_gradient, density_gradient_y, density_1_gradient, density_1_gradient_y, density_2_gradient, density_2_gradient_y, energy_gradient,  energy_gradient_y, energy_1_gradient, energy_1_gradient_y, energy_2_gradient, energy_2_gradient_y, gradient_u, gradient_u_y, gradient_v, gradient_v_y, interface_normal_x, interface_normal_y, time_compute_volume_fluxes_X, time_gradient_X, time_mass_reconstruct_o2_X, time_project_mass_X, time_reconstruct_energy_o2_X, time_project_energy_X, time_gradient_nodal_X, time_project_nodal_velocity_X, time_compute_volume_fluxes_Y, time_gradient_Y, time_mass_reconstruct_o2_Y, time_project_mass_Y, time_reconstruct_energy_o2_Y, time_project_energy_Y, time_gradient_nodal_Y, time_project_nodal_velocity_Y, time_periodic_boundary);
 
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientXBoundary(BoundaryConditions, nx, ny, dx, dy, volume_fluxes_x, directional_lagrangian_density,
-			       density_gradient);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientYBoundary(BoundaryConditions, nx, ny, dx, dy, volume_fluxes_y, directional_lagrangian_density_y,
-			       density_gradient_y);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
+  } else {
     
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructMassFluxOrder2X(nx,  ny,  halo_width, dx, dy, volume_fluxes_x,
-			     directional_lagrangian_density, density_gradient,
-			     mass_flux_x);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_mass_reconstruct_o2_X.push_back(diff(time_begin, time_end));
+    DirectProjection2dMonomaterialDriver(BoundaryConditions, nx, ny, dx, dy, dt, halo_width, predicted_u, predicted_v, cell_volumes, e_lag, u_lag, v_lag, in_cell_mass, out_u, out_v, out_e, out_cell_mass, out_rho, directional_lagrangian_volume, directional_lagrangian_volume_y, directional_lagrangian_density, directional_lagrangian_density_y, volume_fluxes_x, volume_fluxes_y, mass_flux_x, mass_flux_y, energy_flux_x, energy_flux_y, density_gradient, density_gradient_y, energy_gradient, energy_gradient_y, gradient_u, gradient_u_y, gradient_v, gradient_v_y, time_compute_volume_fluxes_X, time_gradient_X, time_mass_reconstruct_o2_X, time_project_mass_X, time_reconstruct_energy_o2_X, time_project_energy_X, time_gradient_nodal_X, time_project_nodal_velocity_X, time_compute_volume_fluxes_Y, time_gradient_Y, time_mass_reconstruct_o2_Y, time_project_mass_Y, time_reconstruct_energy_o2_Y, time_project_energy_Y, time_gradient_nodal_Y, time_project_nodal_velocity_Y, time_periodic_boundary);
+    
 
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructMassFluxOrder2Y(nx,  ny,  halo_width, dx, dy, volume_fluxes_y, directional_lagrangian_density_y, density_gradient_y,
-			     mass_flux_y);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_mass_reconstruct_o2_Y.push_back(diff(time_begin, time_end));
+  }
   
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructMassFluxOrder2XBoundary(BoundaryConditions, nx,  ny,  halo_width, dx, dy, volume_fluxes_x,
-				     directional_lagrangian_density, density_gradient,
-				     mass_flux_x);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructMassFluxOrder2YBoundary(BoundaryConditions, nx,  ny,  halo_width, dx, dy, volume_fluxes_y, directional_lagrangian_density_y, density_gradient_y,
-				     mass_flux_y);     
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ProjectMassDirect(nx, ny, in_cell_mass, mass_flux_x, mass_flux_y, out_cell_mass);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_project_mass_X.push_back(diff(time_begin, time_end));
-  time_project_mass_Y.push_back(diff(time_begin, time_end));
-
-
-  // ========================
-  //     Projection _ e. (projection of mass*energy then back to e )
-  // ========================
-     
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientX(nx, ny, dx, dy, volume_fluxes_x, e_lag,
-		       energy_gradient);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_gradient_X.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientY(nx, ny, dx, dy, volume_fluxes_y, e_lag,
-		       energy_gradient_y);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_gradient_Y.push_back(diff(time_begin, time_end));
-  
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientXBoundary(BoundaryConditions, nx, ny, dx, dy, volume_fluxes_x, e_lag,
-			       energy_gradient);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientYBoundary(BoundaryConditions, nx, ny, dx, dy, volume_fluxes_y, e_lag,
-			       energy_gradient_y);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-  
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructIntensiveVariableFluxOrder2X(nx, ny, halo_width, dx, dy, volume_fluxes_x, mass_flux_x, e_lag, energy_gradient,
-					  energy_flux_x);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_reconstruct_energy_o2_X.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructIntensiveVariableFluxOrder2Y(nx, ny, halo_width, dx, dy, volume_fluxes_y, mass_flux_y, e_lag, energy_gradient_y,
-					  energy_flux_y);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_reconstruct_energy_o2_Y.push_back(diff(time_begin, time_end));
-  
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructIntensiveVariableFluxOrder2XBoundary(BoundaryConditions, nx, ny, halo_width, dx, dy, volume_fluxes_x, mass_flux_x, e_lag, energy_gradient,
-						  energy_flux_x);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructIntensiveVariableFluxOrder2YBoundary(BoundaryConditions, nx, ny, halo_width, dx, dy, volume_fluxes_y, mass_flux_y, e_lag, energy_gradient_y,
-						  energy_flux_y);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  MassProjectIntensiveVariableDirect(nx, ny, in_cell_mass, e_lag, energy_flux_x, energy_flux_y, out_cell_mass,
-				     out_e);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_project_energy_X.push_back(diff(time_begin, time_end));
-  time_project_energy_Y.push_back(diff(time_begin, time_end));
-
-  
-  // ========================
-  //     Projection _ concentration c_1. (projection of mass*c_1 then back to c_1 )
-  // ========================
-     
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientX(nx, ny, dx, dy, volume_fluxes_x, in_c_1,
-		       concentration_gradient);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_gradient_X.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientY(nx, ny, dx, dy, volume_fluxes_y, in_c_1,
-		       concentration_gradient_y);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_gradient_Y.push_back(diff(time_begin, time_end));
-  
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientXBoundary(BoundaryConditions, nx, ny, dx, dy, volume_fluxes_x, in_c_1,
-			       concentration_gradient);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientYBoundary(BoundaryConditions, nx, ny, dx, dy, volume_fluxes_y, in_c_1,
-			       concentration_gradient_y);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-  
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructIntensiveVariableFluxOrder2X(nx, ny, halo_width, dx, dy, volume_fluxes_x, mass_flux_x, in_c_1, concentration_gradient,
-					  concentration_flux_x);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_reconstruct_energy_o2_X.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructIntensiveVariableFluxOrder2Y(nx, ny, halo_width, dx, dy, volume_fluxes_y, mass_flux_y, in_c_1, concentration_gradient_y,
-					  concentration_flux_y);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_reconstruct_energy_o2_Y.push_back(diff(time_begin, time_end));
-  
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructIntensiveVariableFluxOrder2XBoundary(BoundaryConditions, nx, ny, halo_width, dx, dy, volume_fluxes_x, mass_flux_x, in_c_1, concentration_gradient,
-						  concentration_flux_x);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructIntensiveVariableFluxOrder2YBoundary(BoundaryConditions, nx, ny, halo_width, dx, dy, volume_fluxes_y, mass_flux_y, in_c_1, concentration_gradient_y,
-						  concentration_flux_y);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  MassProjectIntensiveVariableDirect(nx, ny, in_cell_mass, in_c_1, concentration_flux_x, concentration_flux_y, out_cell_mass,
-				     out_c_1);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_project_energy_X.push_back(diff(time_begin, time_end));
-  time_project_energy_Y.push_back(diff(time_begin, time_end));
-
-   
-  // ========================
-  //     Projection _ u.   (projection of mu, then back to u)   
-  // ========================
-        
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientNodalX( nx, ny, dx, dt, predicted_u,  u_lag,
-			     gradient_u);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_gradient_nodal_X.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientNodalY( nx, ny, dy, dt, predicted_v,  u_lag,
-			     gradient_u_y);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_gradient_nodal_Y.push_back(diff(time_begin, time_end));
-  
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientNodalXBoundary(BoundaryConditions, nx, ny, dx, dt, predicted_u,  u_lag, 
-				    gradient_u);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientNodalYBoundary(BoundaryConditions,  nx, ny, dy, dt, predicted_v, u_lag, 
-				    gradient_u_y);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ProjectNodalIntensiveVariableOrder2Direct(nx,  ny,  halo_width, dx, dy, dt, in_cell_mass, out_cell_mass, predicted_u, predicted_v, u_lag, gradient_u, gradient_u_y, mass_flux_x, mass_flux_y,
-					       out_u);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_project_nodal_velocity_X.push_back(diff(time_begin, time_end));
-  time_project_nodal_velocity_Y.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ProjectNodalIntensiveVariableOrder2BoundaryDirect(BoundaryConditions, "project_ux", nx,  ny,  halo_width, dx, dy, dt, in_cell_mass, out_cell_mass, predicted_u, predicted_v, u_lag, gradient_u, gradient_u_y, mass_flux_x, mass_flux_y,
-					       out_u);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-
-
-  // ========================
-  //     Projection _ v.   (projection of mv, then back to v)   
-  // ========================
-        
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientNodalX( nx, ny, dx, dt, predicted_u,  v_lag,
-			     gradient_v);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_gradient_nodal_X.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientNodalY( nx, ny, dy, dt, predicted_v,  v_lag,
-			     gradient_v_y);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_gradient_nodal_Y.push_back(diff(time_begin, time_end));
-  
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientNodalXBoundary(BoundaryConditions, nx, ny, dx, dt, predicted_u,  v_lag, 
-				    gradient_v);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientNodalYBoundary(BoundaryConditions,  nx, ny, dy, dt, predicted_v, v_lag, 
-				    gradient_v_y);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ProjectNodalIntensiveVariableOrder2Direct(nx,  ny,  halo_width, dx, dy, dt, in_cell_mass, out_cell_mass, predicted_u, predicted_v, v_lag, gradient_v, gradient_v_y, mass_flux_x, mass_flux_y,
-					       out_v);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_project_nodal_velocity_X.push_back(diff(time_begin, time_end));
-  time_project_nodal_velocity_Y.push_back(diff(time_begin, time_end));
-
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ProjectNodalIntensiveVariableOrder2BoundaryDirect(BoundaryConditions, "project_uy", nx,  ny,  halo_width, dx, dy, dt, in_cell_mass, out_cell_mass, predicted_u, predicted_v, v_lag, gradient_v, gradient_v_y, mass_flux_x, mass_flux_y,
-					       out_v);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-
-
-  // ========================
-  //     Reconstruction of each material quantities.   
-  // ========================
-
-  #include "reconstruct_material_quantities_mix.h"
-
 }
 
-
+  

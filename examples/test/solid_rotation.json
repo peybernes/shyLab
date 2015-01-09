@@ -1,0 +1,119 @@
+// -*- js -*- (for emacs users)
+{
+    "Simulation": {
+
+	"Clock": { "time": "0.0",
+		   "iteration": "0" },
+
+	"Timetable": { "end": "1." },
+	
+	"Grid": { "name": "grid",
+		  "nx": "400",
+		  "ny": "400",
+		  "xmin": "0.0",
+		  "xmax": "4.0",
+		  "ymin": "0.0",
+		  "ymax": "4.0" },
+
+ 	"NumericalParams": { "BoundaryConditions": "periodic",
+			     "TypeOfProjection": "AdProjection",
+			     "CFL" : "0.34" },
+
+	"Variables": {
+
+	    "directional_lagrangian_volume"  : {"support": "cell"},
+	    "directional_lagrangian_density"  : {"support": "cell"},
+	    "directional_lagrangian_density_1"  : {"support": "cell"},
+	    "directional_lagrangian_density_2"  : {"support": "cell"},
+	    "directional_lagrangian_volume_y"  : {"support": "cell"},
+	    "directional_lagrangian_density_y"  : {"support": "cell"},
+	    "directional_lagrangian_density_1_y"  : {"support": "cell"},
+	    "directional_lagrangian_density_2_y"  : {"support": "cell"},
+
+	    "in_rho"  : {"support": "cell"},
+	    "out_rho" : {"support": "cell"},
+
+	    "in_rho_1"  : {"support": "cell"},
+	    "out_rho_1" : {"support": "cell"},
+
+	    "in_rho_2"  : {"support": "cell"},
+	    "out_rho_2" : {"support": "cell"},
+
+	    "in_cell_mass"  : {"support": "cell"},
+	    "out_cell_mass" : {"support": "cell"},
+	    "in_cell_mass_1"  : {"support": "cell"},
+	    "out_cell_mass_1" : {"support": "cell"},
+	    "in_cell_mass_2"  : {"support": "cell"},
+	    "out_cell_mass_2" : {"support": "cell"},
+
+	    "in_cell_volumic_fraction"  : {"support": "cell"},
+	    "out_cell_volumic_fraction" : {"support": "cell"},
+
+	    "in_c_1"  : {"support": "cell"},
+	    "out_c_1" : {"support": "cell"},
+
+	    "in_c_2"  : {"support": "cell"},
+	    "out_c_2" : {"support": "cell"},
+
+	    "in_e"  : {"support": "cell"},
+	    "out_e" : {"support": "cell"},
+
+	    "in_e_1"  : {"support": "cell"},
+	    "out_e_1" : {"support": "cell"},
+
+	    "in_e_2"  : {"support": "cell"},
+	    "out_e_2" : {"support": "cell"},
+
+	    "in_pressure"  : {"support": "cell"},
+	    "in_pressure_1"  : {"support": "cell"},
+	    "in_pressure_2"  : {"support": "cell"},
+
+	    "rho_ref" : {"support": "cell"},
+	    "p_ref" : {"support": "cell"},
+
+	    "lagrangian_u"  : {"support": "vertice"},
+	    "lagrangian_v"  : {"support": "vertice"},
+
+	    "in_u"  : {"support": "vertice"},
+	    "in_v"  : {"support": "vertice"},
+
+	    "predicted_u"  : {"support": "vertice"},
+	    "predicted_v"  : {"support": "vertice"},
+
+	    "out_u" : {"support": "vertice"},
+	    "out_v" : {"support": "vertice"},
+
+	    "u_ref" : {"support": "vertice"}
+
+	},
+
+    	"Events": {
+    	
+	    "InitVariable": { "name": "in_rho",
+    			      "expression": "((x < 1.6) && (x > 1.2) && (y < 1.6) && (y > 1.2)) ? 10.0 : 0.1" },
+
+	    "InitVariable": { "name": "out_rho",
+    			      "expression": "in_rho" },
+
+	    "InitVariable": { "name": "in_pressure",
+    			      "expression": "1.0" },
+
+	    "InitVariable": { "name": "in_u",
+    			      "expression": "0." },
+
+	    "InitVariable": { "name": "in_v",
+    			      "expression": "0." },
+
+	    "OutputSimulation": { "filename": "/tmp/resad/sim%i",
+	    			  "Timetable": {"step": "1."}},
+
+	    "OutputCartesianLine": { "filename": "/tmp/resad/profile%i",
+	    			     "direction": "x",
+	    			     "indice": "4",
+	    			     "Timetable": {"step": "1."}}
+
+			      
+    	}
+    	
+    }
+}

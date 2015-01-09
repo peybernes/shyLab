@@ -8,15 +8,15 @@
 	"Timetable": { "iend": "999" },
 	
 	"Grid": { "name": "grid",
-		  "nx": "1200",
-		  "ny": "120",
+		  "nx": "400",
+		  "ny": "40",
 		  "xmin": "0.0",
 		  "xmax": "1.0",
 		  "ymin": "0.0",
 		  "ymax": "0.1" },
 
  	"NumericalParams": { "BoundaryConditions": "Wall",
-			     "TypeOfProjection": "AdProjection",
+			     "TypeOfProjection": "DirectProjectionCornerFluxes",
 			     "TypeOfModel": "MultimaterialInterface" },
 
 	"Variables": {
@@ -107,25 +107,19 @@
 	    "InitVariable": { "name": "out_cell_volumic_fraction",
     			      "expression": "in_cell_volumic_fraction" },
 
-	    "InitVariable": { "name": "in_e_1",
-    			      "expression": "2.5" },
+	    "InitVariable": { "name": "in_pressure_1",
+    			      "expression": "1.0" },
 
-	    "InitVariable": { "name": "out_e_1",
-    			      "expression": "in_e_1" },
+	    "InitVariable": { "name": "in_pressure_2",
+    			      "expression": "0.1" },
 
-	    "InitVariable": { "name": "in_e_2",
-    			      "expression": "2.0" },
-
-	    "InitVariable": { "name": "out_e_2",
-    			      "expression": "in_e_2" },
-
-	    "OutputSimulation": { "filename": "tmp/res/sim%i",
+	    "OutputSimulation": { "filename": "/tmp/res/sim%i",
 	    			  "Timetable": {"istep": "100"}},
 
-	    "OutputCartesianLine": { "filename": "tmp/res/profile%i",
+	    "OutputCartesianLine": { "filename": "/tmp/res/profile%i",
 	    			     "direction": "x",
 	    			     "indice": "4",
-	    			     "Timetable": {"istep": "200"}}
+	    			     "Timetable": {"istep": "100"}}
 
 			      
     	}

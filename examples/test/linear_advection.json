@@ -5,36 +5,68 @@
 	"Clock": { "time": "0.0",
 		   "iteration": "0" },
 
-	"Timetable": { "iend": "999" },
+	"Timetable": { "iend": "599" },
 	
 	"Grid": { "name": "grid",
 		  "nx": "200",
 		  "ny": "200",
 		  "xmin": "0.0",
-		  "xmax": "1.0",
+		  "xmax": "2.0",
 		  "ymin": "0.0",
-		  "ymax": "1.0" },
+		  "ymax": "2.0" },
 
- 	"NumericalParams": { "BoundaryConditions": "Wall",
-			     "TypeOfProjection": "DirectProjection" },
+ 	"NumericalParams": { "BoundaryConditions": "periodic",
+			     "TypeOfProjection": "DirectProjectionCornerFluxes",
+			     "CFL" : "0.34" },
 
 	"Variables": {
 
 	    "directional_lagrangian_volume"  : {"support": "cell"},
 	    "directional_lagrangian_density"  : {"support": "cell"},
+	    "directional_lagrangian_density_1"  : {"support": "cell"},
+	    "directional_lagrangian_density_2"  : {"support": "cell"},
 	    "directional_lagrangian_volume_y"  : {"support": "cell"},
 	    "directional_lagrangian_density_y"  : {"support": "cell"},
+	    "directional_lagrangian_density_1_y"  : {"support": "cell"},
+	    "directional_lagrangian_density_2_y"  : {"support": "cell"},
 
 	    "in_rho"  : {"support": "cell"},
 	    "out_rho" : {"support": "cell"},
 
+	    "in_rho_1"  : {"support": "cell"},
+	    "out_rho_1" : {"support": "cell"},
+
+	    "in_rho_2"  : {"support": "cell"},
+	    "out_rho_2" : {"support": "cell"},
+
 	    "in_cell_mass"  : {"support": "cell"},
 	    "out_cell_mass" : {"support": "cell"},
+	    "in_cell_mass_1"  : {"support": "cell"},
+	    "out_cell_mass_1" : {"support": "cell"},
+	    "in_cell_mass_2"  : {"support": "cell"},
+	    "out_cell_mass_2" : {"support": "cell"},
+
+	    "in_cell_volumic_fraction"  : {"support": "cell"},
+	    "out_cell_volumic_fraction" : {"support": "cell"},
+
+	    "in_c_1"  : {"support": "cell"},
+	    "out_c_1" : {"support": "cell"},
+
+	    "in_c_2"  : {"support": "cell"},
+	    "out_c_2" : {"support": "cell"},
 
 	    "in_e"  : {"support": "cell"},
 	    "out_e" : {"support": "cell"},
 
+	    "in_e_1"  : {"support": "cell"},
+	    "out_e_1" : {"support": "cell"},
+
+	    "in_e_2"  : {"support": "cell"},
+	    "out_e_2" : {"support": "cell"},
+
 	    "in_pressure"  : {"support": "cell"},
+	    "in_pressure_1"  : {"support": "cell"},
+	    "in_pressure_2"  : {"support": "cell"},
 
 	    "rho_ref" : {"support": "cell"},
 	    "p_ref" : {"support": "cell"},
@@ -58,30 +90,27 @@
     	"Events": {
     	
 	    "InitVariable": { "name": "in_rho",
-    			      "expression": "((abs(x - 0.25) < 0.125) && (abs(y - 0.25) < 0.125)) ? 1.0 : 0.125" },
+    			      "expression": "((x < 0.6) && (x > 0.2) && (y < 0.6) && (y > 0.2)) ? 10.0 : 0.1" },
 
 	    "InitVariable": { "name": "out_rho",
     			      "expression": "in_rho" },
 
-	    "InitVariable": { "name": "in_e",
+	    "InitVariable": { "name": "in_pressure",
     			      "expression": "1.0" },
 
-	    "InitVariable": { "name": "out_e",
-    			      "expression": "in_e" },
-
 	    "InitVariable": { "name": "in_u",
-    			      "expression": "0.5" },
+    			      "expression": "5" },
 
 	    "InitVariable": { "name": "in_v",
-    			      "expression": "0.5" },
+    			      "expression": "5" },
 
-	    "OutputSimulation": { "filename": "tmp/resultadw2/sim%i",
-	    			  "Timetable": {"istep": "100"}},
+	    "OutputSimulation": { "filename": "/tmp/rescf/sim%i",
+	    			  "Timetable": {"istep": "200"}},
 
-	    "OutputCartesianLine": { "filename": "tmp/resultadw2/profile%i",
+	    "OutputCartesianLine": { "filename": "/tmp/rescf/profile%i",
 	    			     "direction": "x",
 	    			     "indice": "4",
-	    			     "Timetable": {"istep": "20"}}
+	    			     "Timetable": {"istep": "200"}}
 
 			      
     	}

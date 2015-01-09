@@ -18,9 +18,11 @@ extern "C" {
 // Lagrange Remap kernels
 #include "kernel_ad_projection_2d.h"
 #include "kernel_direct_projection_2d.h"
+#include "kernel_direct_projection_corner_fluxes_2d.h"
 #include "kernel_lagrange_2d.h"
 #include "kernel_ad_projection_2d_boundary_conditions.h"
 #include "kernel_direct_projection_2d_boundary_conditions.h"
+#include "kernel_direct_projection_corner_fluxes_2d_boundary_conditions.h"
 #include "kernel_multimat_interface_2d.h"
 #include "kernel_multimat_interface_2d_boundary_conditions.h"
 
@@ -30,6 +32,8 @@ extern "C" {
 
 #include "kernel_ad_projection_2d_boundary_interface.hpp"
 #include "kernel_direct_projection_2d_boundary_interface.hpp"
+#include "kernel_direct_projection_corner_fluxes_2d_boundary_interface.hpp"
+#include "kernel_multimat_interface_2d_boundary_interface.hpp"
 #include "lagrange_2d_driver.hpp"
 #include "lagrange_2d_default_driver.hpp"
 #include "lagrange_2d_multimat_interface_driver.hpp"
@@ -38,6 +42,12 @@ extern "C" {
 #include "ad_projection_2d_multimat_mix_driver.hpp"
 #include "ad_projection_2d_multimat_interface_driver.hpp"
 #include "direct_projection_2d_driver.hpp"
-#include "kernel_multimat_interface_2d_boundary_interface.hpp"
+#include "direct_projection_2d_monomat_driver.hpp"
+#include "direct_projection_2d_multimat_mix_driver.hpp"
+#include "direct_projection_2d_multimat_interface_driver.hpp"
+#include "direct_projection_corner_fluxes_2d_driver.hpp"
+#include "direct_projection_corner_fluxes_2d_monomat_driver.hpp"
+#include "direct_projection_corner_fluxes_2d_multimat_mix_driver.hpp"
+#include "direct_projection_corner_fluxes_2d_multimat_interface_driver.hpp"
 
 #endif // KERNELS_HPP_

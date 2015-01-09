@@ -90,15 +90,20 @@ void MassProjectIntensiveVariableDirect(index_t nx,
       
       const RealType in_cell_variable_ooo = in_cell_variable[cell_ooo];
       
-      const RealType out_cell_variable_ooo = 
-	in_cell_mass_ooo * in_cell_variable_ooo +
-	//	mass_flux_prev_x * face_variable_prev_x + mass_flux_prev_y * face_variable_prev_y -
-	//        mass_flux_next_x * face_variable_next_x - mass_flux_next_y * face_variable_next_y;
-	face_variable_prev_x + face_variable_prev_y -
-        face_variable_next_x - face_variable_next_y;
+      RealType out_cell_variable_ooo;
 
-      assert(0.0 < out_cell_mass_ooo);
-      out_cell_variable[cell_ooo] = out_cell_variable_ooo / out_cell_mass_ooo; 
+      assert((0.0 < out_cell_mass_ooo) || (0.0 == out_cell_mass_ooo));
+      if (out_cell_mass_ooo == 0.0) {
+	out_cell_variable[cell_ooo] = 0.0;
+      } else {	
+	out_cell_variable_ooo = 
+	  in_cell_mass_ooo * in_cell_variable_ooo +
+	  //	mass_flux_prev_x * face_variable_prev_x + mass_flux_prev_y * face_variable_prev_y -
+	  //        mass_flux_next_x * face_variable_next_x - mass_flux_next_y * face_variable_next_y;
+	  face_variable_prev_x + face_variable_prev_y -
+	  face_variable_next_x - face_variable_next_y;
+	out_cell_variable[cell_ooo] = out_cell_variable_ooo / out_cell_mass_ooo; 
+      }
       
     }
 

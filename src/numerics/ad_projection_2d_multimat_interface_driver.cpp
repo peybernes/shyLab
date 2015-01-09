@@ -195,26 +195,14 @@ void AdProjection2dMultimaterialInterfaceXDriver(//in
   // ========================
   
   clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientX(nx, ny, dx, dy, volume_fluxes_1_x, e_1_lag,
-		       energy_1_gradient);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_gradient_X.push_back(diff(time_begin, time_end));
-  
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientX(nx, ny, dx, dy, volume_fluxes_2_x, e_2_lag,
-		       energy_2_gradient);
+  ReconstructGradientMultimatX(nx, ny, dx, dy, in_cell_volumic_fraction, volume_fluxes_1_x, volume_fluxes_2_x, e_1_lag, e_2_lag,
+			       energy_1_gradient, energy_2_gradient);
   clock_gettime(CLOCK_REALTIME, &time_end);
   time_gradient_X.push_back(diff(time_begin, time_end));
 
   clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientXBoundary(BoundaryConditions, nx, ny, dx, dy, volume_fluxes_1_x, e_1_lag,
-			       energy_1_gradient);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-  
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientXBoundary(BoundaryConditions, nx, ny, dx, dy, volume_fluxes_2_x, e_2_lag,
-			       energy_2_gradient);
+  ReconstructGradientMultimatXBoundary(BoundaryConditions, nx, ny, dx, dy, in_cell_volumic_fraction, volume_fluxes_1_x, volume_fluxes_2_x, e_1_lag, e_2_lag,
+				       energy_1_gradient, energy_2_gradient); 
   clock_gettime(CLOCK_REALTIME, &time_end);
   time_periodic_boundary.push_back(diff(time_begin, time_end));
 
@@ -511,26 +499,14 @@ void AdProjection2dMultimaterialInterfaceYDriver(//in
   // ========================
   
   clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientY(nx, ny, dx, dy, volume_fluxes_1_y, e_1_lag,
-		       energy_1_gradient);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_gradient_Y.push_back(diff(time_begin, time_end));
-  
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientY(nx, ny, dx, dy, volume_fluxes_2_y, e_2_lag,
-		       energy_2_gradient);
+  ReconstructGradientMultimatY(nx, ny, dx, dy, in_cell_volumic_fraction, volume_fluxes_1_y, volume_fluxes_2_y, e_1_lag, e_2_lag,
+			       energy_1_gradient, energy_2_gradient);
   clock_gettime(CLOCK_REALTIME, &time_end);
   time_gradient_Y.push_back(diff(time_begin, time_end));
 
   clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientYBoundary(BoundaryConditions, nx, ny, dx, dy, volume_fluxes_1_y, e_1_lag,
-			       energy_1_gradient);
-  clock_gettime(CLOCK_REALTIME, &time_end);
-  time_periodic_boundary.push_back(diff(time_begin, time_end));
-  
-  clock_gettime(CLOCK_REALTIME, &time_begin);
-  ReconstructGradientYBoundary(BoundaryConditions, nx, ny, dx, dy, volume_fluxes_2_y, e_2_lag,
-			       energy_2_gradient);
+  ReconstructGradientMultimatYBoundary(BoundaryConditions, nx, ny, dx, dy, in_cell_volumic_fraction, volume_fluxes_1_y, volume_fluxes_2_y, e_1_lag, e_2_lag,
+				       energy_1_gradient, energy_2_gradient); 
   clock_gettime(CLOCK_REALTIME, &time_end);
   time_periodic_boundary.push_back(diff(time_begin, time_end));
 
