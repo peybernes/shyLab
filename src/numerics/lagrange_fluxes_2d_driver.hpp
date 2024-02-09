@@ -3,9 +3,12 @@
 #include <vector>
 #include <string>
 
+#include "kernel_lagrange_fluxes_2d.h"
+
 void LagrangeFluxes2dDriver(//in
 			      const std::string BoundaryConditions,
 			      const std::string TypeOfModel,
+			      const int nb_mat,
 			      const int nx,
 			      const int ny,
 			      const int nb_faces_x,
@@ -51,14 +54,6 @@ void LagrangeFluxes2dDriver(//in
 			      RealType* out_c_1,
 			      RealType* out_c_2,
 			      RealType* out_cell_volumic_fraction,
-			      RealType* directional_lagrangian_volume,
-			      RealType* directional_lagrangian_volume_y,
-			      RealType* directional_lagrangian_density,
-			      RealType* directional_lagrangian_density_y,
-			      RealType* directional_lagrangian_density_1,
-			      RealType* directional_lagrangian_density_1_y,
-			      RealType* directional_lagrangian_density_2,
-			      RealType* directional_lagrangian_density_2_y,
 			      RealType* volume_fluxes_x,
 			      RealType* volume_fluxes_y,
 			      RealType* volume_fluxes_1_x,
@@ -101,6 +96,10 @@ void LagrangeFluxes2dDriver(//in
 			      RealType* gradient_v_y,
 			      RealType* interface_normal_x,
 			      RealType* interface_normal_y,
+			      RealType** alphak_gradx_left,
+			      RealType** alphak_gradx_right,
+			      RealType** alphak_grady_bot,
+			      RealType** alphak_grady_top,
 			      //timing
 			      std::vector<RealType>& time_compute_volume_fluxes_X,
 			      std::vector<RealType>& time_gradient_X,

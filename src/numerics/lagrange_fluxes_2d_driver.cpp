@@ -14,6 +14,7 @@
 void LagrangeFluxes2dDriver(//in
 			      const std::string BoundaryConditions,
 			      const std::string TypeOfModel,
+			      const int nb_mat,
 			      const int nx,
 			      const int ny,
 			      const int nb_faces_x,
@@ -59,14 +60,6 @@ void LagrangeFluxes2dDriver(//in
 			      RealType* RESTRICT out_c_1,
 			      RealType* RESTRICT out_c_2,
 			      RealType* RESTRICT out_cell_volumic_fraction,
-			      RealType* RESTRICT directional_lagrangian_volume,
-			      RealType* RESTRICT directional_lagrangian_volume_y,
-			      RealType* RESTRICT directional_lagrangian_density,
-			      RealType* RESTRICT directional_lagrangian_density_y,
-			      RealType* RESTRICT directional_lagrangian_density_1,
-			      RealType* RESTRICT directional_lagrangian_density_1_y,
-			      RealType* RESTRICT directional_lagrangian_density_2,
-			      RealType* RESTRICT directional_lagrangian_density_2_y,
 			      RealType* RESTRICT volume_fluxes_x,
 			      RealType* RESTRICT volume_fluxes_y,
 			      RealType* RESTRICT volume_fluxes_1_x,
@@ -109,6 +102,10 @@ void LagrangeFluxes2dDriver(//in
 			      RealType* RESTRICT gradient_v_y,
 			      RealType* RESTRICT interface_normal_x,
 			      RealType* RESTRICT interface_normal_y,
+			      RealType** alphak_gradx_left,
+			      RealType** alphak_gradx_right,
+			      RealType** alphak_grady_bot,
+			      RealType** alphak_grady_top,
 			      //timing
 			      std::vector<RealType>& time_compute_volume_fluxes_X,
 			      std::vector<RealType>& time_gradient_X,
@@ -128,9 +125,23 @@ void LagrangeFluxes2dDriver(//in
 			      std::vector<RealType>& time_project_nodal_velocity_Y,
 			      std::vector<RealType> time_periodic_boundary) {
 
+  ComputeGradientAlpha(nx,ny,nb_mat,dx,dy,in_c_1,in_c_2,alphak_gradx_left,alphak_gradx_right,alphak_grady_bot,alphak_grady_top);
+  
+  std::cout << "Start Lagrange Flux ok !" << std::endl;
 
-    std::cout << "Start Lagrange Flux !" << std::endl;
-    exit(0);
+  for (index_t imat = 0; imat < 2; ++imat) {
+    for (index_t iy = 1; iy < ny - 1; ++iy) {
+      for (index_t ix = 1; ix < nx - 1; ++ix) {      
+	const int cell_ooo  = (nx * iy) + ix;
+	std::cout <<  alphak_grady_bot  [imat][cell_ooo] << std::endl;
+	std::cout <<  alphak_grady_top  [imat][cell_ooo] << std::endl;
+	std::cout <<  alphak_gradx_left [imat][cell_ooo] << std::endl;
+	std::cout <<  alphak_gradx_right[imat][cell_ooo] << std::endl;
+      }
+    }
+  }
+  
+  exit(0);
 }
 
   

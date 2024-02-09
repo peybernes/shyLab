@@ -16,6 +16,7 @@ extern "C" {
 #include "kernel_compressible_euler_fv_uw_kappa_2d.h"
 */
 // Lagrange Remap kernels
+#include "kernel_lagrange_fluxes_2d.h"
 #include "kernel_ad_projection_2d.h"
 #include "kernel_direct_projection_2d.h"
 #include "kernel_direct_projection_corner_fluxes_2d.h"

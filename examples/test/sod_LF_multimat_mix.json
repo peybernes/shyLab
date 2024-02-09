@@ -8,8 +8,8 @@
 	"Timetable": { "iend": "999" },
 	
 	"Grid": { "name": "grid",
-		  "nx": "40",
-		  "ny": "20",
+		  "nx": "8",
+		  "ny": "8",
 		  "xmin": "0.0",
 		  "xmax": "1.0",
 		  "ymin": "0.0",
@@ -19,7 +19,8 @@
 			     // "TypeOfProjection": "DirectProjectionCornerFluxes",
 			     "TypeOfProjection": "LagrangeFluxes",
 			     "TypeOfModel": "MultimaterialMix",
-			     "CFL": "0.18" },
+			     "CFL": "0.18",
+			     "NumberOfMaterials": "2" },
 
  	"PhysicalParams": { "EOS_gamma_1" : "2.0",
 			    "EOS_gamma_2" : "1.4",
@@ -150,10 +151,10 @@
 	    "InitVariable": { "name": "out_v",
     			      "expression": "in_v" },
 
-	    "OutputSimulation": { "filename": "/home/peyberne/Codes/shy.git/examples/test/results/sim%i",
+	    "OutputSimulation": { "filename": "/home/mathieu/Codes/shyLab/examples/test/results/sim%i",
 	    			  "Timetable": {"istep": "100"}},
 
-	    "OutputCartesianLine": { "filename": "/home/peyberne/Codes/shy.git/examples/test/results/profile%i",
+	    "OutputCartesianLine": { "filename": "/home/mathieu/Codes/shyLab/examples/test/results/sim%i",
 	    			     "direction": "x",
 	    			     "indice": "4",
 	    			     "Timetable": {"istep": "100"}}

@@ -23,6 +23,8 @@ struct EPSILON<double> {
 RealType const EPS = EPSILON<RealType>::value();
 
 struct NumericalParams {
+  //! Number of materials.
+  int NumberOfMaterials;
   //! CFL stability factor.
   RealType CFL;
   //! Artificial viscosity for Roe type numerical fluxes.

@@ -728,6 +728,33 @@ void Simulation::Run() {
   RealType* in_beta = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* out_beta = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
 
+  RealType* alpha1_gradx_left  = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* alpha1_gradx_right = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* alpha1_grady_bot   = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* alpha1_grady_top   = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* alpha2_gradx_left  = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* alpha2_gradx_right = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* alpha2_grady_bot   = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* alpha2_grady_top   = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  
+  
+  // arrays of pointers for multimat
+  int nb_mat = numerical_params.NumberOfMaterials;
+  RealType** alphak_gradx_left   = new RealType*[nb_mat];
+  RealType** alphak_gradx_right  = new RealType*[nb_mat];
+  RealType** alphak_grady_bot    = new RealType*[nb_mat];
+  RealType** alphak_grady_top    = new RealType*[nb_mat];
+  
+  alphak_gradx_left [0]  = alpha1_gradx_left ;
+  alphak_gradx_right[0]  = alpha1_gradx_right;
+  alphak_grady_bot  [0]  = alpha1_grady_bot  ;
+  alphak_grady_top  [0]  = alpha1_grady_top  ;
+  
+  alphak_gradx_left [1]  = alpha2_gradx_left;
+  alphak_gradx_right[1]  = alpha2_gradx_right;
+  alphak_grady_bot  [1]  = alpha2_grady_bot;
+  alphak_grady_top  [1]  = alpha2_grady_top;
+  
   // Node local variables.
   RealType* gradient_v = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
   RealType* gradient_v_y = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
@@ -1252,10 +1279,13 @@ void Simulation::Run() {
 
       if ((numerical_params.TypeOfModel == "MultimaterialMix") && (numerical_params.TypeOfProjection == "LagrangeFluxes")) {
 
+	dt = TimeStepLFMix(nx, ny, dx, dy, numerical_params.CFL, physical_params.gamma_1, physical_params.gamma_1, physical_params.pi_1, physical_params.pi_1, in_rho_1, in_rho_2, in_p_1, in_p_2, in_c_1, in_c_2, in_u_cell, in_v_cell);
+	  
 	// Direct projection 2nd order
 	LagrangeFluxes2dDriver(//in
 				 numerical_params.BoundaryConditions,
 				 numerical_params.TypeOfModel,
+				 numerical_params.NumberOfMaterials,
 				 nx,
 				 ny,
 				 nb_faces_x,
@@ -1301,14 +1331,6 @@ void Simulation::Run() {
 				 out_c_1,
 				 out_c_2,
 				 out_cell_volumic_fraction,
-				 directional_lagrangian_volume,
-				 directional_lagrangian_volume_y,
-				 directional_lagrangian_density,
-				 directional_lagrangian_density_y,
-				 directional_lagrangian_density_1,
-				 directional_lagrangian_density_1_y,
-				 directional_lagrangian_density_2,
-				 directional_lagrangian_density_2_y,
 				 volume_fluxes_x,
 				 volume_fluxes_y,
 				 volume_fluxes_1_x,
@@ -1351,6 +1373,10 @@ void Simulation::Run() {
 				 gradient_v_y,
 				 interface_normal_x,
 				 interface_normal_y,
+				 alphak_gradx_left,
+				 alphak_gradx_right,
+				 alphak_grady_bot,
+				 alphak_grady_top,
 				 //timing
 				 time_compute_volume_fluxes_X,
 				 time_gradient_X,

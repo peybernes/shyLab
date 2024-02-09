@@ -19,8 +19,8 @@ message(STATUS "Configuring Shy")
 set(LD_LIBRARY_PATH "${LD_LIBRARY_PATH}" "${CMAKE_SOURCE_DIR}/external/muparser/lib ")
 
 #g++ or icpc
-set (CMAKE_C_COMPILER g++)
-set (CMAKE_CXX_COMPILER g++)
+set (CMAKE_C_COMPILER g++-10)
+set (CMAKE_CXX_COMPILER g++-10)
 #set (CMAKE_C_COMPILER icpc)
 #set (CMAKE_CXX_COMPILER icpc)
 
@@ -85,6 +85,7 @@ add_executable(
     src/io/event.cpp
     src/io/init.cpp
     src/io/output.cpp
+    src/numerics/kernel_lagrange_fluxes_2d.c
     src/numerics/kernel_ad_projection_2d.c
     src/numerics/kernel_direct_projection_2d.c
     src/numerics/kernel_direct_projection_corner_fluxes_2d.c
