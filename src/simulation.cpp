@@ -726,17 +726,7 @@ void Simulation::Run() {
   RealType* in_rho_e = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* out_rho_e = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* in_beta = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* out_beta = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-
-  RealType* alpha1_gradx_left  = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* alpha1_gradx_right = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* alpha1_grady_bot   = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* alpha1_grady_top   = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* alpha2_gradx_left  = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* alpha2_gradx_right = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* alpha2_grady_bot   = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* alpha2_grady_top   = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  
+  RealType* out_beta = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType)); 
   
   // arrays of pointers for multimat
   int nb_mat = numerical_params.NumberOfMaterials;
@@ -744,16 +734,13 @@ void Simulation::Run() {
   RealType** alphak_gradx_right  = new RealType*[nb_mat];
   RealType** alphak_grady_bot    = new RealType*[nb_mat];
   RealType** alphak_grady_top    = new RealType*[nb_mat];
-  
-  alphak_gradx_left [0]  = alpha1_gradx_left ;
-  alphak_gradx_right[0]  = alpha1_gradx_right;
-  alphak_grady_bot  [0]  = alpha1_grady_bot  ;
-  alphak_grady_top  [0]  = alpha1_grady_top  ;
-  
-  alphak_gradx_left [1]  = alpha2_gradx_left;
-  alphak_gradx_right[1]  = alpha2_gradx_right;
-  alphak_grady_bot  [1]  = alpha2_grady_bot;
-  alphak_grady_top  [1]  = alpha2_grady_top;
+
+  for (int k = 0;k < nb_mat; k++) {
+    alphak_gradx_left [k]  = new RealType[nb_cells];
+    alphak_gradx_right[k]  = new RealType[nb_cells];
+    alphak_grady_bot  [k]  = new RealType[nb_cells];
+    alphak_grady_top  [k]  = new RealType[nb_cells];
+  }  
   
   // Node local variables.
   RealType* gradient_v = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
