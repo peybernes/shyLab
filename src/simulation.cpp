@@ -717,8 +717,6 @@ void Simulation::Run() {
   RealType* in_cell_volumic_fraction_0 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* in_total_energy = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* out_total_energy = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* in_total_energy = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* out_total_energy = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* in_y_1 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* in_y_2 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* out_y_1 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
