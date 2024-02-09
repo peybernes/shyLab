@@ -49,5 +49,6 @@ extern "C" {
 #include "direct_projection_corner_fluxes_2d_monomat_driver.hpp"
 #include "direct_projection_corner_fluxes_2d_multimat_mix_driver.hpp"
 #include "direct_projection_corner_fluxes_2d_multimat_interface_driver.hpp"
+#include "lagrange_fluxes_2d_driver.hpp"
 
 #endif // KERNELS_HPP_

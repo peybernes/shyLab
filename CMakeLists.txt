@@ -113,6 +113,7 @@ add_executable(
     src/numerics/direct_projection_corner_fluxes_2d_monomat_driver.cpp
     src/numerics/direct_projection_corner_fluxes_2d_multimat_mix_driver.cpp
     src/numerics/direct_projection_corner_fluxes_2d_multimat_interface_driver.cpp
+    src/numerics/lagrange_fluxes_2d_driver.cpp
     src/math_parser.cpp
     src/mpi_boundary_condition.cpp
     src/numerical_core.c
@@ -156,7 +157,7 @@ if (MUPARSER_FOUND)
 #  target_link_libraries(shy ${MUPARSER_LIBRARIES})
 endif (MUPARSER_FOUND)
 
-set(MUPARSER_LIBRARIES "${CMAKE_SOURCE_DIR}/external/muparser/lib/libmuparser.a")
+set(MUPARSER_LIBRARIES "${CMAKE_SOURCE_DIR}/external/muparser/lib/libmuparser.so")
 target_link_libraries(shy ${MUPARSER_LIBRARIES})
 
 set(REALTIME_LIBRARY "rt")

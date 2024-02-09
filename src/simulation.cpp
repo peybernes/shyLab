@@ -608,6 +608,12 @@ void Simulation::Run() {
 
   RealType* u_ref = vertice_variables.GetVariable(variables_database, "u_ref");
 
+  RealType* in_u_cell  = cell_variables.GetVariable(variables_database, "in_u_cell");
+  RealType* out_u_cell = cell_variables.GetVariable(variables_database, "out_u_cell");
+  RealType* in_v_cell  = cell_variables.GetVariable(variables_database, "in_v_cell");
+  RealType* out_v_cell = cell_variables.GetVariable(variables_database, "out_v_cell");
+
+
   boost::timer simulation_timer = boost::timer();
 
   const RealType dx = (m_grid.xmax() - m_grid.xmin()) / nx;
@@ -709,6 +715,20 @@ void Simulation::Run() {
   RealType* interface_normal_y = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* in_rho_0 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* in_cell_volumic_fraction_0 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* in_total_energy = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* out_total_energy = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* in_total_energy = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* out_total_energy = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* in_y_1 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* in_y_2 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* out_y_1 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* out_y_2 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* in_rho_total_energy = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* out_rho_total_energy = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* in_rho_e = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* out_rho_e = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* in_beta = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* out_beta = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
 
   // Node local variables.
   RealType* gradient_v = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
@@ -888,6 +908,51 @@ void Simulation::Run() {
 
 	in_p[cell_ooo] = in_p_1[cell_ooo];
 
+      } else if ((numerical_params.TypeOfModel == "MultimaterialMix") && (numerical_params.TypeOfProjection == "LagrangeFluxes")) {
+	
+	in_c_2[cell_ooo]               = 1.0 - in_c_1[cell_ooo];
+	out_c_2[cell_ooo]              = in_c_2[cell_ooo];
+
+	in_rho[cell_ooo]               = in_rho_1[cell_ooo] * in_rho_2[cell_ooo] / (in_rho_1[cell_ooo] * in_c_2[cell_ooo] + in_rho_2[cell_ooo]*in_c_1[cell_ooo]);
+	out_rho[cell_ooo]              = in_rho[cell_ooo];
+	
+	in_cell_mass[cell_ooo]         = in_rho[cell_ooo] * cell_volumes[cell_ooo];
+
+	// [VM] Gamma*Pi from VM is equivalent to Pi here in Stiffened Gas 
+	in_e_1[cell_ooo]               =  EnergyEOS(physical_params.gamma_1, in_rho_1[cell_ooo], in_p_1[cell_ooo], physical_params.pi_1);
+	out_e_1[cell_ooo]              = in_e_1[cell_ooo];	
+	in_e_2[cell_ooo]               =  EnergyEOS(physical_params.gamma_2, in_rho_2[cell_ooo], in_p_2[cell_ooo], physical_params.pi_2);
+	out_e_2[cell_ooo]              = in_e_2[cell_ooo];
+	
+	in_e[cell_ooo]                 = in_e_1[cell_ooo] * in_c_1[cell_ooo] + in_e_2[cell_ooo] * in_c_2[cell_ooo];
+	out_e[cell_ooo]                = in_e[cell_ooo];
+
+	in_p[cell_ooo]                 = in_p_1[cell_ooo];
+
+	// [VM] in VM mk = Alpha_k Rho_k with Alpha_k = in_c_1[cell_ooo] * cell_volumes[cell_ooo]
+	in_cell_mass_1[cell_ooo]       = in_rho_1[cell_ooo] * in_c_1[cell_ooo] * cell_volumes[cell_ooo]; 
+	out_cell_mass_1[cell_ooo]      = in_cell_mass_1[cell_ooo];
+	in_cell_mass_2[cell_ooo]       = in_rho_2[cell_ooo] * in_c_2[cell_ooo] * cell_volumes[cell_ooo];
+	out_cell_mass_2[cell_ooo]      = in_cell_mass_2[cell_ooo];
+
+	in_y_1[cell_ooo]               = in_cell_mass_1[cell_ooo] / in_rho[cell_ooo];
+	out_y_1[cell_ooo]              = in_y_1[cell_ooo];
+	in_y_2[cell_ooo]               = in_cell_mass_2[cell_ooo] / in_rho[cell_ooo];
+	out_y_2[cell_ooo]              = in_y_2[cell_ooo];
+
+	in_total_energy[cell_ooo]      = 0.5*in_u_cell[cell_ooo]*in_u_cell[cell_ooo] + 0.5*in_v_cell[cell_ooo]*in_v_cell[cell_ooo];
+	in_total_energy[cell_ooo]      = in_total_energy[cell_ooo] + in_cell_mass_1[cell_ooo]*in_e_1[cell_ooo]/in_rho[cell_ooo] + in_cell_mass_2[cell_ooo]*in_e_2[cell_ooo]/in_rho[cell_ooo];;
+	out_total_energy[cell_ooo]     = in_total_energy[cell_ooo];
+
+	in_rho_total_energy[cell_ooo]  = in_rho[cell_ooo] * in_total_energy[cell_ooo];
+	out_rho_total_energy[cell_ooo] = in_rho_total_energy[cell_ooo];
+
+	in_rho_e[cell_ooo]             = in_rho_total_energy[cell_ooo] - 0.5*(in_u_cell[cell_ooo]*in_u_cell[cell_ooo] + in_v_cell[cell_ooo]*in_v_cell[cell_ooo])*in_rho[cell_ooo];
+	out_rho_e[cell_ooo]            = in_rho_e[cell_ooo];
+
+	in_beta[cell_ooo]              = 1.; 
+	out_beta[cell_ooo]             = in_beta[cell_ooo]; 
+	
       } else if (numerical_params.TypeOfModel == "MultimaterialInterface") {
 	
 	const RealType vol_fraction1 = in_cell_volumic_fraction[cell_ooo];
@@ -1187,481 +1252,10 @@ void Simulation::Run() {
 
     if (m_grid.dimension() == 2) {
 
-      clock_gettime(CLOCK_REALTIME, &time1);
- 
-     if ((numerical_params.TypeOfModel == "MultimaterialMix") || (numerical_params.TypeOfModel == "MultimaterialInterface")) {	
-       dt = TimeStepSGPCMultimat(nx, ny, dx, dy, numerical_params.CFL, physical_params.gamma_1, physical_params.gamma_1, physical_params.pi_1, physical_params.pi_1, in_rho_1, in_rho_2, in_p_1, in_p_2, in_cell_volumic_fraction, in_u, in_v);
-
-      } else {
-       dt = TimeStepSGPC(nx, ny, dx, dy, numerical_params.CFL, physical_params.gamma, physical_params.pi, in_rho, in_p, in_u, in_v);
-      }
-
-     clock_gettime(CLOCK_REALTIME, &time2);
-     time_time_step.push_back(diff(time1, time2)); 
-
-      std::cerr << "CFL : " << numerical_params.CFL << "\n"; 
-      std::cerr << "          dt = " << dt << "\n";
-   
-      // Lagrange 2D algorithm for compressible Euler equations.
-     
-      Lagrange2dDriver(//in
-		       numerical_params.BoundaryConditions,
-		       numerical_params.TypeOfModel,
-		       nx,
-		       ny,
-		       dx,
-		       dy,
-		       dt,
-		       physical_params.gamma,
-		       physical_params.gamma_1,
-		       physical_params.gamma_2,
-		       physical_params.pi,
-		       physical_params.pi_1,
-		       physical_params.pi_2,
-		       in_u,
-		       in_v,
-		       in_e,
-		       in_e_1,
-		       in_e_2,
-		       in_cell_mass,
-		       in_cell_mass_1,
-		       in_cell_mass_2,
-		       in_rho_1,
-		       in_rho_2,
-		       in_cell_volumic_fraction,
-		       //out
-		       in_p,
-		       in_p_1,
-		       in_p_2,
-		       predicted_pressure,
-		       predicted_pressure_1,
-		       predicted_pressure_2,
-		       cell_pseudo_pressure,
-		       predicted_u,
-		       predicted_v,
-		       e_lag,
-		       e_1_lag,
-		       e_2_lag,
-		       u_lag,
-		       v_lag,
-		       in_X_x,
-		       in_X_y,
-		       // timing
-		       time_lagrange_pressure_predicted,
-		       time_lagrange_velocity_predicted,
-		       time_periodic_boundary,
-		       time_lagrange_correction,
-		       time_lagrange_velocity_correction);
-
-   
-      // Projection 2D algorithm for compressible Euler equations.
-  
-      if (numerical_params.TypeOfProjection == "AdProjection") {
-	if (clock.iter()%2) {    // alternating X + Y and Y + X projection
-	// Projection X     X then Y projection
-	AdProjection2dXDriver(//in
-			      numerical_params.BoundaryConditions,
-		              numerical_params.TypeOfModel,
-			      nx,
-			      ny,
-			      nb_faces_x,
-			      nb_faces_y,
-			      nb_cells,
-			      nb_nodes,
-			      dx,
-			      dy,
-			      dt,
-			      halo_width,
-			      physical_params.gamma_1,
-			      physical_params.gamma_2,
-			      physical_params.pi_1,
-			      physical_params.pi_2,
-			      predicted_u,
-			      e_lag,
-			      e_1_lag,
-			      e_2_lag,
-			      u_lag,
-			      v_lag,
-			      in_rho_1,
-			      in_rho_2,
-			      in_cell_mass,
-			      in_cell_mass_1,
-			      in_cell_mass_2,
-			      in_c_1,
-			      in_c_2,
-			      in_cell_volumic_fraction,
-			      cell_volumes,
-			      // out
-			      out_u,
-			      out_v,
-			      out_e,
-			      out_cell_mass,
-			      out_cell_mass_1,
-			      out_cell_mass_2,
-			      out_e_1,
-			      out_e_2,
-			      out_rho,
-			      out_rho_1,
-			      out_rho_2,
-			      out_c_1,
-			      out_c_2,
-			      out_cell_volumic_fraction,
-			      directional_lagrangian_volume,
-			      directional_lagrangian_density,
-			      directional_lagrangian_density_1,
-			      directional_lagrangian_density_2,
-			      volume_fluxes_x,
-			      volume_fluxes_1_x,
-			      volume_fluxes_2_x,
-			      mass_flux_x,
-			      mass_flux_1_x,
-			      mass_flux_2_x,
-			      energy_flux_x,
-			      energy_flux_1_x,
-			      energy_flux_2_x,
-			      concentration_flux_x,
-			      density_gradient,
-			      density_1_gradient,
-			      density_2_gradient,
-			      energy_gradient,
-			      energy_1_gradient,
-			      energy_2_gradient,
-			      concentration_gradient,
-			      gradient_u,
-			      gradient_v,
-			      interface_normal_x,
-			      interface_normal_y,
-			      //timing
-			      time_compute_volume_fluxes_X,
-			      time_gradient_X,
-			      time_mass_reconstruct_o2_X,
-			      time_project_mass_X,
-			      time_reconstruct_energy_o2_X,
-			      time_project_energy_X,
-			      time_gradient_nodal_X,
-			      time_project_nodal_velocity_X,
-			      time_periodic_boundary);	
-			      						
-	std::swap(in_cell_mass, out_cell_mass);
-	std::swap(in_cell_mass_1, out_cell_mass_1);
-	std::swap(in_cell_mass_2, out_cell_mass_2);
-	std::swap(in_cell_volumic_fraction, out_cell_volumic_fraction);
-	std::swap(u_lag, out_u);
-	std::swap(v_lag, out_v);
-	std::swap(e_lag, out_e);
-	std::swap(e_1_lag, out_e_1);
-	std::swap(e_2_lag, out_e_2);
-	std::swap(in_c_1, out_c_1);
-	std::swap(in_c_2, out_c_2);
-	std::swap(in_rho_1, out_rho_1);
-	std::swap(in_rho_2, out_rho_2);
-							
-	  // Projection Y
-	
-	AdProjection2dYDriver(//in
-			      numerical_params.BoundaryConditions,
-		              numerical_params.TypeOfModel,
-  			      nx,
-			      ny,
-			      nb_faces_x,
-			      nb_faces_y,
-			      nb_cells,
-			      nb_nodes,
-			      dx,
-			      dy,
-			      dt,
-			      halo_width,
-			      physical_params.gamma_1,
-			      physical_params.gamma_2,
-			      physical_params.pi_1,
-			      physical_params.pi_2,
-			      predicted_v,
-			      e_lag,
-			      e_1_lag,
-			      e_2_lag,
-			      u_lag,
-			      v_lag,
-			      in_rho_1,
-			      in_rho_2,
-			      in_cell_mass, 
-			      in_cell_mass_1,
-			      in_cell_mass_2,
-			      in_c_1,
-			      in_c_2,
-			      in_cell_volumic_fraction,
-			      cell_volumes,
-			      //out
-			      out_u,
-			      out_v,
-			      out_e,
-			      out_cell_mass,
-			      out_cell_mass_1,
-			      out_cell_mass_2,
-			      out_e_1,
-			      out_e_2,
-			      out_rho,
-			      out_rho_1,
-			      out_rho_2,
-			      out_c_1,
-			      out_c_2,
-			      out_cell_volumic_fraction,
-			      directional_lagrangian_volume_y,
-			      directional_lagrangian_density_y,
-			      directional_lagrangian_density_1_y,
-			      directional_lagrangian_density_2_y,
-			      volume_fluxes_y,
-			      volume_fluxes_1_y,
-			      volume_fluxes_2_y,
-			      mass_flux_y,
-			      mass_flux_1_y,
-			      mass_flux_2_y,
-			      energy_flux_y,
-			      energy_flux_1_y,
-			      energy_flux_2_y,
-			      concentration_flux_y,
-			      density_gradient_y,
-			      density_1_gradient_y,
-			      density_2_gradient_y,
-			      energy_gradient_y,
-			      energy_1_gradient,
-			      energy_2_gradient_y,
-			      concentration_gradient_y,
-			      gradient_u_y,
-			      gradient_v_y,
-			      interface_normal_x,
-			      interface_normal_y,
-			      //timing
-			      time_compute_volume_fluxes_Y,
-			      time_gradient_Y,
-			      time_mass_reconstruct_o2_Y,
-			      time_project_mass_Y,
-			      time_reconstruct_energy_o2_Y,
-			      time_project_energy_Y,
-			      time_gradient_nodal_Y,
-			      time_project_nodal_velocity_Y,
-			      time_periodic_boundary); 
-							 
-	std::swap(in_cell_mass, out_cell_mass); 
-	std::swap(in_cell_mass_1, out_cell_mass_1);
-	std::swap(in_cell_mass_2, out_cell_mass_2);
-	std::swap(in_cell_volumic_fraction, out_cell_volumic_fraction);
-	std::swap(in_u, out_u); 
-	std::swap(in_v, out_v);
-	std::swap(in_e, out_e);
-	std::swap(in_c_1, out_c_1);
-	std::swap(in_c_2, out_c_2);
-	std::swap(in_e_1, out_e_1);
-	std::swap(in_e_2, out_e_2);
-	std::swap(in_rho, out_rho);
-	std::swap(in_rho_1, out_rho_1);
-	std::swap(in_rho_2, out_rho_2);
-	  
-	} else { // !clock.iter()%2  Y then X projection
- // Projection Y
-	
-	AdProjection2dYDriver(//in
-			      numerical_params.BoundaryConditions,
-		              numerical_params.TypeOfModel,
-  			      nx,
-			      ny,
-			      nb_faces_x,
-			      nb_faces_y,
-			      nb_cells,
-			      nb_nodes,
-			      dx,
-			      dy,
-			      dt,
-			      halo_width,
-			      physical_params.gamma_1,
-			      physical_params.gamma_2,
-			      physical_params.pi_1,
-			      physical_params.pi_2,
-			      predicted_v,
-			      e_lag,
-			      e_1_lag,
-			      e_2_lag,
-			      u_lag,
-			      v_lag,
-			      in_rho_1,
-			      in_rho_2,
-			      in_cell_mass, 
-			      in_cell_mass_1,
-			      in_cell_mass_2,
-			      in_c_1,
-			      in_c_2,
-			      in_cell_volumic_fraction,
-			      cell_volumes,
-			      //out
-			      out_u,
-			      out_v,
-			      out_e,
-			      out_cell_mass,
-			      out_cell_mass_1,
-			      out_cell_mass_2,
-			      out_e_1,
-			      out_e_2,
-			      out_rho,
-			      out_rho_1,
-			      out_rho_2,
-			      out_c_1,
-			      out_c_2,
-			      out_cell_volumic_fraction,
-			      directional_lagrangian_volume_y,
-			      directional_lagrangian_density_y,
-			      directional_lagrangian_density_1_y,
-			      directional_lagrangian_density_2_y,
-			      volume_fluxes_y,
-			      volume_fluxes_1_y,
-			      volume_fluxes_2_y,
-			      mass_flux_y,
-			      mass_flux_1_y,
-			      mass_flux_2_y,
-			      energy_flux_y,
-			      energy_flux_1_y,
-			      energy_flux_2_y,
-			      concentration_flux_y,
-			      density_gradient_y,
-			      density_1_gradient_y,
-			      density_2_gradient_y,
-			      energy_gradient_y,
-			      energy_1_gradient,
-			      energy_2_gradient_y,
-			      concentration_gradient_y,
-			      gradient_u_y,
-			      gradient_v_y,
-			      interface_normal_x,
-			      interface_normal_y,
-			      //timing
-			      time_compute_volume_fluxes_Y,
-			      time_gradient_Y,
-			      time_mass_reconstruct_o2_Y,
-			      time_project_mass_Y,
-			      time_reconstruct_energy_o2_Y,
-			      time_project_energy_Y,
-			      time_gradient_nodal_Y,
-			      time_project_nodal_velocity_Y,
-			      time_periodic_boundary); 
-
-	std::swap(in_cell_mass, out_cell_mass);
-	std::swap(in_cell_mass_1, out_cell_mass_1);
-	std::swap(in_cell_mass_2, out_cell_mass_2);
-	std::swap(in_cell_volumic_fraction, out_cell_volumic_fraction);
-	std::swap(u_lag, out_u);
-	std::swap(v_lag, out_v);
-	std::swap(e_lag, out_e);
-	std::swap(e_1_lag, out_e_1);
-	std::swap(e_2_lag, out_e_2);
-	std::swap(in_c_1, out_c_1);
-	std::swap(in_c_2, out_c_2);
-	std::swap(in_rho_1, out_rho_1);
-	std::swap(in_rho_2, out_rho_2);
-	  
-// Projection X
-	
-	AdProjection2dXDriver(//in
-			      numerical_params.BoundaryConditions,
-		              numerical_params.TypeOfModel,
-			      nx,
-			      ny,
-			      nb_faces_x,
-			      nb_faces_y,
-			      nb_cells,
-			      nb_nodes,
-			      dx,
-			      dy,
-			      dt,
-			      halo_width,
-			      physical_params.gamma_1,
-			      physical_params.gamma_2,
-			      physical_params.pi_1,
-			      physical_params.pi_2,
-			      predicted_u,
-			      e_lag,
-			      e_1_lag,
-			      e_2_lag,
-			      u_lag,
-			      v_lag,
-			      in_rho_1,
-			      in_rho_2,
-			      in_cell_mass,
-			      in_cell_mass_1,
-			      in_cell_mass_2,
-			      in_c_1,
-			      in_c_2,
-			      in_cell_volumic_fraction,
-			      cell_volumes,
-			      // out
-			      out_u,
-			      out_v,
-			      out_e,
-			      out_cell_mass,
-			      out_cell_mass_1,
-			      out_cell_mass_2,
-			      out_e_1,
-			      out_e_2,
-			      out_rho,
-			      out_rho_1,
-			      out_rho_2,
-			      out_c_1,
-			      out_c_2,
-			      out_cell_volumic_fraction,
-			      directional_lagrangian_volume,
-			      directional_lagrangian_density,
-			      directional_lagrangian_density_1,
-			      directional_lagrangian_density_2,
-			      volume_fluxes_x,
-			      volume_fluxes_1_x,
-			      volume_fluxes_2_x,
-			      mass_flux_x,
-			      mass_flux_1_x,
-			      mass_flux_2_x,
-			      energy_flux_x,
-			      energy_flux_1_x,
-			      energy_flux_2_x,
-			      concentration_flux_x,
-			      density_gradient,
-			      density_1_gradient,
-			      density_2_gradient,
-			      energy_gradient,
-			      energy_1_gradient,
-			      energy_2_gradient,
-			      concentration_gradient,
-			      gradient_u,
-			      gradient_v,
-			      interface_normal_x,
-			      interface_normal_y,
-			      //timing
-			      time_compute_volume_fluxes_X,
-			      time_gradient_X,
-			      time_mass_reconstruct_o2_X,
-			      time_project_mass_X,
-			      time_reconstruct_energy_o2_X,
-			      time_project_energy_X,
-			      time_gradient_nodal_X,
-			      time_project_nodal_velocity_X,
-			      time_periodic_boundary);	
-
-	std::swap(in_cell_mass, out_cell_mass); 
-	std::swap(in_cell_mass_1, out_cell_mass_1);
-	std::swap(in_cell_mass_2, out_cell_mass_2);
-	std::swap(in_cell_volumic_fraction, out_cell_volumic_fraction);
-	std::swap(in_u, out_u); 
-	std::swap(in_v, out_v);
-	std::swap(in_e, out_e);
-	std::swap(in_c_1, out_c_1);
-	std::swap(in_c_2, out_c_2);
-	std::swap(in_e_1, out_e_1);
-	std::swap(in_e_2, out_e_2);
-	std::swap(in_rho, out_rho);
-	std::swap(in_rho_1, out_rho_1);
-	std::swap(in_rho_2, out_rho_2);
-
-	}
-	
-      } else if (numerical_params.TypeOfProjection == "DirectProjection") {
+      if ((numerical_params.TypeOfModel == "MultimaterialMix") && (numerical_params.TypeOfProjection == "LagrangeFluxes")) {
 
 	// Direct projection 2nd order
-	DirectProjection2dDriver(//in
+	LagrangeFluxes2dDriver(//in
 				 numerical_params.BoundaryConditions,
 				 numerical_params.TypeOfModel,
 				 nx,
@@ -1751,12 +1345,12 @@ void Simulation::Run() {
 				 energy_1_gradient_y,
 				 energy_2_gradient,
 				 energy_2_gradient_y,
-			         concentration_gradient,
-			         concentration_gradient_y,
-			         gradient_u,
-			         gradient_u_y,
-			         gradient_v,
-			         gradient_v_y,
+				 concentration_gradient,
+				 concentration_gradient_y,
+				 gradient_u,
+				 gradient_u_y,
+				 gradient_v,
+				 gradient_v_y,
 				 interface_normal_x,
 				 interface_normal_y,
 				 //timing
@@ -1777,7 +1371,7 @@ void Simulation::Run() {
 				 time_gradient_nodal_Y,
 				 time_project_nodal_velocity_Y,
 				 time_periodic_boundary);
-		
+
 	std::swap(in_cell_mass, out_cell_mass); 
 	std::swap(in_cell_mass_1, out_cell_mass_1);
 	std::swap(in_cell_mass_2, out_cell_mass_2);
@@ -1793,193 +1387,801 @@ void Simulation::Run() {
 	std::swap(in_rho_1, out_rho_1);
 	std::swap(in_rho_2, out_rho_2);
 
-      } else if (numerical_params.TypeOfProjection == "DirectProjectionCornerFluxes") {
+      }
+      else {
 
-	// Direct projection 2nd order with corner fluxes
-	DirectProjectionCornerFluxes2dDriver(//in
-					     numerical_params.BoundaryConditions,
-					     numerical_params.TypeOfModel,
-					     nx,
-					     ny,
-					     nb_faces_x,
-					     nb_faces_y,
-					     nb_cells,
-					     nb_nodes,
-					     dx,
-					     dy,
-					     dt,
-					     halo_width,
-					     physical_params.gamma,
-					     physical_params.gamma_1,
-					     physical_params.gamma_2,
-					     physical_params.pi,
-					     physical_params.pi_1,
-					     physical_params.pi_2,
-					     predicted_u,
-					     predicted_v,
-					     e_lag,
-					     e_1_lag,
-					     e_2_lag,
-					     u_lag,
-					     v_lag,
-					     in_rho_1,
-					     in_rho_2,
-					     in_cell_mass,
-					     in_cell_mass_1,
-					     in_cell_mass_2,
-					     in_p,
-					     in_p_1,
-					     in_p_2,
-					     in_c_1,
-					     in_c_2,
-					     in_cell_volumic_fraction,
-					     cell_volumes,
-					     // out
-					     out_u,
-					     out_v,
-					     out_e,
-					     out_cell_mass,
-					     out_cell_mass_1,
-					     out_cell_mass_2,
-					     out_e_1,
-					     out_e_2,
-					     out_rho,
-					     out_rho_1,
-					     out_rho_2,
-					     out_c_1,
-					     out_c_2,
-					     out_cell_volumic_fraction,
-					     directional_lagrangian_volume,
-					     directional_lagrangian_volume_y,
-					     directional_lagrangian_density,
-					     directional_lagrangian_density_y,
-					     directional_lagrangian_density_1,
-					     directional_lagrangian_density_1_y,
-					     directional_lagrangian_density_2,
-					     directional_lagrangian_density_2_y,
-					     volume_fluxes_x,
-					     volume_fluxes_y,
-					     volume_fluxes_corner,
-					     volume_fluxes_1_x,
-					     volume_fluxes_1_y,
-					     volume_fluxes_1_corner,
-					     volume_fluxes_2_x,
-					     volume_fluxes_2_y,
-					     volume_fluxes_2_corner,
-					     mass_flux_x,
-					     mass_flux_y,
-					     mass_flux_1_x,
-					     mass_flux_1_y,
-					     mass_flux_2_x,
-					     mass_flux_2_y,
-					     mass_corner_fluxes,
-					     mass_1_corner_fluxes,
-					     mass_2_corner_fluxes,
-					     sign_x_corner_fluxes,
-					     sign_y_corner_fluxes,
-					     energy_flux_x,
-					     energy_flux_y,
-					     energy_flux_corner,
-					     energy_flux_1_x,
-					     energy_flux_1_y,
-					     energy_flux_1_corner,
-					     energy_flux_2_x,
-					     energy_flux_2_y,
-					     energy_flux_2_corner,
-					     concentration_flux_x,
-					     concentration_flux_y,
-					     concentration_flux_corner,
-					     bool_check_fluxes_x,
-					     bool_check_fluxes_y,
-					     density_gradient,
-					     density_gradient_y,
-					     density_gradient_diag,
-					     density_gradient_antidiag,
-					     density_1_gradient,
-					     density_1_gradient_y,
-					     density_1_gradient_diag,
-					     density_1_gradient_antidiag,
-					     density_2_gradient,
-					     density_2_gradient_y,
-					     density_2_gradient_diag,
-					     density_2_gradient_antidiag,
-					     energy_gradient,
-					     energy_gradient_y,
-					     energy_gradient_diag,
-					     energy_gradient_antidiag,
-					     energy_1_gradient,
-					     energy_1_gradient_y,
-					     energy_1_gradient_diag,
-					     energy_1_gradient_antidiag,
-					     energy_2_gradient,
-					     energy_2_gradient_y,
-					     energy_2_gradient_diag,
-					     energy_2_gradient_antidiag,
-					     concentration_gradient,
-					     concentration_gradient_y,
-					     concentration_gradient_diag,
-					     concentration_gradient_antidiag,
-					     reconstructed_density_faces_x,
-					     reconstructed_density_faces_y,
-					     reconstructed_density_1_faces_x,
-					     reconstructed_density_1_faces_y,
-					     reconstructed_density_2_faces_x,
-					     reconstructed_density_2_faces_y,
-					     reconstructed_energy_faces_x,
-					     reconstructed_energy_faces_y,
-					     reconstructed_energy_1_faces_x,
-					     reconstructed_energy_1_faces_y,
-					     reconstructed_energy_2_faces_x,
-					     reconstructed_energy_2_faces_y,
-					     reconstructed_concentration_faces_x,
-					     reconstructed_concentration_faces_y,
-					     gradient_u,
-					     gradient_u_y,
-					     gradient_u_diag,
-					     gradient_u_antidiag,
-					     gradient_v,
-					     gradient_v_y,
-					     gradient_v_diag,
-					     gradient_v_antidiag,
-					     interface_normal_x,
-					     interface_normal_y,
-					     //timing
-					     time_compute_volume_fluxes_X,
-					     time_gradient_X,
-					     time_mass_reconstruct_o2_X,
-					     time_project_mass_X,
-					     time_reconstruct_energy_o2_X,
-					     time_project_energy_X,
-					     time_gradient_nodal_X,
-					     time_project_nodal_velocity_X,
-					     time_compute_volume_fluxes_Y,
-					     time_gradient_Y,
-					     time_mass_reconstruct_o2_Y,
-					     time_project_mass_Y,
-					     time_reconstruct_energy_o2_Y,
-					     time_project_energy_Y,
-					     time_gradient_nodal_Y,
-					     time_project_nodal_velocity_Y,
-					     time_periodic_boundary);
-		
-	std::swap(in_cell_mass, out_cell_mass); 
-	std::swap(in_cell_mass_1, out_cell_mass_1);
-	std::swap(in_cell_mass_2, out_cell_mass_2);
-	std::swap(in_cell_volumic_fraction, out_cell_volumic_fraction);
-	std::swap(in_u, out_u); 
-	std::swap(in_v, out_v);
-	std::swap(in_e, out_e);
-	std::swap(in_c_1, out_c_1);
-	std::swap(in_c_2, out_c_2);
-	std::swap(in_e_1, out_e_1);
-	std::swap(in_e_2, out_e_2);
-	std::swap(in_rho, out_rho);
-	std::swap(in_rho_1, out_rho_1);
-	std::swap(in_rho_2, out_rho_2);
+	clock_gettime(CLOCK_REALTIME, &time1);
+	
+	if ((numerical_params.TypeOfModel == "MultimaterialMix") || (numerical_params.TypeOfModel == "MultimaterialInterface")) {	
+	  dt = TimeStepSGPCMultimat(nx, ny, dx, dy, numerical_params.CFL, physical_params.gamma_1, physical_params.gamma_1, physical_params.pi_1, physical_params.pi_1, in_rho_1, in_rho_2, in_p_1, in_p_2, in_cell_volumic_fraction, in_u, in_v);
+	  
+	} else {
+	  dt = TimeStepSGPC(nx, ny, dx, dy, numerical_params.CFL, physical_params.gamma, physical_params.pi, in_rho, in_p, in_u, in_v);
+	}
+	
+	clock_gettime(CLOCK_REALTIME, &time2);
+	time_time_step.push_back(diff(time1, time2)); 
+	
+	std::cerr << "CFL : " << numerical_params.CFL << "\n"; 
+	std::cerr << "          dt = " << dt << "\n";
+	
+	// Lagrange 2D algorithm for compressible Euler equations.
+	
+	Lagrange2dDriver(//in
+			 numerical_params.BoundaryConditions,
+			 numerical_params.TypeOfModel,
+			 nx,
+			 ny,
+			 dx,
+			 dy,
+			 dt,
+			 physical_params.gamma,
+			 physical_params.gamma_1,
+			 physical_params.gamma_2,
+			 physical_params.pi,
+			 physical_params.pi_1,
+			 physical_params.pi_2,
+			 in_u,
+			 in_v,
+			 in_e,
+			 in_e_1,
+			 in_e_2,
+			 in_cell_mass,
+			 in_cell_mass_1,
+			 in_cell_mass_2,
+			 in_rho_1,
+			 in_rho_2,
+			 in_cell_volumic_fraction,
+			 //out
+			 in_p,
+			 in_p_1,
+			 in_p_2,
+			 predicted_pressure,
+			 predicted_pressure_1,
+			 predicted_pressure_2,
+			 cell_pseudo_pressure,
+			 predicted_u,
+			 predicted_v,
+			 e_lag,
+			 e_1_lag,
+			 e_2_lag,
+			 u_lag,
+			 v_lag,
+			 in_X_x,
+			 in_X_y,
+			 // timing
+			 time_lagrange_pressure_predicted,
+			 time_lagrange_velocity_predicted,
+			 time_periodic_boundary,
+			 time_lagrange_correction,
+			 time_lagrange_velocity_correction);
+	
+	
+	// Projection 2D algorithm for compressible Euler equations.
+	
+	if (numerical_params.TypeOfProjection == "AdProjection") {
+	  if (clock.iter()%2) {    // alternating X + Y and Y + X projection
+	    // Projection X     X then Y projection
+	    AdProjection2dXDriver(//in
+				  numerical_params.BoundaryConditions,
+				  numerical_params.TypeOfModel,
+				  nx,
+				  ny,
+				  nb_faces_x,
+				  nb_faces_y,
+				  nb_cells,
+				  nb_nodes,
+				  dx,
+				  dy,
+				  dt,
+				  halo_width,
+				  physical_params.gamma_1,
+				  physical_params.gamma_2,
+				  physical_params.pi_1,
+				  physical_params.pi_2,
+				  predicted_u,
+				  e_lag,
+				  e_1_lag,
+				  e_2_lag,
+				  u_lag,
+				  v_lag,
+				  in_rho_1,
+				  in_rho_2,
+				  in_cell_mass,
+				  in_cell_mass_1,
+				  in_cell_mass_2,
+				  in_c_1,
+				  in_c_2,
+				  in_cell_volumic_fraction,
+				  cell_volumes,
+				  // out
+				  out_u,
+				  out_v,
+				  out_e,
+				  out_cell_mass,
+				  out_cell_mass_1,
+				  out_cell_mass_2,
+				  out_e_1,
+				  out_e_2,
+				  out_rho,
+				  out_rho_1,
+				  out_rho_2,
+				  out_c_1,
+				  out_c_2,
+				  out_cell_volumic_fraction,
+				  directional_lagrangian_volume,
+				  directional_lagrangian_density,
+				  directional_lagrangian_density_1,
+				  directional_lagrangian_density_2,
+				  volume_fluxes_x,
+				  volume_fluxes_1_x,
+				  volume_fluxes_2_x,
+				  mass_flux_x,
+				  mass_flux_1_x,
+				  mass_flux_2_x,
+				  energy_flux_x,
+				  energy_flux_1_x,
+				  energy_flux_2_x,
+				  concentration_flux_x,
+				  density_gradient,
+				  density_1_gradient,
+				  density_2_gradient,
+				  energy_gradient,
+				  energy_1_gradient,
+				  energy_2_gradient,
+				  concentration_gradient,
+				  gradient_u,
+				  gradient_v,
+				  interface_normal_x,
+				  interface_normal_y,
+				  //timing
+				  time_compute_volume_fluxes_X,
+				  time_gradient_X,
+				  time_mass_reconstruct_o2_X,
+				  time_project_mass_X,
+				  time_reconstruct_energy_o2_X,
+				  time_project_energy_X,
+				  time_gradient_nodal_X,
+				  time_project_nodal_velocity_X,
+				  time_periodic_boundary);	
+	    
+	    std::swap(in_cell_mass, out_cell_mass);
+	    std::swap(in_cell_mass_1, out_cell_mass_1);
+	    std::swap(in_cell_mass_2, out_cell_mass_2);
+	    std::swap(in_cell_volumic_fraction, out_cell_volumic_fraction);
+	    std::swap(u_lag, out_u);
+	    std::swap(v_lag, out_v);
+	    std::swap(e_lag, out_e);
+	    std::swap(e_1_lag, out_e_1);
+	    std::swap(e_2_lag, out_e_2);
+	    std::swap(in_c_1, out_c_1);
+	    std::swap(in_c_2, out_c_2);
+	    std::swap(in_rho_1, out_rho_1);
+	    std::swap(in_rho_2, out_rho_2);
+	    
+	    // Projection Y
+	    
+	    AdProjection2dYDriver(//in
+				  numerical_params.BoundaryConditions,
+				  numerical_params.TypeOfModel,
+				  nx,
+				  ny,
+				  nb_faces_x,
+				  nb_faces_y,
+				  nb_cells,
+				  nb_nodes,
+				  dx,
+				  dy,
+				  dt,
+				  halo_width,
+				  physical_params.gamma_1,
+				  physical_params.gamma_2,
+				  physical_params.pi_1,
+				  physical_params.pi_2,
+				  predicted_v,
+				  e_lag,
+				  e_1_lag,
+				  e_2_lag,
+				  u_lag,
+				  v_lag,
+				  in_rho_1,
+				  in_rho_2,
+				  in_cell_mass, 
+				  in_cell_mass_1,
+				  in_cell_mass_2,
+				  in_c_1,
+				  in_c_2,
+				  in_cell_volumic_fraction,
+				  cell_volumes,
+				  //out
+				  out_u,
+				  out_v,
+				  out_e,
+				  out_cell_mass,
+				  out_cell_mass_1,
+				  out_cell_mass_2,
+				  out_e_1,
+				  out_e_2,
+				  out_rho,
+				  out_rho_1,
+				  out_rho_2,
+				  out_c_1,
+				  out_c_2,
+				  out_cell_volumic_fraction,
+				  directional_lagrangian_volume_y,
+				  directional_lagrangian_density_y,
+				  directional_lagrangian_density_1_y,
+				  directional_lagrangian_density_2_y,
+				  volume_fluxes_y,
+				  volume_fluxes_1_y,
+				  volume_fluxes_2_y,
+				  mass_flux_y,
+				  mass_flux_1_y,
+				  mass_flux_2_y,
+				  energy_flux_y,
+				  energy_flux_1_y,
+				  energy_flux_2_y,
+				  concentration_flux_y,
+				  density_gradient_y,
+				  density_1_gradient_y,
+				  density_2_gradient_y,
+				  energy_gradient_y,
+				  energy_1_gradient,
+				  energy_2_gradient_y,
+				  concentration_gradient_y,
+				  gradient_u_y,
+				  gradient_v_y,
+				  interface_normal_x,
+				  interface_normal_y,
+				  //timing
+				  time_compute_volume_fluxes_Y,
+				  time_gradient_Y,
+				  time_mass_reconstruct_o2_Y,
+				  time_project_mass_Y,
+				  time_reconstruct_energy_o2_Y,
+				  time_project_energy_Y,
+				  time_gradient_nodal_Y,
+				  time_project_nodal_velocity_Y,
+				  time_periodic_boundary); 
+	    
+	    std::swap(in_cell_mass, out_cell_mass); 
+	    std::swap(in_cell_mass_1, out_cell_mass_1);
+	    std::swap(in_cell_mass_2, out_cell_mass_2);
+	    std::swap(in_cell_volumic_fraction, out_cell_volumic_fraction);
+	    std::swap(in_u, out_u); 
+	    std::swap(in_v, out_v);
+	    std::swap(in_e, out_e);
+	    std::swap(in_c_1, out_c_1);
+	    std::swap(in_c_2, out_c_2);
+	    std::swap(in_e_1, out_e_1);
+	    std::swap(in_e_2, out_e_2);
+	    std::swap(in_rho, out_rho);
+	    std::swap(in_rho_1, out_rho_1);
+	    std::swap(in_rho_2, out_rho_2);
+	    
+	  } else { // !clock.iter()%2  Y then X projection
+	    // Projection Y
+	    
+	    AdProjection2dYDriver(//in
+				  numerical_params.BoundaryConditions,
+				  numerical_params.TypeOfModel,
+				  nx,
+				  ny,
+				  nb_faces_x,
+				  nb_faces_y,
+				  nb_cells,
+				  nb_nodes,
+				  dx,
+				  dy,
+				  dt,
+				  halo_width,
+				  physical_params.gamma_1,
+				  physical_params.gamma_2,
+				  physical_params.pi_1,
+				  physical_params.pi_2,
+				  predicted_v,
+				  e_lag,
+				  e_1_lag,
+				  e_2_lag,
+				  u_lag,
+				  v_lag,
+				  in_rho_1,
+				  in_rho_2,
+				  in_cell_mass, 
+				  in_cell_mass_1,
+				  in_cell_mass_2,
+				  in_c_1,
+				  in_c_2,
+				  in_cell_volumic_fraction,
+				  cell_volumes,
+				  //out
+				  out_u,
+				  out_v,
+				  out_e,
+				  out_cell_mass,
+				  out_cell_mass_1,
+				  out_cell_mass_2,
+				  out_e_1,
+				  out_e_2,
+				  out_rho,
+				  out_rho_1,
+				  out_rho_2,
+				  out_c_1,
+				  out_c_2,
+				  out_cell_volumic_fraction,
+				  directional_lagrangian_volume_y,
+				  directional_lagrangian_density_y,
+				  directional_lagrangian_density_1_y,
+				  directional_lagrangian_density_2_y,
+				  volume_fluxes_y,
+				  volume_fluxes_1_y,
+				  volume_fluxes_2_y,
+				  mass_flux_y,
+				  mass_flux_1_y,
+				  mass_flux_2_y,
+				  energy_flux_y,
+				  energy_flux_1_y,
+				  energy_flux_2_y,
+				  concentration_flux_y,
+				  density_gradient_y,
+				  density_1_gradient_y,
+				  density_2_gradient_y,
+				  energy_gradient_y,
+				  energy_1_gradient,
+				  energy_2_gradient_y,
+				  concentration_gradient_y,
+				  gradient_u_y,
+				  gradient_v_y,
+				  interface_normal_x,
+				  interface_normal_y,
+				  //timing
+				  time_compute_volume_fluxes_Y,
+				  time_gradient_Y,
+				  time_mass_reconstruct_o2_Y,
+				  time_project_mass_Y,
+				  time_reconstruct_energy_o2_Y,
+				  time_project_energy_Y,
+				  time_gradient_nodal_Y,
+				  time_project_nodal_velocity_Y,
+				  time_periodic_boundary); 
+	    
+	    std::swap(in_cell_mass, out_cell_mass);
+	    std::swap(in_cell_mass_1, out_cell_mass_1);
+	    std::swap(in_cell_mass_2, out_cell_mass_2);
+	    std::swap(in_cell_volumic_fraction, out_cell_volumic_fraction);
+	    std::swap(u_lag, out_u);
+	    std::swap(v_lag, out_v);
+	    std::swap(e_lag, out_e);
+	    std::swap(e_1_lag, out_e_1);
+	    std::swap(e_2_lag, out_e_2);
+	    std::swap(in_c_1, out_c_1);
+	    std::swap(in_c_2, out_c_2);
+	    std::swap(in_rho_1, out_rho_1);
+	    std::swap(in_rho_2, out_rho_2);
+	    
+	    // Projection X
+	    
+	    AdProjection2dXDriver(//in
+				  numerical_params.BoundaryConditions,
+				  numerical_params.TypeOfModel,
+				  nx,
+				  ny,
+				  nb_faces_x,
+				  nb_faces_y,
+				  nb_cells,
+				  nb_nodes,
+				  dx,
+				  dy,
+				  dt,
+				  halo_width,
+				  physical_params.gamma_1,
+				  physical_params.gamma_2,
+				  physical_params.pi_1,
+				  physical_params.pi_2,
+				  predicted_u,
+				  e_lag,
+				  e_1_lag,
+				  e_2_lag,
+				  u_lag,
+				  v_lag,
+				  in_rho_1,
+				  in_rho_2,
+				  in_cell_mass,
+				  in_cell_mass_1,
+				  in_cell_mass_2,
+				  in_c_1,
+				  in_c_2,
+				  in_cell_volumic_fraction,
+				  cell_volumes,
+				  // out
+				  out_u,
+				  out_v,
+				  out_e,
+				  out_cell_mass,
+				  out_cell_mass_1,
+				  out_cell_mass_2,
+				  out_e_1,
+				  out_e_2,
+				  out_rho,
+				  out_rho_1,
+				  out_rho_2,
+				  out_c_1,
+				  out_c_2,
+				  out_cell_volumic_fraction,
+				  directional_lagrangian_volume,
+				  directional_lagrangian_density,
+				  directional_lagrangian_density_1,
+				  directional_lagrangian_density_2,
+				  volume_fluxes_x,
+				  volume_fluxes_1_x,
+				  volume_fluxes_2_x,
+				  mass_flux_x,
+				  mass_flux_1_x,
+				  mass_flux_2_x,
+				  energy_flux_x,
+				  energy_flux_1_x,
+				  energy_flux_2_x,
+				  concentration_flux_x,
+				  density_gradient,
+				  density_1_gradient,
+				  density_2_gradient,
+				  energy_gradient,
+				  energy_1_gradient,
+				  energy_2_gradient,
+				  concentration_gradient,
+				  gradient_u,
+				  gradient_v,
+				  interface_normal_x,
+				  interface_normal_y,
+				  //timing
+				  time_compute_volume_fluxes_X,
+				  time_gradient_X,
+				  time_mass_reconstruct_o2_X,
+				  time_project_mass_X,
+				  time_reconstruct_energy_o2_X,
+				  time_project_energy_X,
+				  time_gradient_nodal_X,
+				  time_project_nodal_velocity_X,
+				  time_periodic_boundary);	
+	    
+	    std::swap(in_cell_mass, out_cell_mass); 
+	    std::swap(in_cell_mass_1, out_cell_mass_1);
+	    std::swap(in_cell_mass_2, out_cell_mass_2);
+	    std::swap(in_cell_volumic_fraction, out_cell_volumic_fraction);
+	    std::swap(in_u, out_u); 
+	    std::swap(in_v, out_v);
+	    std::swap(in_e, out_e);
+	    std::swap(in_c_1, out_c_1);
+	    std::swap(in_c_2, out_c_2);
+	    std::swap(in_e_1, out_e_1);
+	    std::swap(in_e_2, out_e_2);
+	    std::swap(in_rho, out_rho);
+	    std::swap(in_rho_1, out_rho_1);
+	    std::swap(in_rho_2, out_rho_2);
+	    
+	  }
+	
+	} else if (numerical_params.TypeOfProjection == "DirectProjection") {
+	  
+	  // Direct projection 2nd order
+	  DirectProjection2dDriver(//in
+				   numerical_params.BoundaryConditions,
+				   numerical_params.TypeOfModel,
+				   nx,
+				   ny,
+				   nb_faces_x,
+				   nb_faces_y,
+				   nb_cells,
+				   nb_nodes,
+				   dx,
+				   dy,
+				   dt,
+				   halo_width,
+				   physical_params.gamma_1,
+				   physical_params.gamma_2,
+				   physical_params.pi_1,
+				   physical_params.pi_2,
+				   predicted_u,
+				   predicted_v,
+				   e_lag,
+				   e_1_lag,
+				   e_2_lag,
+				   u_lag,
+				   v_lag,
+				   in_rho_1,
+				   in_rho_2,
+				   in_cell_mass,
+				   in_cell_mass_1,
+				   in_cell_mass_2,
+				   in_c_1,
+				   in_c_2,
+				   in_cell_volumic_fraction,
+				   cell_volumes,
+				   // out
+				   out_u,
+				   out_v,
+				   out_e,
+				   out_cell_mass,
+				   out_cell_mass_1,
+				   out_cell_mass_2,
+				   out_e_1,
+				   out_e_2,
+				   out_rho,
+				   out_rho_1,
+				   out_rho_2,
+				   out_c_1,
+				   out_c_2,
+				   out_cell_volumic_fraction,
+				   directional_lagrangian_volume,
+				   directional_lagrangian_volume_y,
+				   directional_lagrangian_density,
+				   directional_lagrangian_density_y,
+				   directional_lagrangian_density_1,
+				   directional_lagrangian_density_1_y,
+				   directional_lagrangian_density_2,
+				   directional_lagrangian_density_2_y,
+				   volume_fluxes_x,
+				   volume_fluxes_y,
+				   volume_fluxes_1_x,
+				   volume_fluxes_1_y,
+				   volume_fluxes_2_x,
+				   volume_fluxes_2_y,
+				   mass_flux_x,
+				   mass_flux_y,
+				   mass_flux_1_x,
+				   mass_flux_1_y,
+				   mass_flux_2_x,
+				   mass_flux_2_y,
+				   energy_flux_x,
+				   energy_flux_y,
+				   energy_flux_1_x,
+				   energy_flux_1_y,
+				   energy_flux_2_x,
+				   energy_flux_2_y,
+				   concentration_flux_x,
+				   concentration_flux_y,
+				   bool_check_fluxes_x,
+				   bool_check_fluxes_y,
+				   density_gradient,
+				   density_gradient_y,
+				   density_1_gradient,
+				   density_1_gradient_y,
+				   density_2_gradient,
+				   density_2_gradient_y,
+				   energy_gradient,
+				   energy_gradient_y,
+				   energy_1_gradient,
+				   energy_1_gradient_y,
+				   energy_2_gradient,
+				   energy_2_gradient_y,
+				   concentration_gradient,
+				   concentration_gradient_y,
+				   gradient_u,
+				   gradient_u_y,
+				   gradient_v,
+				   gradient_v_y,
+				   interface_normal_x,
+				   interface_normal_y,
+				   //timing
+				   time_compute_volume_fluxes_X,
+				   time_gradient_X,
+				   time_mass_reconstruct_o2_X,
+				   time_project_mass_X,
+				   time_reconstruct_energy_o2_X,
+				   time_project_energy_X,
+				   time_gradient_nodal_X,
+				   time_project_nodal_velocity_X,
+				   time_compute_volume_fluxes_Y,
+				   time_gradient_Y,
+				   time_mass_reconstruct_o2_Y,
+				   time_project_mass_Y,
+				   time_reconstruct_energy_o2_Y,
+				   time_project_energy_Y,
+				   time_gradient_nodal_Y,
+				   time_project_nodal_velocity_Y,
+				   time_periodic_boundary);
+	  
+	  std::swap(in_cell_mass, out_cell_mass); 
+	  std::swap(in_cell_mass_1, out_cell_mass_1);
+	  std::swap(in_cell_mass_2, out_cell_mass_2);
+	  std::swap(in_cell_volumic_fraction, out_cell_volumic_fraction);
+	  std::swap(in_u, out_u); 
+	  std::swap(in_v, out_v);
+	  std::swap(in_e, out_e);
+	  std::swap(in_c_1, out_c_1);
+	  std::swap(in_c_2, out_c_2);
+	  std::swap(in_e_1, out_e_1);
+	  std::swap(in_e_2, out_e_2);
+	  std::swap(in_rho, out_rho);
+	  std::swap(in_rho_1, out_rho_1);
+	  std::swap(in_rho_2, out_rho_2);
+	  
+	} else if (numerical_params.TypeOfProjection == "DirectProjectionCornerFluxes") {
 
-      } 
-
-
+	  // Direct projection 2nd order with corner fluxes
+	  DirectProjectionCornerFluxes2dDriver(//in
+					       numerical_params.BoundaryConditions,
+					       numerical_params.TypeOfModel,
+					       nx,
+					       ny,
+					       nb_faces_x,
+					       nb_faces_y,
+					       nb_cells,
+					       nb_nodes,
+					       dx,
+					       dy,
+					       dt,
+					       halo_width,
+					       physical_params.gamma,
+					       physical_params.gamma_1,
+					       physical_params.gamma_2,
+					       physical_params.pi,
+					       physical_params.pi_1,
+					       physical_params.pi_2,
+					       predicted_u,
+					       predicted_v,
+					       e_lag,
+					       e_1_lag,
+					       e_2_lag,
+					       u_lag,
+					       v_lag,
+					       in_rho_1,
+					       in_rho_2,
+					       in_cell_mass,
+					       in_cell_mass_1,
+					       in_cell_mass_2,
+					       in_p,
+					       in_p_1,
+					       in_p_2,
+					       in_c_1,
+					       in_c_2,
+					       in_cell_volumic_fraction,
+					       cell_volumes,
+					       // out
+					       out_u,
+					       out_v,
+					       out_e,
+					       out_cell_mass,
+					       out_cell_mass_1,
+					       out_cell_mass_2,
+					       out_e_1,
+					       out_e_2,
+					       out_rho,
+					       out_rho_1,
+					       out_rho_2,
+					       out_c_1,
+					       out_c_2,
+					       out_cell_volumic_fraction,
+					       directional_lagrangian_volume,
+					       directional_lagrangian_volume_y,
+					       directional_lagrangian_density,
+					       directional_lagrangian_density_y,
+					       directional_lagrangian_density_1,
+					       directional_lagrangian_density_1_y,
+					       directional_lagrangian_density_2,
+					       directional_lagrangian_density_2_y,
+					       volume_fluxes_x,
+					       volume_fluxes_y,
+					       volume_fluxes_corner,
+					       volume_fluxes_1_x,
+					       volume_fluxes_1_y,
+					       volume_fluxes_1_corner,
+					       volume_fluxes_2_x,
+					       volume_fluxes_2_y,
+					       volume_fluxes_2_corner,
+					       mass_flux_x,
+					       mass_flux_y,
+					       mass_flux_1_x,
+					       mass_flux_1_y,
+					       mass_flux_2_x,
+					       mass_flux_2_y,
+					       mass_corner_fluxes,
+					       mass_1_corner_fluxes,
+					       mass_2_corner_fluxes,
+					       sign_x_corner_fluxes,
+					       sign_y_corner_fluxes,
+					       energy_flux_x,
+					       energy_flux_y,
+					       energy_flux_corner,
+					       energy_flux_1_x,
+					       energy_flux_1_y,
+					       energy_flux_1_corner,
+					       energy_flux_2_x,
+					       energy_flux_2_y,
+					       energy_flux_2_corner,
+					       concentration_flux_x,
+					       concentration_flux_y,
+					       concentration_flux_corner,
+					       bool_check_fluxes_x,
+					       bool_check_fluxes_y,
+					       density_gradient,
+					       density_gradient_y,
+					       density_gradient_diag,
+					       density_gradient_antidiag,
+					       density_1_gradient,
+					       density_1_gradient_y,
+					       density_1_gradient_diag,
+					       density_1_gradient_antidiag,
+					       density_2_gradient,
+					       density_2_gradient_y,
+					       density_2_gradient_diag,
+					       density_2_gradient_antidiag,
+					       energy_gradient,
+					       energy_gradient_y,
+					       energy_gradient_diag,
+					       energy_gradient_antidiag,
+					       energy_1_gradient,
+					       energy_1_gradient_y,
+					       energy_1_gradient_diag,
+					       energy_1_gradient_antidiag,
+					       energy_2_gradient,
+					       energy_2_gradient_y,
+					       energy_2_gradient_diag,
+					       energy_2_gradient_antidiag,
+					       concentration_gradient,
+					       concentration_gradient_y,
+					       concentration_gradient_diag,
+					       concentration_gradient_antidiag,
+					       reconstructed_density_faces_x,
+					       reconstructed_density_faces_y,
+					       reconstructed_density_1_faces_x,
+					       reconstructed_density_1_faces_y,
+					       reconstructed_density_2_faces_x,
+					       reconstructed_density_2_faces_y,
+					       reconstructed_energy_faces_x,
+					       reconstructed_energy_faces_y,
+					       reconstructed_energy_1_faces_x,
+					       reconstructed_energy_1_faces_y,
+					       reconstructed_energy_2_faces_x,
+					       reconstructed_energy_2_faces_y,
+					       reconstructed_concentration_faces_x,
+					       reconstructed_concentration_faces_y,
+					       gradient_u,
+					       gradient_u_y,
+					       gradient_u_diag,
+					       gradient_u_antidiag,
+					       gradient_v,
+					       gradient_v_y,
+					       gradient_v_diag,
+					       gradient_v_antidiag,
+					       interface_normal_x,
+					       interface_normal_y,
+					       //timing
+					       time_compute_volume_fluxes_X,
+					       time_gradient_X,
+					       time_mass_reconstruct_o2_X,
+					       time_project_mass_X,
+					       time_reconstruct_energy_o2_X,
+					       time_project_energy_X,
+					       time_gradient_nodal_X,
+					       time_project_nodal_velocity_X,
+					       time_compute_volume_fluxes_Y,
+					       time_gradient_Y,
+					       time_mass_reconstruct_o2_Y,
+					       time_project_mass_Y,
+					       time_reconstruct_energy_o2_Y,
+					       time_project_energy_Y,
+					       time_gradient_nodal_Y,
+					       time_project_nodal_velocity_Y,
+					       time_periodic_boundary);
+	  
+	  std::swap(in_cell_mass, out_cell_mass); 
+	  std::swap(in_cell_mass_1, out_cell_mass_1);
+	  std::swap(in_cell_mass_2, out_cell_mass_2);
+	  std::swap(in_cell_volumic_fraction, out_cell_volumic_fraction);
+	  std::swap(in_u, out_u); 
+	  std::swap(in_v, out_v);
+	  std::swap(in_e, out_e);
+	  std::swap(in_c_1, out_c_1);
+	  std::swap(in_c_2, out_c_2);
+	  std::swap(in_e_1, out_e_1);
+	  std::swap(in_e_2, out_e_2);
+	  std::swap(in_rho, out_rho);
+	  std::swap(in_rho_1, out_rho_1);
+	  std::swap(in_rho_2, out_rho_2);
+	  
+	}
+      }
       // Recompute the density from mass and volume. Only needed for output.
 
       for (int iy = 0; iy < ny; ++iy) {
