@@ -17,6 +17,7 @@ extern "C" {
 */
 // Lagrange Remap kernels
 #include "kernel_lagrange_fluxes_2d.h"
+#include "kernel_lagrange_fluxes_2d_boundary_conditions.h"
 #include "kernel_ad_projection_2d.h"
 #include "kernel_direct_projection_2d.h"
 #include "kernel_direct_projection_corner_fluxes_2d.h"

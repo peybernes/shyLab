@@ -8,6 +8,7 @@
 #include <stdlib.h>    
 
 #include "kernel_tools.h"
+#include "kernels.hpp"
 
 
 
@@ -127,11 +128,14 @@ void LagrangeFluxes2dDriver(//in
 
   ComputeGradientAlpha(nx,ny,nb_mat,dx,dy,in_c_1,in_c_2,alphak_gradx_left,alphak_gradx_right,alphak_grady_bot,alphak_grady_top);
   
-  std::cout << "Start Lagrange Flux ok !" << std::endl;
+  if (BoundaryConditions == "Wall") {
+    ComputeGradientAlphaBoundaryWall(nx,ny,nb_mat,dx,dy,in_c_1,in_c_2,alphak_gradx_left,alphak_gradx_right,alphak_grady_bot,alphak_grady_top);
+  }
+
 
   for (index_t imat = 0; imat < 2; ++imat) {
-    for (index_t iy = 1; iy < ny - 1; ++iy) {
-      for (index_t ix = 1; ix < nx - 1; ++ix) {      
+    for (index_t iy = 0; iy < ny; ++iy) {
+      for (index_t ix = 0; ix < nx; ++ix) {      
 	const int cell_ooo  = (nx * iy) + ix;
 	std::cout <<  alphak_grady_bot  [imat][cell_ooo] << std::endl;
 	std::cout <<  alphak_grady_top  [imat][cell_ooo] << std::endl;
@@ -141,6 +145,7 @@ void LagrangeFluxes2dDriver(//in
     }
   }
   
+  std::cout << "Start Lagrange Flux ok !" << std::endl;
   exit(0);
 }
 

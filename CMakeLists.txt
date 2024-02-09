@@ -86,6 +86,7 @@ add_executable(
     src/io/init.cpp
     src/io/output.cpp
     src/numerics/kernel_lagrange_fluxes_2d.c
+    src/numerics/kernel_lagrange_fluxes_2d_boundary_conditions.c
     src/numerics/kernel_ad_projection_2d.c
     src/numerics/kernel_direct_projection_2d.c
     src/numerics/kernel_direct_projection_corner_fluxes_2d.c
