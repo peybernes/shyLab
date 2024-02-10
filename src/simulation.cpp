@@ -541,7 +541,27 @@ void Simulation::Run() {
   const int nx = m_grid.nx();
   const int ny = m_grid.ny();
 
-    
+  int nb_mat = numerical_params.NumberOfMaterials;
+
+  RealType gamma_k[nb_mat];
+  RealType pi_k   [nb_mat];
+  gamma_k[0] = physical_params.gamma_1;
+  if (nb_mat > 1) {
+    gamma_k[1] = physical_params.gamma_2;
+  } else if (nb_mat > 2) {
+    gamma_k[2] = physical_params.gamma_3;
+  } else if (nb_mat > 2) {
+    gamma_k[3] = physical_params.gamma_4;
+  }  
+  pi_k[0] = physical_params.pi_1;
+  if (nb_mat > 1) {
+    pi_k[1] = physical_params.pi_2;
+  } else if (nb_mat > 2) {
+    pi_k[2] = physical_params.pi_3;
+  } else if (nb_mat > 2) {
+    pi_k[3] = physical_params.pi_4;
+  }  
+
   RealType* cell_volumes = cell_variables.GetVariable(variables_database, "cell_volumes");
 
   // may need to move some variables in local part and be consistant
@@ -572,13 +592,41 @@ void Simulation::Run() {
   RealType* out_c_1 = cell_variables.GetVariable(variables_database, "out_c_1");
   RealType* in_c_2 = cell_variables.GetVariable(variables_database, "in_c_2");
   RealType* out_c_2 = cell_variables.GetVariable(variables_database, "out_c_2");
-
+  RealType** in_c_k  = new RealType*[nb_mat];
+  RealType** out_c_k = new RealType*[nb_mat];
+  in_c_k [0]  =  in_c_1;
+  out_c_k[0]  =  out_c_1;
+  if (nb_mat > 1) {
+    in_c_k [1]  =  in_c_2;
+    out_c_k[1]  =  out_c_2;
+  } else if (nb_mat > 2) {
+    in_c_k [2]  = new RealType[nb_cells];
+    out_c_k[2]  = new RealType[nb_cells];        
+  } else if (nb_mat > 3) {
+    in_c_k [3]  = new RealType[nb_cells];
+    out_c_k[3]  = new RealType[nb_cells];        
+  }
+  
   RealType* in_e = cell_variables.GetVariable(variables_database, "in_e");
   RealType* out_e = cell_variables.GetVariable(variables_database, "out_e");
   RealType* in_e_1 = cell_variables.GetVariable(variables_database, "in_e_1");
   RealType* out_e_1 = cell_variables.GetVariable(variables_database, "out_e_1");
   RealType* in_e_2 = cell_variables.GetVariable(variables_database, "in_e_2");
   RealType* out_e_2 = cell_variables.GetVariable(variables_database, "out_e_2");
+  RealType** in_e_k  = new RealType*[nb_mat];
+  RealType** out_e_k = new RealType*[nb_mat];
+  in_e_k [0]  =  in_e_1;
+  out_e_k[0]  =  out_e_1;
+  if (nb_mat > 1) {
+    in_e_k [1]  =  in_e_2;
+    out_e_k[1]  =  out_e_2;
+  } else if (nb_mat > 2) {
+    in_e_k [2]  = new RealType[nb_cells];
+    out_e_k[2]  = new RealType[nb_cells];        
+  } else if (nb_mat > 3) {
+    in_e_k [3]  = new RealType[nb_cells];
+    out_e_k[3]  = new RealType[nb_cells];        
+  }
 
   RealType* in_rho = cell_variables.GetVariable(variables_database, "in_rho");
   RealType* out_rho = cell_variables.GetVariable(variables_database, "out_rho");
@@ -586,10 +634,34 @@ void Simulation::Run() {
   RealType* out_rho_1 = cell_variables.GetVariable(variables_database, "out_rho_1");
   RealType* in_rho_2 = cell_variables.GetVariable(variables_database, "in_rho_2");
   RealType* out_rho_2 = cell_variables.GetVariable(variables_database, "out_rho_2");
+  RealType** in_rho_k  = new RealType*[nb_mat];
+  RealType** out_rho_k = new RealType*[nb_mat];
+  in_rho_k [0]  =  in_rho_1;
+  out_rho_k[0]  =  out_rho_1;
+  if (nb_mat > 1) {
+    in_rho_k [1]  =  in_rho_2;
+    out_rho_k[1]  =  out_rho_2;
+  } else if (nb_mat > 2) {
+    in_rho_k [2]  = new RealType[nb_cells];
+    out_rho_k[2]  = new RealType[nb_cells];        
+  } else if (nb_mat > 3) {
+    in_rho_k [3]  = new RealType[nb_cells];
+    out_rho_k[3]  = new RealType[nb_cells];        
+  }
  
   RealType* in_p = cell_variables.GetVariable(variables_database, "in_pressure");
   RealType* in_p_1 = cell_variables.GetVariable(variables_database, "in_pressure_1");
   RealType* in_p_2 = cell_variables.GetVariable(variables_database, "in_pressure_2");
+  RealType** in_p_k  = new RealType*[nb_mat];
+  RealType** out_p_k = new RealType*[nb_mat];
+  in_p_k [0]  =  in_p_1;
+  if (nb_mat > 1) {
+    in_p_k [1]  =  in_p_2;
+  } else if (nb_mat > 2) {
+    in_p_k [2]  = new RealType[nb_cells];
+  } else if (nb_mat > 3) {
+    in_p_k [3]  = new RealType[nb_cells];
+  }
 
   RealType* rho_ref = cell_variables.GetVariable(variables_database, "rho_ref");
   RealType* p_ref = cell_variables.GetVariable(variables_database, "p_ref");
@@ -729,7 +801,6 @@ void Simulation::Run() {
   RealType* out_beta = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType)); 
   
   // arrays of pointers for multimat
-  int nb_mat = numerical_params.NumberOfMaterials;
   RealType** alphak_gradx_left   = new RealType*[nb_mat];
   RealType** alphak_gradx_right  = new RealType*[nb_mat];
   RealType** alphak_grady_bot    = new RealType*[nb_mat];
@@ -920,7 +991,7 @@ void Simulation::Run() {
 
 	in_p[cell_ooo] = in_p_1[cell_ooo];
 
-      } else if ((numerical_params.TypeOfModel == "MultimaterialMix") && (numerical_params.TypeOfProjection == "LagrangeFluxes")) {
+      } else if (numerical_params.TypeOfProjection == "LagrangeFluxes") {
 	
 	in_c_2[cell_ooo]               = 1.0 - in_c_1[cell_ooo];
 	out_c_2[cell_ooo]              = in_c_2[cell_ooo];
@@ -965,6 +1036,51 @@ void Simulation::Run() {
 	in_beta[cell_ooo]              = 1.; 
 	out_beta[cell_ooo]             = in_beta[cell_ooo]; 
 	
+      } else if (numerical_params.TypeOfModel == "MultimaterialMix") {
+	
+	in_c_2[cell_ooo]               = 1.0 - in_c_1[cell_ooo];
+	out_c_2[cell_ooo]              = in_c_2[cell_ooo];
+
+	in_rho[cell_ooo]               = in_rho_1[cell_ooo] * in_rho_2[cell_ooo] / (in_rho_1[cell_ooo] * in_c_2[cell_ooo] + in_rho_2[cell_ooo]*in_c_1[cell_ooo]);
+	out_rho[cell_ooo]              = in_rho[cell_ooo];
+	
+	in_cell_mass[cell_ooo]         = in_rho[cell_ooo] * cell_volumes[cell_ooo];
+
+	// [VM] Gamma*Pi from VM is equivalent to Pi here in Stiffened Gas 
+	in_e_1[cell_ooo]               =  EnergyEOS(physical_params.gamma_1, in_rho_1[cell_ooo], in_p_1[cell_ooo], physical_params.pi_1);
+	out_e_1[cell_ooo]              = in_e_1[cell_ooo];	
+	in_e_2[cell_ooo]               =  EnergyEOS(physical_params.gamma_2, in_rho_2[cell_ooo], in_p_2[cell_ooo], physical_params.pi_2);
+	out_e_2[cell_ooo]              = in_e_2[cell_ooo];
+	
+	in_e[cell_ooo]                 = in_e_1[cell_ooo] * in_c_1[cell_ooo] + in_e_2[cell_ooo] * in_c_2[cell_ooo];
+	out_e[cell_ooo]                = in_e[cell_ooo];
+
+	in_p[cell_ooo]                 = in_p_1[cell_ooo];
+
+	// [VM] in VM mk = Alpha_k Rho_k with Alpha_k = in_c_1[cell_ooo] * cell_volumes[cell_ooo]
+	in_cell_mass_1[cell_ooo]       = in_rho_1[cell_ooo] * in_c_1[cell_ooo] * cell_volumes[cell_ooo]; 
+	out_cell_mass_1[cell_ooo]      = in_cell_mass_1[cell_ooo];
+	in_cell_mass_2[cell_ooo]       = in_rho_2[cell_ooo] * in_c_2[cell_ooo] * cell_volumes[cell_ooo];
+	out_cell_mass_2[cell_ooo]      = in_cell_mass_2[cell_ooo];
+
+	in_y_1[cell_ooo]               = in_cell_mass_1[cell_ooo] / in_rho[cell_ooo];
+	out_y_1[cell_ooo]              = in_y_1[cell_ooo];
+	in_y_2[cell_ooo]               = in_cell_mass_2[cell_ooo] / in_rho[cell_ooo];
+	out_y_2[cell_ooo]              = in_y_2[cell_ooo];
+
+	in_total_energy[cell_ooo]      = 0.5*in_u_cell[cell_ooo]*in_u_cell[cell_ooo] + 0.5*in_v_cell[cell_ooo]*in_v_cell[cell_ooo];
+	in_total_energy[cell_ooo]      = in_total_energy[cell_ooo] + in_cell_mass_1[cell_ooo]*in_e_1[cell_ooo]/in_rho[cell_ooo] + in_cell_mass_2[cell_ooo]*in_e_2[cell_ooo]/in_rho[cell_ooo];;
+	out_total_energy[cell_ooo]     = in_total_energy[cell_ooo];
+
+	in_rho_total_energy[cell_ooo]  = in_rho[cell_ooo] * in_total_energy[cell_ooo];
+	out_rho_total_energy[cell_ooo] = in_rho_total_energy[cell_ooo];
+
+	in_rho_e[cell_ooo]             = in_rho_total_energy[cell_ooo] - 0.5*(in_u_cell[cell_ooo]*in_u_cell[cell_ooo] + in_v_cell[cell_ooo]*in_v_cell[cell_ooo])*in_rho[cell_ooo];
+	out_rho_e[cell_ooo]            = in_rho_e[cell_ooo];
+
+	in_beta[cell_ooo]              = 1.; 
+	out_beta[cell_ooo]             = in_beta[cell_ooo]; 
+
       } else if (numerical_params.TypeOfModel == "MultimaterialInterface") {
 	
 	const RealType vol_fraction1 = in_cell_volumic_fraction[cell_ooo];
@@ -1283,10 +1399,8 @@ void Simulation::Run() {
 				 dy,
 				 dt,
 				 halo_width,
-				 physical_params.gamma_1,
-				 physical_params.gamma_2,
-				 physical_params.pi_1,
-				 physical_params.pi_2,
+				 gamma_k,
+				 pi_k,
 				 predicted_u,
 				 predicted_v,
 				 e_lag,
@@ -1299,8 +1413,7 @@ void Simulation::Run() {
 				 in_cell_mass,
 				 in_cell_mass_1,
 				 in_cell_mass_2,
-				 in_c_1,
-				 in_c_2,
+				 in_c_k,
 				 in_cell_volumic_fraction,
 				 cell_volumes,
 				 // out
@@ -1315,8 +1428,7 @@ void Simulation::Run() {
 				 out_rho,
 				 out_rho_1,
 				 out_rho_2,
-				 out_c_1,
-				 out_c_2,
+				 out_c_k,
 				 out_cell_volumic_fraction,
 				 volume_fluxes_x,
 				 volume_fluxes_y,

@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstdio>
+#include <iostream>
 
 #include "cartesian_connectivity.h" 
 #include "kernel_tools.h"
@@ -61,8 +62,7 @@ void ComputeGradientAlpha(index_t nx,
 			  index_t nb_mat, 
 			  RealType dx,
 			  RealType dy,
-			  const RealType* RESTRICT in_c_1,
-			  const RealType* RESTRICT in_c_2,
+			  RealType** in_c_k,
 			  RealType** alphak_gradx_left,
 			  RealType** alphak_gradx_right,
 			  RealType** alphak_grady_bot,
@@ -96,7 +96,6 @@ void ComputeGradientAlpha(index_t nx,
       const int cell_m1o  = CellCellM1O (cell_ooo, nx);
       const int cell_p1o  = CellCellP1O (cell_ooo, nx);
       
-
 #include "lf_compute_gradient_alpha.h"
       
     }

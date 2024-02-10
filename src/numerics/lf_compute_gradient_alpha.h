@@ -13,28 +13,15 @@
 	RealType alpha_m1o;
 	RealType alpha_p1o;
 	
-	if (k==0) {
-	  alpha_ooo  = in_c_1[cell_ooo] ;
-	  alpha_m1m1 = in_c_1[cell_m1m1];
-	  alpha_p1p1 = in_c_1[cell_p1p1];
-	  alpha_m1p1 = in_c_1[cell_m1p1];
-	  alpha_p1m1 = in_c_1[cell_p1m1];
-	  alpha_om1  = in_c_1[cell_om1] ;
-	  alpha_op1  = in_c_1[cell_op1] ;
-	  alpha_m1o  = in_c_1[cell_m1o] ;
-	  alpha_p1o  = in_c_1[cell_p1o] ;
-	}
-	else {
-	  alpha_ooo  = in_c_2[cell_ooo] ;
-	  alpha_m1m1 = in_c_2[cell_m1m1];
-	  alpha_p1p1 = in_c_2[cell_p1p1];
-	  alpha_m1p1 = in_c_2[cell_m1p1];
-	  alpha_p1m1 = in_c_2[cell_p1m1];
-	  alpha_om1  = in_c_2[cell_om1] ;
-	  alpha_op1  = in_c_2[cell_op1] ;
-	  alpha_m1o  = in_c_2[cell_m1o] ;
-	  alpha_p1o  = in_c_2[cell_p1o] ;
-	}
+	alpha_ooo  = in_c_k[k][cell_ooo] ;
+	alpha_m1m1 = in_c_k[k][cell_m1m1];
+	alpha_p1p1 = in_c_k[k][cell_p1p1];
+	alpha_m1p1 = in_c_k[k][cell_m1p1];
+	alpha_p1m1 = in_c_k[k][cell_p1m1];
+	alpha_om1  = in_c_k[k][cell_om1] ;
+	alpha_op1  = in_c_k[k][cell_op1] ;
+	alpha_m1o  = in_c_k[k][cell_m1o] ;
+	alpha_p1o  = in_c_k[k][cell_p1o] ;
 	
 	zpp=2.;
 	zpm=2.;
@@ -134,12 +121,7 @@
       
 	RealType alpha_ooo;  
 
-	if (k==0) {
-	  alpha_ooo  = in_c_1[cell_ooo] ;
-	}
-	else {
-	  alpha_ooo  = in_c_2[cell_ooo] ;
-	}
+	alpha_ooo  = in_c_k[k][cell_ooo] ;
 
 	alphak_grady_bot  [k][cell_ooo] = -2 * h_y * (alpha_ooo * (sum_alphay)  - 0.5 * dx * alphak_grady_top  [k][cell_ooo]) / (1 - sum_alphay);
       

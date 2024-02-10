@@ -26,10 +26,8 @@ void LagrangeFluxes2dDriver(//in
 			      const RealType dy,
 			      const RealType dt,
 			      const RealType halo_width,
-			      const RealType gamma_1,
-			      const RealType gamma_2,
-			      const RealType pi_1,
-			      const RealType pi_2,
+			      const RealType* gamma_k,
+			      const RealType* pi_k,
 			      const RealType* RESTRICT predicted_u,
 			      const RealType* RESTRICT predicted_v,
 			      const RealType* RESTRICT e_lag,
@@ -42,8 +40,7 @@ void LagrangeFluxes2dDriver(//in
 			      const RealType* RESTRICT in_cell_mass,
 			      const RealType* RESTRICT in_cell_mass_1,
 			      const RealType* RESTRICT in_cell_mass_2,
-			      const RealType* RESTRICT in_c_1,
-			      const RealType* RESTRICT in_c_2,
+			      RealType**         in_c_k,
 			      const RealType* RESTRICT in_cell_volumic_fraction,
 			      const RealType* RESTRICT cell_volumes,
 			      // out
@@ -58,8 +55,7 @@ void LagrangeFluxes2dDriver(//in
 			      RealType* RESTRICT out_rho,
 			      RealType* RESTRICT out_rho_1,
 			      RealType* RESTRICT out_rho_2,
-			      RealType* RESTRICT out_c_1,
-			      RealType* RESTRICT out_c_2,
+			      RealType**         out_c_k,
 			      RealType* RESTRICT out_cell_volumic_fraction,
 			      RealType* RESTRICT volume_fluxes_x,
 			      RealType* RESTRICT volume_fluxes_y,
@@ -126,10 +122,10 @@ void LagrangeFluxes2dDriver(//in
 			      std::vector<RealType>& time_project_nodal_velocity_Y,
 			      std::vector<RealType> time_periodic_boundary) {
 
-  ComputeGradientAlpha(nx,ny,nb_mat,dx,dy,in_c_1,in_c_2,alphak_gradx_left,alphak_gradx_right,alphak_grady_bot,alphak_grady_top);
+  ComputeGradientAlpha(nx,ny,nb_mat,dx,dy,in_c_k,alphak_gradx_left,alphak_gradx_right,alphak_grady_bot,alphak_grady_top);
   
   if (BoundaryConditions == "Wall") {
-    ComputeGradientAlphaBoundaryWall(nx,ny,nb_mat,dx,dy,in_c_1,in_c_2,alphak_gradx_left,alphak_gradx_right,alphak_grady_bot,alphak_grady_top);
+    ComputeGradientAlphaBoundaryWall(nx,ny,nb_mat,dx,dy,in_c_k,alphak_gradx_left,alphak_gradx_right,alphak_grady_bot,alphak_grady_top);
   }
 
 
