@@ -1387,7 +1387,7 @@ void Simulation::Run() {
 	gamma_mix = 666.;
 	pi_prime_mix = 555.;  
 
-	dt = TimeStepLFMix(nx, ny, dx, dy, numerical_params.CFL, physical_params.gamma_1, physical_params.gamma_1, physical_params.pi_1, physical_params.pi_1, in_rho_1, in_rho_2, in_p_1, in_p_2, in_c_1, in_c_2, in_u_cell, in_v_cell);
+	dt = TimeStepLFMix(nx, ny, dx, dy, numerical_params.CFL, &gamma_mix, physical_params.gamma_1, physical_params.gamma_1, physical_params.pi_1, physical_params.pi_1, in_rho_1, in_rho_2, in_p_1, in_p_2, in_c_1, in_c_2, in_u_cell, in_v_cell);
 	// Direct projection 2nd order
 	LagrangeFluxes2dDriver(//in
 				 numerical_params.BoundaryConditions,
@@ -1483,7 +1483,7 @@ void Simulation::Run() {
 				 alphak_grady_bot,
 				 alphak_grady_top);
 
-	std::cout << "Start Lagrange Flux ok !" << std::endl;
+	std::cout << "Start Lagrange Flux ok ! " << gamma_mix << std::endl;
 	exit(0);
 	
 	std::swap(in_cell_mass, out_cell_mass); 

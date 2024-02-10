@@ -17,6 +17,7 @@ RealType TimeStepLFMix(int nx,
 			      const RealType dx,
 			      const RealType dy,
 			      const RealType CFL,
+		              RealType* gamma_mix,
 			      const RealType gamma_1,
 			      const RealType gamma_2,
 			      const RealType pi_1,
@@ -33,7 +34,6 @@ RealType TimeStepLFMix(int nx,
   RealType max_velocity = 0.0;
   RealType speed_of_sound_1 = 0.0;
   RealType speed_of_sound_2 = 0.0;
-  
   //    #pragma omp for reduction(max:max_velocity) nowait
   for (int iy = 0; iy < ny; ++iy) {
     for (int ix = 0; ix < nx; ++ix) {

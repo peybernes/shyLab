@@ -112,8 +112,6 @@ void LagrangeFluxes2dDriver(//in
     ComputeGradientAlphaBoundaryWall(nx,ny,nb_mat,dx,dy,in_c_k,alphak_gradx_left,alphak_gradx_right,alphak_grady_bot,alphak_grady_top);
   }
 
-  pi_prime_mix = 3.;
-  gamma_mix = 4.;
   for (index_t imat = 0; imat < 2; ++imat) {
     for (index_t iy = 0; iy < ny; ++iy) {
       for (index_t ix = 0; ix < nx; ++ix) {      
