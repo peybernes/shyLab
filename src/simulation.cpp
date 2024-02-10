@@ -543,8 +543,9 @@ void Simulation::Run() {
 
   int nb_mat = numerical_params.NumberOfMaterials;
 
-  RealType gamma_mix;
-  RealType pi_prime_mix;
+  RealType speed_of_sound_mix[nb_cells];
+  RealType gamma_mix[nb_cells];
+  RealType pi_prime_mix[nb_cells];
   RealType gamma_k[nb_mat];
   RealType pi_prime_k   [nb_mat];
   gamma_k[0] = physical_params.gamma_1;
@@ -1384,10 +1385,8 @@ void Simulation::Run() {
 
       if (numerical_params.TypeOfProjection == "LagrangeFluxes") {
 
-	gamma_mix = 666.;
-	pi_prime_mix = 555.;  
-
-	dt = TimeStepLFMix(nx, ny, dx, dy, numerical_params.CFL, &gamma_mix, physical_params.gamma_1, physical_params.gamma_1, physical_params.pi_1, physical_params.pi_1, in_rho_1, in_rho_2, in_p_1, in_p_2, in_c_1, in_c_2, in_u_cell, in_v_cell);
+	dt = TimeStepLFMix(nx, ny, dx, dy, nb_mat, numerical_params.CFL, gamma_mix, pi_prime_mix, speed_of_sound_mix, gamma_k,pi_prime_k, in_rho, in_p, in_c_k, in_u_cell, in_v_cell);
+	std::cout << "dt = " << dt << std::endl; 
 	// Direct projection 2nd order
 	LagrangeFluxes2dDriver(//in
 				 numerical_params.BoundaryConditions,
@@ -1405,6 +1404,7 @@ void Simulation::Run() {
 				 halo_width,
 				 gamma_mix,
 				 pi_prime_mix,
+				 speed_of_sound_mix,
 				 gamma_k,
 				 pi_prime_k,
 				 predicted_u,
@@ -1483,7 +1483,7 @@ void Simulation::Run() {
 				 alphak_grady_bot,
 				 alphak_grady_top);
 
-	std::cout << "Start Lagrange Flux ok ! " << gamma_mix << std::endl;
+	std::cout << "Start Lagrange Flux ok ! " << gamma_mix[0] << std::endl;
 	exit(0);
 	
 	std::swap(in_cell_mass, out_cell_mass); 

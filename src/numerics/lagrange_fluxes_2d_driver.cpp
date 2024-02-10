@@ -26,8 +26,9 @@ void LagrangeFluxes2dDriver(//in
 			      const RealType dy,
 			      const RealType dt,
 			      const RealType halo_width,
-			      RealType& gamma_mix,
-			      RealType& pi_prime_mix,
+			      RealType* gamma_mix,
+			      RealType* pi_prime_mix,
+			      RealType* speed_of_sound_mix,			      
 			      const RealType* gamma_k,
 			      const RealType* pi_prime_k,
 			      const RealType* RESTRICT predicted_u,
@@ -116,10 +117,10 @@ void LagrangeFluxes2dDriver(//in
     for (index_t iy = 0; iy < ny; ++iy) {
       for (index_t ix = 0; ix < nx; ++ix) {      
 	const int cell_ooo  = (nx * iy) + ix;
-	std::cout <<  alphak_grady_bot  [imat][cell_ooo] << std::endl;
-	std::cout <<  alphak_grady_top  [imat][cell_ooo] << std::endl;
-	std::cout <<  alphak_gradx_left [imat][cell_ooo] << std::endl;
-	std::cout <<  alphak_gradx_right[imat][cell_ooo] << std::endl;
+	// std::cout <<  alphak_grady_bot  [imat][cell_ooo] << std::endl;
+	// std::cout <<  alphak_grady_top  [imat][cell_ooo] << std::endl;
+	// std::cout <<  alphak_gradx_left [imat][cell_ooo] << std::endl;
+	// std::cout <<  alphak_gradx_right[imat][cell_ooo] << std::endl;
       }
     }
   }

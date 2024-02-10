@@ -8,8 +8,8 @@
 	"Timetable": { "iend": "999" },
 	
 	"Grid": { "name": "grid",
-		  "nx": "8",
-		  "ny": "8",
+		  "nx": "32",
+		  "ny": "16",
 		  "xmin": "0.0",
 		  "xmax": "1.0",
 		  "ymin": "0.0",

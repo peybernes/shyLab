@@ -16,43 +16,45 @@ RealType TimeStepLFMix(int nx,
 			      int ny,
 			      const RealType dx,
 			      const RealType dy,
+			      const int nb_mat,
 			      const RealType CFL,
 		              RealType* gamma_mix,
-			      const RealType gamma_1,
-			      const RealType gamma_2,
-			      const RealType pi_1,
-			      const RealType pi_2,
-			      const RealType* RESTRICT density_1,
-			      const RealType* RESTRICT density_2,
-			      const RealType* RESTRICT pressure_1,
-			      const RealType* RESTRICT pressure_2,
-			      const RealType* RESTRICT in_c_1,
-			      const RealType* RESTRICT in_c_2,
+		              RealType* pi_prime_mix,
+		              RealType* speed_of_sound_mix,
+			      const RealType* gamma_k,
+			      const RealType* pi_prime_k,
+			      RealType* density,
+			      RealType* pressure,
+		              RealType** in_c_k,
 			      const RealType* RESTRICT in_velocity_x,
 			      const RealType* RESTRICT in_velocity_y) {
  
-  RealType max_velocity = 0.0;
-  RealType speed_of_sound_1 = 0.0;
-  RealType speed_of_sound_2 = 0.0;
-  //    #pragma omp for reduction(max:max_velocity) nowait
+  RealType h = std::min(dx,dy);
+  RealType dt = CFL * h;
   for (int iy = 0; iy < ny; ++iy) {
     for (int ix = 0; ix < nx; ++ix) {
-      const RealType   p_1_ooo = pressure_1[iy * nx + ix];
-      const RealType   p_2_ooo = pressure_2[iy * nx + ix];
-      const RealType rho_1_ooo =  density_1[iy * nx + ix];
-      const RealType rho_2_ooo =  density_2[iy * nx + ix];
-      if (in_c_1[iy * nx + ix] > 0.01) { 
-	speed_of_sound_1 = SpeedOfSound(gamma_1, rho_1_ooo, p_1_ooo, pi_1);
+      const int cell_ooo  = (nx * iy) + ix;
+      
+      RealType tmp_gamma=0;
+      RealType tmp_pi=0;
+      speed_of_sound_mix[cell_ooo]=0;
+      gamma_mix[cell_ooo]=0;
+      pi_prime_mix[cell_ooo]=0;
+      
+      for(int k = 0;k < nb_mat; k++){
+	tmp_gamma = tmp_gamma + in_c_k[k][cell_ooo]/(gamma_k[k]-1);
+	tmp_pi    = tmp_pi + in_c_k[k][cell_ooo] * pi_prime_k[k] * gamma_k[k]/(gamma_k[k] - 1);
       }
-      else { 
-	speed_of_sound_2 = SpeedOfSound(gamma_2, rho_2_ooo, p_2_ooo, pi_2);
-      }
-      max_velocity = std::max(  max_velocity , fabs(in_velocity_x[iy * nx + ix]) + fabs(in_velocity_y[iy * nx + ix])  + std::max(speed_of_sound_1,speed_of_sound_2));
+      gamma_mix[cell_ooo] = 1. + 1. / tmp_gamma;
+      pi_prime_mix[cell_ooo] = tmp_pi / (tmp_gamma * gamma_mix[cell_ooo]);//test2
+      //m_pi[i]=tmp_pi/(tmp_gamma);
+      speed_of_sound_mix[cell_ooo] = std::sqrt(gamma_mix[cell_ooo] * (pressure[cell_ooo] + pi_prime_mix[cell_ooo]) / density[cell_ooo]);
+      //m_C[i]=std::sqrt((std::abs(m_p[i])*m_gamma[i]+m_pi[i])/m_rho[i]);
+      //m_C[i]=350;
+      dt = std::min(dt, CFL * h / (std::abs(in_velocity_x[cell_ooo]) + std::abs(in_velocity_y[cell_ooo]) + speed_of_sound_mix[cell_ooo]));
+       
     }
   }
-
-  RealType dt = CFL * std::min(dx,dy)/max_velocity;
-  
   return dt;
 }
 
