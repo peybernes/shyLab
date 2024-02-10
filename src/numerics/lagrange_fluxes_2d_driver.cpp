@@ -26,8 +26,10 @@ void LagrangeFluxes2dDriver(//in
 			      const RealType dy,
 			      const RealType dt,
 			      const RealType halo_width,
+			      RealType& gamma_mix,
+			      RealType& pi_prime_mix,
 			      const RealType* gamma_k,
-			      const RealType* pi_k,
+			      const RealType* pi_prime_k,
 			      const RealType* RESTRICT predicted_u,
 			      const RealType* RESTRICT predicted_v,
 			      const RealType* RESTRICT e_lag,
@@ -102,25 +104,7 @@ void LagrangeFluxes2dDriver(//in
 			      RealType** alphak_gradx_left,
 			      RealType** alphak_gradx_right,
 			      RealType** alphak_grady_bot,
-			      RealType** alphak_grady_top,
-			      //timing
-			      std::vector<RealType>& time_compute_volume_fluxes_X,
-			      std::vector<RealType>& time_gradient_X,
-			      std::vector<RealType>& time_mass_reconstruct_o2_X,
-			      std::vector<RealType>& time_project_mass_X,
-			      std::vector<RealType>& time_reconstruct_energy_o2_X,
-			      std::vector<RealType>& time_project_energy_X,
-			      std::vector<RealType>& time_gradient_nodal_X,
-			      std::vector<RealType>& time_project_nodal_velocity_X,
-			      std::vector<RealType>& time_compute_volume_fluxes_Y,
-			      std::vector<RealType>& time_gradient_Y,
-			      std::vector<RealType>& time_mass_reconstruct_o2_Y,
-			      std::vector<RealType>& time_project_mass_Y,
-			      std::vector<RealType>& time_reconstruct_energy_o2_Y,
-			      std::vector<RealType>& time_project_energy_Y,
-			      std::vector<RealType>& time_gradient_nodal_Y,
-			      std::vector<RealType>& time_project_nodal_velocity_Y,
-			      std::vector<RealType> time_periodic_boundary) {
+			      RealType** alphak_grady_top) {
 
   ComputeGradientAlpha(nx,ny,nb_mat,dx,dy,in_c_k,alphak_gradx_left,alphak_gradx_right,alphak_grady_bot,alphak_grady_top);
   
@@ -128,7 +112,8 @@ void LagrangeFluxes2dDriver(//in
     ComputeGradientAlphaBoundaryWall(nx,ny,nb_mat,dx,dy,in_c_k,alphak_gradx_left,alphak_gradx_right,alphak_grady_bot,alphak_grady_top);
   }
 
-
+  pi_prime_mix = 3.;
+  gamma_mix = 4.;
   for (index_t imat = 0; imat < 2; ++imat) {
     for (index_t iy = 0; iy < ny; ++iy) {
       for (index_t ix = 0; ix < nx; ++ix) {      
@@ -141,8 +126,6 @@ void LagrangeFluxes2dDriver(//in
     }
   }
   
-  std::cout << "Start Lagrange Flux ok !" << std::endl;
-  exit(0);
 }
 
   

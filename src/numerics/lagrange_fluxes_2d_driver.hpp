@@ -19,8 +19,10 @@ void LagrangeFluxes2dDriver(//in
 			      const RealType dy,
 			      const RealType dt,
 			      const RealType halo_width,
+			      RealType& gamma_mix,
+			      RealType& pi_prime_mix,
 			      const RealType* gamma_k,
-			      const RealType* pi_k,
+			      const RealType* pi_prime_k,
 			      const RealType* predicted_u,
 			      const RealType* predicted_v,
 			      const RealType* e_lag,
@@ -95,25 +97,7 @@ void LagrangeFluxes2dDriver(//in
 			      RealType** alphak_gradx_left,
 			      RealType** alphak_gradx_right,
 			      RealType** alphak_grady_bot,
-			      RealType** alphak_grady_top,
-			      //timing
-			      std::vector<RealType>& time_compute_volume_fluxes_X,
-			      std::vector<RealType>& time_gradient_X,
-			      std::vector<RealType>& time_mass_reconstruct_o2_X,
-			      std::vector<RealType>& time_project_mass_X,
-			      std::vector<RealType>& time_reconstruct_energy_o2_X,
-			      std::vector<RealType>& time_project_energy_X,
-			      std::vector<RealType>& time_gradient_nodal_X,
-			      std::vector<RealType>& time_project_nodal_velocity_X,
-			      std::vector<RealType>& time_compute_volume_fluxes_Y,
-			      std::vector<RealType>& time_gradient_Y,
-			      std::vector<RealType>& time_mass_reconstruct_o2_Y,
-			      std::vector<RealType>& time_project_mass_Y,
-			      std::vector<RealType>& time_reconstruct_energy_o2_Y,
-			      std::vector<RealType>& time_project_energy_Y,
-			      std::vector<RealType>& time_gradient_nodal_Y,
-			      std::vector<RealType>& time_project_nodal_velocity_Y,
-			      std::vector<RealType> time_periodic_boundary);
+			      RealType** alphak_grady_top);
 
 
 #endif

@@ -543,8 +543,10 @@ void Simulation::Run() {
 
   int nb_mat = numerical_params.NumberOfMaterials;
 
+  RealType gamma_mix;
+  RealType pi_prime_mix;
   RealType gamma_k[nb_mat];
-  RealType pi_k   [nb_mat];
+  RealType pi_prime_k   [nb_mat];
   gamma_k[0] = physical_params.gamma_1;
   if (nb_mat > 1) {
     gamma_k[1] = physical_params.gamma_2;
@@ -553,13 +555,13 @@ void Simulation::Run() {
   } else if (nb_mat > 2) {
     gamma_k[3] = physical_params.gamma_4;
   }  
-  pi_k[0] = physical_params.pi_1;
+  pi_prime_k[0] = physical_params.pi_1 / gamma_k[0];
   if (nb_mat > 1) {
-    pi_k[1] = physical_params.pi_2;
+    pi_prime_k[1] = physical_params.pi_2 / gamma_k[1];
   } else if (nb_mat > 2) {
-    pi_k[2] = physical_params.pi_3;
+    pi_prime_k[2] = physical_params.pi_3 / gamma_k[2];
   } else if (nb_mat > 2) {
-    pi_k[3] = physical_params.pi_4;
+    pi_prime_k[3] = physical_params.pi_4 / gamma_k[3];
   }  
 
   RealType* cell_volumes = cell_variables.GetVariable(variables_database, "cell_volumes");
@@ -1380,10 +1382,12 @@ void Simulation::Run() {
 
     if (m_grid.dimension() == 2) {
 
-      if ((numerical_params.TypeOfModel == "MultimaterialMix") && (numerical_params.TypeOfProjection == "LagrangeFluxes")) {
+      if (numerical_params.TypeOfProjection == "LagrangeFluxes") {
+
+	gamma_mix = 666.;
+	pi_prime_mix = 555.;  
 
 	dt = TimeStepLFMix(nx, ny, dx, dy, numerical_params.CFL, physical_params.gamma_1, physical_params.gamma_1, physical_params.pi_1, physical_params.pi_1, in_rho_1, in_rho_2, in_p_1, in_p_2, in_c_1, in_c_2, in_u_cell, in_v_cell);
-	  
 	// Direct projection 2nd order
 	LagrangeFluxes2dDriver(//in
 				 numerical_params.BoundaryConditions,
@@ -1399,8 +1403,10 @@ void Simulation::Run() {
 				 dy,
 				 dt,
 				 halo_width,
+				 gamma_mix,
+				 pi_prime_mix,
 				 gamma_k,
-				 pi_k,
+				 pi_prime_k,
 				 predicted_u,
 				 predicted_v,
 				 e_lag,
@@ -1475,26 +1481,11 @@ void Simulation::Run() {
 				 alphak_gradx_left,
 				 alphak_gradx_right,
 				 alphak_grady_bot,
-				 alphak_grady_top,
-				 //timing
-				 time_compute_volume_fluxes_X,
-				 time_gradient_X,
-				 time_mass_reconstruct_o2_X,
-				 time_project_mass_X,
-				 time_reconstruct_energy_o2_X,
-				 time_project_energy_X,
-				 time_gradient_nodal_X,
-				 time_project_nodal_velocity_X,
-				 time_compute_volume_fluxes_Y,
-				 time_gradient_Y,
-				 time_mass_reconstruct_o2_Y,
-				 time_project_mass_Y,
-				 time_reconstruct_energy_o2_Y,
-				 time_project_energy_Y,
-				 time_gradient_nodal_Y,
-				 time_project_nodal_velocity_Y,
-				 time_periodic_boundary);
+				 alphak_grady_top);
 
+	std::cout << "Start Lagrange Flux ok !" << std::endl;
+	exit(0);
+	
 	std::swap(in_cell_mass, out_cell_mass); 
 	std::swap(in_cell_mass_1, out_cell_mass_1);
 	std::swap(in_cell_mass_2, out_cell_mass_2);
