@@ -186,19 +186,19 @@ void ComputeGradientP(index_t nx,
 			  RealType*  p_grady_bot,
 			  RealType*  p_grady_top) {
 
-   double gradx, grady;
-  double phi,tmp;
-  double zpp,zpm,zmm,zmp;
-  double zpp_tmp,zpm_tmp,zmp_tmp,zmm_tmp;
-  double grad_tmp;
-  double tmp_gamma_r;
-  double tmp_pi_r;
-  double tmp_gamma_l;
-  double tmp_pi_l;
-  double tmp_gamma_t;
-  double tmp_pi_t;
-  double tmp_gamma_b;
-  double tmp_pi_b;
+  RealType gradx, grady;
+  RealType phi,tmp;
+  RealType zpp,zpm,zmm,zmp;
+  RealType zpp_tmp,zpm_tmp,zmp_tmp,zmm_tmp;
+  RealType grad_tmp;
+  RealType tmp_gamma_r;
+  RealType tmp_pi_r;
+  RealType tmp_gamma_l;
+  RealType tmp_pi_l;
+  RealType tmp_gamma_t;
+  RealType tmp_pi_t;
+  RealType tmp_gamma_b;
+  RealType tmp_pi_b;
   
   const RealType twelth  = 1./12.;
   const RealType third   = 1./3. ;

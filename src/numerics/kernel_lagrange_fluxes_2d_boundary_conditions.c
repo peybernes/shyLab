@@ -369,5 +369,195 @@ void ComputeGradientPplusPiPrimeBoundaryWall(index_t nx,
 
 }
 
+void ComputeGradientPBoundaryWall(index_t nx, 
+			  index_t    ny, 
+			  RealType   dx,
+			  RealType   dy,
+			  int        nb_mat,
+		          RealType*  pi_prime_mix,
+			  RealType*  pressure,
+		          RealType**  in_c_k,
+		          RealType*  gamma_k,
+			  RealType*  pi_prime_k,
+			  RealType**  alphak_gradx_left,
+			  RealType**  alphak_gradx_right,
+			  RealType**  alphak_grady_bot,
+			  RealType**  alphak_grady_top,
+			  RealType*  p_plus_pi_prime_gradx,
+			  RealType*  p_plus_pi_prime_grady,
+			  RealType*  rho_e,
+			  RealType*  rho_e_gradx_left,
+			  RealType*  rho_e_gradx_right,
+			  RealType*  rho_e_grady_bot,
+			  RealType*  rho_e_grady_top,
+			  RealType*  p_gradx_left,
+			  RealType*  p_gradx_right,
+			  RealType*  p_grady_bot,
+			  RealType*  p_grady_top) {
+
+  RealType gradx, grady;
+  RealType phi,tmp;
+  RealType zpp,zpm,zmm,zmp;
+  RealType zpp_tmp,zpm_tmp,zmp_tmp,zmm_tmp;
+  RealType grad_tmp;
+  RealType tmp_gamma_r;
+  RealType tmp_pi_r;
+  RealType tmp_gamma_l;
+  RealType tmp_pi_l;
+  RealType tmp_gamma_t;
+  RealType tmp_pi_t;
+  RealType tmp_gamma_b;
+  RealType tmp_pi_b;
+  
+  const RealType twelth  = 1./12.;
+  const RealType third   = 1./3. ;
+  const RealType h_x     = 1./dx ;
+  const RealType h_y     = 1./dy ;
+  
+  //Xmin and Xmax 
+  for (index_t iy = 1; iy < ny - 1; ++iy) {
+    { const index_t ix = 0;
+
+      const int cell_ooo  = (nx * iy) + ix;
+      const int cell_m1m1 = CellCellOM1(cell_ooo, nx);
+      const int cell_p1p1 = CellCellP1P1(cell_ooo, nx);
+      const int cell_m1p1 = CellCellOP1(cell_ooo, nx);
+      const int cell_p1m1 = CellCellP1M1(cell_ooo, nx);
+      const int cell_om1  = CellCellOM1 (cell_ooo, nx);
+      const int cell_op1  = CellCellOP1 (cell_ooo, nx);
+      const int cell_m1o  = cell_ooo;
+      const int cell_p1o  = CellCellP1O (cell_ooo, nx);
+      
+#include "lf_compute_gradient_p.h"
+
+    }
+    
+    { const index_t ix = nx - 1;
+      
+      const int cell_ooo  = (nx * iy) + ix;
+      const int cell_m1m1 = CellCellM1M1(cell_ooo, nx);
+      const int cell_p1p1 = CellCellOP1(cell_ooo, nx);
+      const int cell_m1p1 = CellCellM1P1(cell_ooo, nx);
+      const int cell_p1m1 = CellCellOM1(cell_ooo, nx);
+      const int cell_om1  = CellCellOM1 (cell_ooo, nx);
+      const int cell_op1  = CellCellOP1 (cell_ooo, nx);
+      const int cell_m1o  = CellCellM1O (cell_ooo, nx);
+      const int cell_p1o  = cell_ooo;
+      
+#include "lf_compute_gradient_p.h"
+
+    }
+  }
+
+  //Ymin and Ymax 
+  for (index_t ix = 1; ix < nx - 1; ++ix) {
+
+    { const index_t iy = 0;
+
+      const int cell_ooo  = (nx * iy) + ix;
+      const int cell_m1m1 = CellCellM1O(cell_ooo, nx);
+      const int cell_p1p1 = CellCellP1P1(cell_ooo, nx);
+      const int cell_m1p1 = CellCellM1P1(cell_ooo, nx);
+      const int cell_p1m1 = CellCellP1O(cell_ooo, nx);
+      const int cell_om1  = cell_ooo;
+      const int cell_op1  = CellCellOP1 (cell_ooo, nx);
+      const int cell_m1o  = CellCellM1O (cell_ooo, nx);
+      const int cell_p1o  = CellCellP1O (cell_ooo, nx);
+      
+#include "lf_compute_gradient_p.h"
+      
+    }
+    { const index_t iy = ny - 1;
+
+      const int cell_ooo  = (nx * iy) + ix;
+      const int cell_m1m1 = CellCellM1M1(cell_ooo, nx);
+      const int cell_p1p1 = CellCellP1O(cell_ooo, nx);
+      const int cell_m1p1 = CellCellM1O(cell_ooo, nx);
+      const int cell_p1m1 = CellCellP1M1(cell_ooo, nx);
+      const int cell_om1  = CellCellOM1 (cell_ooo, nx);
+      const int cell_op1  = cell_ooo;
+      const int cell_m1o  = CellCellM1O (cell_ooo, nx);
+      const int cell_p1o  = CellCellP1O (cell_ooo, nx);
+      
+#include "lf_compute_gradient_p.h"
+      
+    }
+  }
+  //Corners
+    
+  //Xmin Ymin
+  { const index_t ix = 0;
+    const index_t iy = 0;
+      
+    const int cell_ooo  = (nx * iy) + ix;
+    const int cell_m1m1 = cell_ooo;
+    const int cell_p1p1 = CellCellP1P1(cell_ooo, nx);
+    const int cell_m1p1 = CellCellOP1(cell_ooo, nx);
+    const int cell_p1m1 = CellCellP1O(cell_ooo, nx);
+    const int cell_om1  = cell_ooo;
+    const int cell_op1  = CellCellOP1 (cell_ooo, nx);
+    const int cell_m1o  = cell_ooo;
+    const int cell_p1o  = CellCellP1O (cell_ooo, nx);
+    
+#include "lf_compute_gradient_p.h"
+      
+  }
+
+  //Xmax Ymin
+  { const index_t ix = nx - 1;
+    const index_t iy = 0;
+
+    const int cell_ooo  = (nx * iy) + ix;
+    const int cell_m1m1 = CellCellM1O(cell_ooo, nx);
+    const int cell_p1p1 = CellCellOP1(cell_ooo, nx);
+    const int cell_m1p1 = CellCellM1P1(cell_ooo, nx);
+    const int cell_p1m1 = cell_ooo;
+    const int cell_om1  = cell_ooo;
+    const int cell_op1  = CellCellOP1 (cell_ooo, nx);
+    const int cell_m1o  = CellCellM1O (cell_ooo, nx);
+    const int cell_p1o  = cell_ooo;
+      
+#include "lf_compute_gradient_p.h"
+      
+  }
+
+  //Xmin Ymax
+  { const index_t ix = 0;
+    const index_t iy = ny - 1;
+
+    const int cell_ooo  = (nx * iy) + ix;
+    const int cell_m1m1 = CellCellOM1(cell_ooo, nx);
+    const int cell_p1p1 = CellCellP1O(cell_ooo, nx);
+    const int cell_m1p1 = cell_ooo;
+    const int cell_p1m1 = CellCellP1M1(cell_ooo, nx);
+    const int cell_om1  = CellCellOM1 (cell_ooo, nx);
+    const int cell_op1  = cell_ooo;
+    const int cell_m1o  = cell_ooo;
+    const int cell_p1o  = CellCellP1O (cell_ooo, nx);
+      
+#include "lf_compute_gradient_p.h"
+      
+  }
+
+  //Xmax Ymax
+  { const index_t ix = nx - 1;
+    const index_t iy = ny - 1;
+      
+    const int cell_ooo  = (nx * iy) + ix;
+    const int cell_m1m1 = CellCellM1M1(cell_ooo, nx);
+    const int cell_p1p1 = cell_ooo;
+    const int cell_m1p1 = CellCellM1O(cell_ooo, nx);
+    const int cell_p1m1 = CellCellOM1(cell_ooo, nx);
+    const int cell_om1  = CellCellOM1 (cell_ooo, nx);
+    const int cell_op1  = cell_ooo;
+    const int cell_m1o  = CellCellM1O (cell_ooo, nx);
+    const int cell_p1o  = cell_ooo;
+    
+#include "lf_compute_gradient_p.h"
+      
+  }
+
+}
+
 
 
