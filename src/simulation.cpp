@@ -796,12 +796,22 @@ void Simulation::Run() {
   RealType* in_y_2 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* out_y_1 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* out_y_2 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* in_rho_total_energy = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* out_rho_total_energy = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* in_rho_e = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* out_rho_e = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* in_beta = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* out_beta = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType)); 
+  RealType* rho_total_energy = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* rho_e = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* rho_U = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* rho_V = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* beta = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+  RealType* p_plus_pi_prime = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType)); 
+  RealType* p_plus_pi_prime_gradx = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType)); 
+  RealType* p_plus_pi_prime_grady = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType)); 
+  RealType* rho_e_gradx_left  = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType)); 
+  RealType* rho_e_gradx_right = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType)); 
+  RealType* rho_e_grady_top   = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType)); 
+  RealType* rho_e_grady_bot   = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType)); 
+  RealType* p_gradx_left  = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType)); 
+  RealType* p_gradx_right = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType)); 
+  RealType* p_grady_top   = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType)); 
+  RealType* p_grady_bot   = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType)); 
   
   // arrays of pointers for multimat
   RealType** alphak_gradx_left   = new RealType*[nb_mat];
@@ -1030,14 +1040,11 @@ void Simulation::Run() {
 	in_total_energy[cell_ooo]      = in_total_energy[cell_ooo] + in_cell_mass_1[cell_ooo]*in_e_1[cell_ooo]/in_rho[cell_ooo] + in_cell_mass_2[cell_ooo]*in_e_2[cell_ooo]/in_rho[cell_ooo];;
 	out_total_energy[cell_ooo]     = in_total_energy[cell_ooo];
 
-	in_rho_total_energy[cell_ooo]  = in_rho[cell_ooo] * in_total_energy[cell_ooo];
-	out_rho_total_energy[cell_ooo] = in_rho_total_energy[cell_ooo];
+	rho_total_energy[cell_ooo]     = in_rho[cell_ooo] * in_total_energy[cell_ooo];
 
-	in_rho_e[cell_ooo]             = in_rho_total_energy[cell_ooo] - 0.5*(in_u_cell[cell_ooo]*in_u_cell[cell_ooo] + in_v_cell[cell_ooo]*in_v_cell[cell_ooo])*in_rho[cell_ooo];
-	out_rho_e[cell_ooo]            = in_rho_e[cell_ooo];
+	rho_e[cell_ooo]                = rho_total_energy[cell_ooo] - 0.5*(in_u_cell[cell_ooo]*in_u_cell[cell_ooo] + in_v_cell[cell_ooo]*in_v_cell[cell_ooo])*in_rho[cell_ooo];
 
-	in_beta[cell_ooo]              = 1.; 
-	out_beta[cell_ooo]             = in_beta[cell_ooo]; 
+	beta[cell_ooo]              = 1.; 
 	
       } else if (numerical_params.TypeOfModel == "MultimaterialMix") {
 	
@@ -1075,15 +1082,15 @@ void Simulation::Run() {
 	in_total_energy[cell_ooo]      = in_total_energy[cell_ooo] + in_cell_mass_1[cell_ooo]*in_e_1[cell_ooo]/in_rho[cell_ooo] + in_cell_mass_2[cell_ooo]*in_e_2[cell_ooo]/in_rho[cell_ooo];;
 	out_total_energy[cell_ooo]     = in_total_energy[cell_ooo];
 
-	in_rho_total_energy[cell_ooo]  = in_rho[cell_ooo] * in_total_energy[cell_ooo];
-	out_rho_total_energy[cell_ooo] = in_rho_total_energy[cell_ooo];
+	rho_total_energy[cell_ooo]     = in_rho[cell_ooo] * in_total_energy[cell_ooo];
 
-	in_rho_e[cell_ooo]             = in_rho_total_energy[cell_ooo] - 0.5*(in_u_cell[cell_ooo]*in_u_cell[cell_ooo] + in_v_cell[cell_ooo]*in_v_cell[cell_ooo])*in_rho[cell_ooo];
-	out_rho_e[cell_ooo]            = in_rho_e[cell_ooo];
+	rho_e[cell_ooo]                = rho_total_energy[cell_ooo] - 0.5*(in_u_cell[cell_ooo]*in_u_cell[cell_ooo] + in_v_cell[cell_ooo]*in_v_cell[cell_ooo])*in_rho[cell_ooo];
 
-	in_beta[cell_ooo]              = 1.; 
-	out_beta[cell_ooo]             = in_beta[cell_ooo]; 
+	beta[cell_ooo]                 = 1.; 
 
+	rho_U[cell_ooo]                = in_rho[cell_ooo] * in_u_cell[cell_ooo];
+	rho_V[cell_ooo]                = in_rho[cell_ooo] * in_v_cell[cell_ooo];	
+	
       } else if (numerical_params.TypeOfModel == "MultimaterialInterface") {
 	
 	const RealType vol_fraction1 = in_cell_volumic_fraction[cell_ooo];
@@ -1394,31 +1401,15 @@ void Simulation::Run() {
 				 numerical_params.NumberOfMaterials,
 				 nx,
 				 ny,
-				 nb_faces_x,
-				 nb_faces_y,
 				 nb_cells,
-				 nb_nodes,
 				 dx,
 				 dy,
 				 dt,
 				 halo_width,
 				 gamma_mix,
-				 pi_prime_mix,
 				 speed_of_sound_mix,
 				 gamma_k,
 				 pi_prime_k,
-				 predicted_u,
-				 predicted_v,
-				 e_lag,
-				 e_1_lag,
-				 e_2_lag,
-				 u_lag,
-				 v_lag,
-				 in_rho_1,
-				 in_rho_2,
-				 in_cell_mass,
-				 in_cell_mass_1,
-				 in_cell_mass_2,
 				 in_c_k,
 				 in_cell_volumic_fraction,
 				 cell_volumes,
@@ -1426,9 +1417,6 @@ void Simulation::Run() {
 				 out_u,
 				 out_v,
 				 out_e,
-				 out_cell_mass,
-				 out_cell_mass_1,
-				 out_cell_mass_2,
 				 out_e_1,
 				 out_e_2,
 				 out_rho,
@@ -1436,28 +1424,6 @@ void Simulation::Run() {
 				 out_rho_2,
 				 out_c_k,
 				 out_cell_volumic_fraction,
-				 volume_fluxes_x,
-				 volume_fluxes_y,
-				 volume_fluxes_1_x,
-				 volume_fluxes_1_y,
-				 volume_fluxes_2_x,
-				 volume_fluxes_2_y,
-				 mass_flux_x,
-				 mass_flux_y,
-				 mass_flux_1_x,
-				 mass_flux_1_y,
-				 mass_flux_2_x,
-				 mass_flux_2_y,
-				 energy_flux_x,
-				 energy_flux_y,
-				 energy_flux_1_x,
-				 energy_flux_1_y,
-				 energy_flux_2_x,
-				 energy_flux_2_y,
-				 concentration_flux_x,
-				 concentration_flux_y,
-				 bool_check_fluxes_x,
-				 bool_check_fluxes_y,
 				 density_gradient,
 				 density_gradient_y,
 				 density_1_gradient,
@@ -1476,8 +1442,24 @@ void Simulation::Run() {
 				 gradient_u_y,
 				 gradient_v,
 				 gradient_v_y,
-				 interface_normal_x,
-				 interface_normal_y,
+			         rho_total_energy,
+			         rho_e,
+			         rho_U,
+			         rho_V,
+				 in_p,
+				 beta,
+				 pi_prime_mix,
+				 p_plus_pi_prime,
+				 p_plus_pi_prime_gradx,
+				 p_plus_pi_prime_grady,
+				 rho_e_gradx_left,
+				 rho_e_gradx_right,
+				 rho_e_grady_top,
+				 rho_e_grady_bot,
+				 p_gradx_left,
+				 p_gradx_right,
+				 p_grady_top,
+				 p_grady_bot,
 				 alphak_gradx_left,
 				 alphak_gradx_right,
 				 alphak_grady_bot,

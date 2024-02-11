@@ -21,6 +21,17 @@ void ComputeGradientAlphaBoundaryWall(index_t nx,
 			  RealType** alphak_grady_bot,
 			  RealType** alphak_grady_top);
 
+void ComputeGradientPplusPiPrimeBoundaryWall(index_t nx, 
+			  index_t ny, 
+			  RealType dx,
+			  RealType dy,
+			  RealType*  pressure,
+			  RealType*  pi_prime_mix, 	 
+			  RealType*  p_plus_pi_prime,	 
+			  RealType*  p_plus_pi_prime_gradx,
+			  RealType*  p_plus_pi_prime_grady	 
+					     );
+
 #ifdef __cplusplus
 }
 #endif

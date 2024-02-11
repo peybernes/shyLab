@@ -102,6 +102,126 @@ void ComputeGradientAlpha(index_t nx,
       
     }
   }
+}
+
+void ComputeGradientPplusPiPrime(index_t nx, 
+			  index_t ny, 
+			  RealType dx,
+			  RealType dy,
+			  RealType*  pressure,
+			  RealType*  pi_prime_mix, 	 
+			  RealType*  p_plus_pi_prime,	 
+			  RealType*  p_plus_pi_prime_gradx,
+			  RealType*  p_plus_pi_prime_grady	 
+			  ) {
+
+  RealType gradx, grady;
+  RealType phi,tmp;
+  RealType zpp,zpm,zmm,zmp;
+  RealType zpp_tmp,zpm_tmp,zmp_tmp,zmm_tmp;
+  RealType grad_tmp;
+  
+  const RealType twelth  = 1./12.;
+  const RealType third   = 1./3. ;
+  const RealType h_x     = 1./dx ;
+  const RealType h_y     = 1./dy ;
+  
+  // all cells
+  for (index_t iy = 0; iy < ny; ++iy) {
+    for (index_t ix = 0; ix < nx; ++ix) {
+      const int cell_ooo  = (nx * iy) + ix;
+       p_plus_pi_prime[cell_ooo] = pressure[cell_ooo] + pi_prime_mix[cell_ooo];
+    }
+  }
+  // inner cells
+  for (index_t iy = 1; iy < ny - 1; ++iy) {
+    for (index_t ix = 1; ix < nx - 1; ++ix) {
+      
+      const int cell_ooo  = (nx * iy) + ix;
+      const int cell_m1m1 = CellCellM1M1(cell_ooo, nx);
+      const int cell_p1p1 = CellCellP1P1(cell_ooo, nx);
+      const int cell_m1p1 = CellCellM1P1(cell_ooo, nx);
+      const int cell_p1m1 = CellCellP1M1(cell_ooo, nx);
+      const int cell_om1  = CellCellOM1 (cell_ooo, nx);
+      const int cell_op1  = CellCellOP1 (cell_ooo, nx);
+      const int cell_m1o  = CellCellM1O (cell_ooo, nx);
+      const int cell_p1o  = CellCellP1O (cell_ooo, nx);
+      
+#include "lf_compute_gradient_p_plus_p_prime.h"
+      p_plus_pi_prime_gradx[cell_ooo] = phi * gradx * h_x;
+      p_plus_pi_prime_grady[cell_ooo] = phi * grady * h_x;
+    }
+  }
+
+
+}
+
+
+
+
+
+void ComputeGradientP(index_t nx, 
+			  index_t    ny, 
+			  RealType   dx,
+			  RealType   dy,
+			  int        nb_mat,
+		          RealType*  pi_prime_mix,
+			  RealType*  pressure,
+		          RealType**  in_c_k,
+		          RealType*  gamma_k,
+			  RealType*  pi_prime_k,
+			  RealType**  alphak_gradx_left,
+			  RealType**  alphak_gradx_right,
+			  RealType**  alphak_grady_bot,
+			  RealType**  alphak_grady_top,
+			  RealType*  p_plus_pi_prime_gradx,
+			  RealType*  p_plus_pi_prime_grady,
+			  RealType*  rho_e,
+			  RealType*  rho_e_gradx_left,
+			  RealType*  rho_e_gradx_right,
+			  RealType*  rho_e_grady_bot,
+			  RealType*  rho_e_grady_top,
+			  RealType*  p_gradx_left,
+			  RealType*  p_gradx_right,
+			  RealType*  p_grady_bot,
+			  RealType*  p_grady_top) {
+
+   double gradx, grady;
+  double phi,tmp;
+  double zpp,zpm,zmm,zmp;
+  double zpp_tmp,zpm_tmp,zmp_tmp,zmm_tmp;
+  double grad_tmp;
+  double tmp_gamma_r;
+  double tmp_pi_r;
+  double tmp_gamma_l;
+  double tmp_pi_l;
+  double tmp_gamma_t;
+  double tmp_pi_t;
+  double tmp_gamma_b;
+  double tmp_pi_b;
+  
+  const RealType twelth  = 1./12.;
+  const RealType third   = 1./3. ;
+  const RealType h_x     = 1./dx ;
+  const RealType h_y     = 1./dy ;
+  
+  // inner cells
+  for (index_t iy = 1; iy < ny - 1; ++iy) {
+    for (index_t ix = 1; ix < nx - 1; ++ix) {
+      
+      const int cell_ooo  = (nx * iy) + ix;
+      const int cell_m1m1 = CellCellM1M1(cell_ooo, nx);
+      const int cell_p1p1 = CellCellP1P1(cell_ooo, nx);
+      const int cell_m1p1 = CellCellM1P1(cell_ooo, nx);
+      const int cell_p1m1 = CellCellP1M1(cell_ooo, nx);
+      const int cell_om1  = CellCellOM1 (cell_ooo, nx);
+      const int cell_op1  = CellCellOP1 (cell_ooo, nx);
+      const int cell_m1o  = CellCellM1O (cell_ooo, nx);
+      const int cell_p1o  = CellCellP1O (cell_ooo, nx);
+      
+#include "lf_compute_gradient_p.h"
+    }
+  }
 
 
 }
