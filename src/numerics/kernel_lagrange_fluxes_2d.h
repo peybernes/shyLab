@@ -71,8 +71,54 @@ void ComputeGradientP(index_t nx,
 			  RealType*  p_gradx_left,
 			  RealType*  p_gradx_right,
 			  RealType*  p_grady_bot,
-		      RealType*  p_grady_top);
+		          RealType*  p_grady_top);
 
+void ComputeGradientRho(index_t nx, 
+			  index_t    ny, 
+			  RealType   dx,
+			  RealType   dy,
+			  int        nb_mat,
+			  RealType** in_rho_k,
+		          RealType**  in_c_k,
+			  RealType**  alphak_gradx_left,
+			  RealType**  alphak_gradx_right,
+			  RealType**  alphak_grady_bot,
+			  RealType**  alphak_grady_top,
+			  RealType*  rho_gradx_left,
+			  RealType*  rho_gradx_right,
+			  RealType*  rho_grady_top,
+			  RealType*  rho_grady_bot,
+			  RealType**  rhok_gradx,
+			  RealType**  rhok_grady
+			);
+
+void ComputeHLL(index_t nx, 
+		index_t    ny, 
+		RealType   dx,
+		RealType   dy,
+		RealType*  rho_gradx_left,
+		RealType*  rho_gradx_right,
+		RealType*  rho_grady_top,
+		RealType*  rho_grady_bot,
+		RealType*  in_rho,
+		RealType*  pressure,
+		RealType*  in_u_cell,
+		RealType*  in_v_cell,
+		RealType*  speed_of_sound_mix,
+		RealType*  p_gradx_left,
+		RealType*  p_gradx_right,
+		RealType*  p_grady_bot,
+		RealType*  p_grady_top,
+		RealType*  u_gradx_left,
+		RealType*  u_gradx_right,
+		RealType*  v_grady_bot,
+		RealType*  v_grady_top,
+		RealType*  p_xet,
+		RealType*  p_yet,
+		RealType*  u_et,
+		RealType*  v_et
+		);
+  
 #ifdef __cplusplus
 }
 #endif

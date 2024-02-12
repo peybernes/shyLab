@@ -227,4 +227,126 @@ void ComputeGradientP(index_t nx,
 }
 
 
+void ComputeGradientRho(index_t nx, 
+			index_t    ny, 
+			RealType   dx,
+			RealType   dy,
+			int        nb_mat,
+			RealType** in_rho_k,
+			RealType**  in_c_k,
+			RealType**  alphak_gradx_left,
+			RealType**  alphak_gradx_right,
+			RealType**  alphak_grady_bot,
+			RealType**  alphak_grady_top,
+			RealType*  rho_gradx_left,
+			RealType*  rho_gradx_right,
+			RealType*  rho_grady_top,
+			RealType*  rho_grady_bot,
+			RealType**  rhok_gradx,
+			RealType**  rhok_grady
+			) {
+
+  RealType gradx, grady;
+  RealType phi,tmp;
+  RealType zpp,zpm,zmm,zmp;
+  RealType zpp_tmp,zpm_tmp,zmp_tmp,zmm_tmp;
+  RealType grad_tmp;
+  RealType sum_alphay;
+  RealType sum_alphax;
+  
+  const RealType twelth  = 1./12.;
+  const RealType third   = 1./3. ;
+  const RealType h_x     = 1./dx ;
+  const RealType h_y     = 1./dy ;
+  
+  // inner cells
+  for (index_t iy = 1; iy < ny - 1; ++iy) {
+    for (index_t ix = 1; ix < nx - 1; ++ix) {
+      
+      const int cell_ooo  = (nx * iy) + ix;
+      const int cell_m1m1 = CellCellM1M1(cell_ooo, nx);
+      const int cell_p1p1 = CellCellP1P1(cell_ooo, nx);
+      const int cell_m1p1 = CellCellM1P1(cell_ooo, nx);
+      const int cell_p1m1 = CellCellP1M1(cell_ooo, nx);
+      const int cell_om1  = CellCellOM1 (cell_ooo, nx);
+      const int cell_op1  = CellCellOP1 (cell_ooo, nx);
+      const int cell_m1o  = CellCellM1O (cell_ooo, nx);
+      const int cell_p1o  = CellCellP1O (cell_ooo, nx);
+      
+#include "lf_compute_gradient_rho.h"
+    }
+  }
+
+
+}
+
+
+void ComputeHLL(index_t nx, 
+		index_t    ny, 
+		RealType   dx,
+		RealType   dy,
+		RealType*  rho_gradx_left,
+		RealType*  rho_gradx_right,
+		RealType*  rho_grady_top,
+		RealType*  rho_grady_bot,
+		RealType*  in_rho,
+		RealType*  pressure,
+		RealType*  in_u_cell,
+		RealType*  in_v_cell,
+		RealType*  speed_of_sound_mix,
+		RealType*  p_gradx_left,
+		RealType*  p_gradx_right,
+		RealType*  p_grady_bot,
+		RealType*  p_grady_top,
+		RealType*  u_gradx_left,
+		RealType*  u_gradx_right,
+		RealType*  v_grady_bot,
+		RealType*  v_grady_top,
+		RealType*  p_xet,
+		RealType*  p_yet,
+		RealType*  u_et,
+		RealType*  v_et
+			) {
+
+  RealType gradx, grady;
+  RealType phi,tmp;
+  RealType zpp,zpm,zmm,zmp;
+  RealType zpp_tmp,zpm_tmp,zmp_tmp,zmm_tmp;
+  RealType grad_tmp;
+  RealType sum_alphay;
+  RealType sum_alphax;
+  
+  const RealType twelth  = 1./12.;
+  const RealType third   = 1./3. ;
+  const RealType h_x     = 1./dx ;
+  const RealType h_y     = 1./dy ;
+  
+    for (index_t iy = 0; iy < ny - 1; ++iy) {
+      for (index_t ix = 0; ix < nx - 1; ++ix) {
+
+	const index_t cell_ooo = (nx * iy) + ix;
+
+	const int cell_op1  = CellCellOP1 (cell_ooo, nx);
+	const int cell_p1o  = CellCellP1O (cell_ooo, nx);
+	
+	const index_t face_top   = CellFaceOP1(cell_ooo, iy, nx);
+	const index_t face_right = CellFaceP1O(cell_ooo, iy, nx);
+
+#include "lf_compute_hll.h"
+    // if  (face_top == 140) {
+    //   std::cout << in_rho [cell_ooo] << " " << rho_grady_top[cell_ooo] << " " <<  p_yet[140] << " " << speed_of_sound_mix[cell_ooo] << " " << v_grady_bot[cell_op1] << std::endl;
+    //   std::cout << pressure[cell_op1] << " " << p_grady_bot   [cell_op1] << " " <<  p_yet[140] << " " << speed_of_sound_mix[cell_ooo] << " " << v_grady_bot[cell_op1] << std::endl;
+    // }
+	//std::cout << "k = " << cell_ooo << "facetop = " << face_top  << " and pyet = " <<  p_yet[face_top] << std::endl;
+	// std::cout << "k = " << cell_ooo << "faceright = " << face_right  << " and pxet = " <<  p_xet[face_right] << std::endl;
+	// std::cout << "k = " << cell_ooo << "faceright = " << face_right  << " and u_et = " <<  u_et[face_right] << std::endl;
+
+    }
+  }
+
+
+}
+
+
+
 
