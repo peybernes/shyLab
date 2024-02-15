@@ -109,10 +109,8 @@
       phi = std::min(zmp,zpm);
       phi = std::min(phi,tmp);
       phi = std::min(0.5*phi,1.0);
-      
       rhok_grady[j][cell_ooo] = phi * grady * h_y;
       rhok_gradx[j][cell_ooo] = phi * gradx * h_x;
-
       rho_grady_top[cell_ooo] = rho_grady_top[cell_ooo] + rhok_grady[j][cell_ooo]
 	* in_c_k[j][cell_ooo]
 	+ alphak_grady_top[j][cell_ooo]

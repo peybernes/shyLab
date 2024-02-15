@@ -12,7 +12,13 @@
 			   - (pressure [cell_p1o] - 0.5 * dx * p_gradx_left[cell_p1o] - pressure[cell_ooo] - 0.5 * dx * p_gradx_right[cell_ooo])
 			   / std::max(speed_of_sound_mix[cell_ooo],speed_of_sound_mix[cell_p1o]))
 	                   /(in_rho[cell_ooo] + 0.5 * dx * rho_gradx_right[cell_ooo] + in_rho[cell_p1o] - 0.5 * dx * rho_gradx_left[cell_p1o]);
-	
+/* if (face_right == 12) { */
+/*   printf(" face12 p_xet = %f\n",p_xet[face_right]); */
+/*   printf(" face12 in_rho = %f\n",in_rho[cell_ooo]); */
+/*   printf(" face12 pressure = %f\n",pressure[cell_p1o]); */
+/*   printf(" face12 p_gradx_right [cell_ooo] = %f\n",p_gradx_right [cell_ooo]); */
+/*   printf(" face12 rho_gradx_right [cell_ooo] = %f\n",rho_gradx_right [cell_ooo] ); */
+/* } */
 	p_yet[face_top] = ((( in_rho [cell_ooo]  + 0.5 * dy * rho_grady_top [cell_ooo])
 			  * (pressure[cell_op1]  - 0.5 * dy * p_grady_bot   [cell_op1])
 			  + (in_rho  [cell_op1]  - 0.5 * dy * rho_grady_bot [cell_op1])

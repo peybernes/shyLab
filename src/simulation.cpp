@@ -759,7 +759,30 @@ void Simulation::Run() {
   RealType* concentration_flux_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
   RealType* concentration_flux_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
 
-  //  const int ALIGN_BYTES = 64;
+  // For Lagrange Flux
+  RealType* rho_total_energy_fluxes_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
+  RealType* rho_total_energy_fluxes_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
+
+  RealType* rho_U_fluxes_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
+  RealType* rho_U_fluxes_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
+  RealType* rho_V_fluxes_x = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
+  RealType* rho_V_fluxes_y = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
+  RealType* beta_fluxes_x  = (RealType*) memalign(ALIGN_BYTES, nb_faces_x * sizeof(RealType));
+  RealType* beta_fluxes_y  = (RealType*) memalign(ALIGN_BYTES, nb_faces_y * sizeof(RealType));
+
+  // arrays of pointers for multimat
+  RealType** masse_fluxes_k_x        = new RealType*[nb_mat];
+  RealType** masse_fluxes_k_y        = new RealType*[nb_mat];
+  RealType** alpha_beta_fluxes_k_x   = new RealType*[nb_mat];
+  RealType** alpha_beta_fluxes_k_y   = new RealType*[nb_mat];
+  for (int k = 0;k < nb_mat; k++) {
+    masse_fluxes_k_x      [k]  = new RealType[nb_faces_x];
+    masse_fluxes_k_y      [k]  = new RealType[nb_faces_y];
+    alpha_beta_fluxes_k_x [k]  = new RealType[nb_faces_x];
+    alpha_beta_fluxes_k_y        [k]  = new RealType[nb_faces_y];
+  }
+
+    //  const int ALIGN_BYTES = 64;
 
   // Cell local variables.
   RealType* predicted_pressure = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
@@ -803,12 +826,8 @@ void Simulation::Run() {
   RealType* in_cell_volumic_fraction_0 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* in_total_energy = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* out_total_energy = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* in_y_1 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* in_y_2 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* in_y_3 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* out_y_1 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* out_y_2 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
-  RealType* out_y_3 = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
+
+  // For Lagrange Flux
   RealType* rho_total_energy = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* rho_e = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
   RealType* rho_U = (RealType*) memalign(ALIGN_BYTES, nb_cells * sizeof(RealType));
@@ -1019,34 +1038,27 @@ void Simulation::Run() {
 	out_e_2[cell_ooo]              = in_e_2[cell_ooo];
 	if (nb_mat > 2) {
 	  in_e_3[cell_ooo]             =  EnergyEOS(physical_params.gamma_3, in_rho_3[cell_ooo], in_p_3[cell_ooo], physical_params.pi_3);
+	  out_e_3[cell_ooo]              = in_e_3[cell_ooo];
 	}
-	out_e_3[cell_ooo]              = in_e_3[cell_ooo];
-	
-	in_e[cell_ooo]                 = in_e_1[cell_ooo] * in_c_1[cell_ooo] + in_e_2[cell_ooo] * in_c_2[cell_ooo] + in_e_3[cell_ooo] * in_c_3[cell_ooo];
-	out_e[cell_ooo]                = in_e[cell_ooo];
 
+	in_e[cell_ooo]                   = 0.;
+	for (int k = 0; k < nb_mat; k++) {
+	  in_e[cell_ooo]                 = in_e_k[k][cell_ooo] * in_c_k[k][cell_ooo];
+	}
+	out_e[cell_ooo]                = in_e[cell_ooo];
+	
 	in_p[cell_ooo]                 = in_p_1[cell_ooo];
 
-	// [VM] in VM mk = Alpha_k Rho_k with Alpha_k = in_c_1[cell_ooo] * cell_volumes[cell_ooo]
-	in_cell_mass_1[cell_ooo]       = in_rho_1[cell_ooo] * in_c_1[cell_ooo] * cell_volumes[cell_ooo]; 
-	out_cell_mass_1[cell_ooo]      = in_cell_mass_1[cell_ooo];
-	in_cell_mass_2[cell_ooo]       = in_rho_2[cell_ooo] * in_c_2[cell_ooo] * cell_volumes[cell_ooo];
-	out_cell_mass_2[cell_ooo]      = in_cell_mass_2[cell_ooo];
-	in_cell_mass_3[cell_ooo]       = in_rho_3[cell_ooo] * in_c_3[cell_ooo] * cell_volumes[cell_ooo];
-	out_cell_mass_3[cell_ooo]      = in_cell_mass_3[cell_ooo];
-
-	in_y_1[cell_ooo]               = in_cell_mass_1[cell_ooo] / in_rho[cell_ooo];
-	out_y_1[cell_ooo]              = in_y_1[cell_ooo];
-	in_y_2[cell_ooo]               = in_cell_mass_2[cell_ooo] / in_rho[cell_ooo];
-	out_y_2[cell_ooo]              = in_y_2[cell_ooo];
-	in_y_3[cell_ooo]               = in_cell_mass_3[cell_ooo] / in_rho[cell_ooo];
-	out_y_3[cell_ooo]              = in_y_3[cell_ooo];
-
 	in_total_energy[cell_ooo]      = 0.5*in_u_cell[cell_ooo]*in_u_cell[cell_ooo] + 0.5*in_v_cell[cell_ooo]*in_v_cell[cell_ooo];
-	in_total_energy[cell_ooo]      = in_total_energy[cell_ooo] + in_cell_mass_1[cell_ooo]*in_e_1[cell_ooo]/in_rho[cell_ooo] + in_cell_mass_2[cell_ooo]*in_e_2[cell_ooo]/in_rho[cell_ooo]+ in_cell_mass_3[cell_ooo]*in_e_3[cell_ooo]/in_rho[cell_ooo];
+
+	for (int k = 0; k < nb_mat; k++) {
+	  in_total_energy[cell_ooo]      = in_total_energy[cell_ooo] + in_rho_k[k][cell_ooo] * in_c_k[k][cell_ooo] * in_e_k[k][cell_ooo] / in_rho[cell_ooo];
+	}
+
 	out_total_energy[cell_ooo]     = in_total_energy[cell_ooo];
 
 	rho_total_energy[cell_ooo]     = in_rho[cell_ooo] * in_total_energy[cell_ooo];
+	//std::cout <<  "rhoE = " << rho_total_energy[cell_ooo] << std::endl;
 
 	rho_e[cell_ooo]                = rho_total_energy[cell_ooo] - 0.5*(in_u_cell[cell_ooo]*in_u_cell[cell_ooo] + in_v_cell[cell_ooo]*in_v_cell[cell_ooo])*in_rho[cell_ooo];
 
@@ -1388,104 +1400,98 @@ void Simulation::Run() {
 	std::cout << "dt = " << dt << std::endl; 
 	// Direct projection 2nd order
 	LagrangeFluxes2dDriver(//in
-				 numerical_params.BoundaryConditions,
-				 numerical_params.TypeOfModel,
-				 numerical_params.NumberOfMaterials,
-				 nx,
-				 ny,
-				 nb_cells,
-				 dx,
-				 dy,
-				 dt,
-				 halo_width,
-				 gamma_mix,
-				 speed_of_sound_mix,
-				 gamma_k,
-				 pi_prime_k,
-				 in_c_k,
-				 in_rho_k,
-				 in_rho,
-				 in_cell_volumic_fraction,
-				 cell_volumes,
-				 // out
-				 in_u_cell,
-				 in_v_cell,
-				 out_u,
-				 out_v,
-				 out_e,
-				 out_e_1,
-				 out_e_2,
-				 out_rho,
-				 out_rho_1,
-				 out_rho_2,
-				 out_c_k,
-				 out_cell_volumic_fraction,
-				 density_gradient,
-				 density_gradient_y,
-				 density_1_gradient,
-				 density_1_gradient_y,
-				 density_2_gradient,
-				 density_2_gradient_y,
-				 energy_gradient,
-				 energy_gradient_y,
-				 energy_1_gradient,
-				 energy_1_gradient_y,
-				 energy_2_gradient,
-				 energy_2_gradient_y,
-				 concentration_gradient,
-				 concentration_gradient_y,
-				 gradient_u,
-				 gradient_u_y,
-				 gradient_v,
-				 gradient_v_y,
-			         rho_total_energy,
-			         rho_e,
-			         rho_U,
-			         rho_V,
-				 in_p,
-				 beta,
-				 pi_prime_mix,
-				 p_plus_pi_prime,
-				 p_plus_pi_prime_gradx,
-				 p_plus_pi_prime_grady,
-				 rho_e_gradx_left,
-				 rho_e_gradx_right,
-				 rho_e_grady_top,
-				 rho_e_grady_bot,
-				 p_gradx_left,
-				 p_gradx_right,
-				 p_grady_top,
-				 p_grady_bot,
-				 rho_gradx_left,
-				 rho_gradx_right,
-				 rho_grady_top,
-				 rho_grady_bot,
-				 alpha_beta_k,
-				 alpha_beta_k_tmp,
-				 masse_k,
-				 masse_k_tmp,
-				 alphak_gradx_left,
-				 alphak_gradx_right,
-				 alphak_grady_bot,
-				 alphak_grady_top);
+			       numerical_params.BoundaryConditions,
+			       numerical_params.TypeOfModel,
+			       numerical_params.NumberOfMaterials,
+			       nx,
+			       ny,
+			       nb_cells,
+			       dx,
+			       dy,
+			       dt,
+			       numerical_params.CFL,
+			       halo_width,
+			       gamma_mix,
+			       speed_of_sound_mix,
+			       gamma_k,
+			       pi_prime_k,
+			       in_c_k,
+			       in_rho_k,
+			       in_rho,
+			       in_total_energy,
+			       in_cell_volumic_fraction,
+			       cell_volumes,
+			       // out
+			       in_u_cell,
+			       in_v_cell,
+			       out_u,
+			       out_v,
+			       out_e,
+			       out_e_1,
+			       out_e_2,
+			       out_rho,
+			       out_rho_1,
+			       out_rho_2,
+			       out_c_k,
+			       out_cell_volumic_fraction,
+			       rho_total_energy,
+			       rho_e,
+			       rho_U,
+			       rho_V,
+			       in_p,
+			       beta,
+			       pi_prime_mix,
+			       p_plus_pi_prime,
+			       p_plus_pi_prime_gradx,
+			       p_plus_pi_prime_grady,
+			       rho_e_gradx_left,
+			       rho_e_gradx_right,
+			       rho_e_grady_top,
+			       rho_e_grady_bot,
+			       p_gradx_left,
+			       p_gradx_right,
+			       p_grady_top,
+			       p_grady_bot,
+			       rho_gradx_left,
+			       rho_gradx_right,
+			       rho_grady_top,
+			       rho_grady_bot,
+			       alpha_beta_k,
+			       alpha_beta_k_tmp,
+			       masse_k,
+			       masse_k_tmp,
+			       alphak_gradx_left,
+			       alphak_gradx_right,
+			       alphak_grady_bot,
+			       alphak_grady_top,
+			       rho_total_energy_fluxes_x,
+			       rho_total_energy_fluxes_y,
+			       rho_U_fluxes_x,
+			       rho_U_fluxes_y,
+			       rho_V_fluxes_x,
+			       rho_V_fluxes_y,
+			       beta_fluxes_x,
+			       beta_fluxes_y,
+			       masse_fluxes_k_x,
+			       masse_fluxes_k_y,
+			       alpha_beta_fluxes_k_x,
+			       alpha_beta_fluxes_k_y);
 
-	std::cout << "Start Lagrange Flux ok ! " << gamma_mix[0] << std::endl;
-	exit(0);
 	
-	std::swap(in_cell_mass, out_cell_mass); 
-	std::swap(in_cell_mass_1, out_cell_mass_1);
-	std::swap(in_cell_mass_2, out_cell_mass_2);
-	std::swap(in_cell_volumic_fraction, out_cell_volumic_fraction);
-	std::swap(in_u, out_u); 
-	std::swap(in_v, out_v);
-	std::swap(in_e, out_e);
-	std::swap(in_c_1, out_c_1);
-	std::swap(in_c_2, out_c_2);
-	std::swap(in_e_1, out_e_1);
-	std::swap(in_e_2, out_e_2);
-	std::swap(in_rho, out_rho);
-	std::swap(in_rho_1, out_rho_1);
-	std::swap(in_rho_2, out_rho_2);
+	// std::swap(in_cell_mass, out_cell_mass); 
+	// std::swap(in_cell_mass_1, out_cell_mass_1);
+	// std::swap(in_cell_mass_2, out_cell_mass_2);
+	// std::swap(in_cell_volumic_fraction, out_cell_volumic_fraction);
+	// std::swap(in_u, out_u); 
+	// std::swap(in_v, out_v);
+	// std::swap(in_e, out_e);
+	// std::swap(in_c_1, out_c_1);
+	// std::swap(in_c_2, out_c_2);
+	// std::swap(in_e_1, out_e_1);
+	// std::swap(in_e_2, out_e_2);
+	// std::swap(in_rho, out_rho);
+	// std::swap(in_rho_1, out_rho_1);
+	// std::swap(in_rho_2, out_rho_2);
 
       }
       else {
@@ -2284,15 +2290,17 @@ void Simulation::Run() {
       }
       // Recompute the density from mass and volume. Only needed for output.
 
-      for (int iy = 0; iy < ny; ++iy) {
-	for (int ix = 0; ix < nx; ++ix) {
-	  
-	  const int cell_ooo = (nx * iy) + ix;
-	  
-	  const RealType x = ix * dx;
-	  const RealType y = iy * dy;
-
-	  in_rho[cell_ooo] =  in_cell_mass[cell_ooo] / cell_volumes[cell_ooo];
+      if (numerical_params.TypeOfProjection != "LagrangeFluxes") {
+	for (int iy = 0; iy < ny; ++iy) {
+	  for (int ix = 0; ix < nx; ++ix) {
+	    
+	    const int cell_ooo = (nx * iy) + ix;
+	    
+	    const RealType x = ix * dx;
+	    const RealType y = iy * dy;
+	    
+	    in_rho[cell_ooo] =  in_cell_mass[cell_ooo] / cell_volumes[cell_ooo];
+	  }
 	}
       }
 
@@ -2395,36 +2403,36 @@ void Simulation::Run() {
 
   std::cerr << "\n-----------------------------------------------------------------------------------------\n\n";
 
-  PrintTimings(time_time_step,                   "TimeStep                               ");
-  std::cerr << "\n\n\n";
-  PrintTimings(time_lagrange_pressure_predicted, "LagrangePressurePredicted              ");
-  PrintTimings(time_lagrange_velocity_predicted, "LagrangeVelocityPredicted              ");
-  PrintTimings(time_lagrange_correction,         "LagrangeCorrection                     ");
-  PrintTimings(time_lagrange_velocity_correction,"LagrangeVelocityCorrection             ");
-  std::cerr << "\n\n\n";
-  PrintTimings(time_compute_volume_fluxes_X,     "ComputeDirectionalLagrangianQuantitiesX");
-  PrintTimings(time_compute_volume_fluxes_Y,     "ComputeDirectionalLagrangianQuantitiesY");
-  std::cerr << "\n";
-  PrintTimings(time_gradient_X,                  "ReconstructGradientX                   ");
-  PrintTimings(time_gradient_Y,                  "ReconstructGradientY                   ");
-  std::cerr << "\n";
-  PrintTimings(time_mass_reconstruct_o2_X,       "ReconstructMassFluxOrder2X             ");
-  PrintTimings(time_mass_reconstruct_o2_Y,       "ReconstructMassFluxOrder2Y             ");
-  std::cerr << "\n";
-  //  PrintTimings(time_project_mass_X,              "ProjectMassX                           ");
-  //  PrintTimings(time_project_mass_Y,              "ProjectMassY                           ");
-  std::cerr << "\n";
-  PrintTimings(time_reconstruct_energy_o2_X,     "ReconstructIntensiveVariableFluxOrder2X");
-  PrintTimings(time_reconstruct_energy_o2_Y,     "ReconstructIntensiveVariableFluxOrder2Y");
-  std::cerr << "\n";
-  PrintTimings(time_project_energy_X,            "MassProjectIntensiveVariableX          ");
-  PrintTimings(time_project_energy_Y,            "MassProjectIntensiveVariableY          ");
-  std::cerr << "\n";
-  PrintTimings(time_gradient_nodal_X,            "ReconstructNodalGradientX              ");
-  PrintTimings(time_gradient_nodal_Y,            "ReconstructNodalGradientY              ");
-  std::cerr << "\n";
-  PrintTimings(time_project_nodal_velocity_X,    "ProjectNodalIntensiveVariableOrder2X   ");
-  PrintTimings(time_project_nodal_velocity_Y,    "ProjectNodalIntensiveVariableOrder2Y   ");
+  // PrintTimings(time_time_step,                   "TimeStep                               ");
+  // std::cerr << "\n\n\n";
+  // PrintTimings(time_lagrange_pressure_predicted, "LagrangePressurePredicted              ");
+  // PrintTimings(time_lagrange_velocity_predicted, "LagrangeVelocityPredicted              ");
+  // PrintTimings(time_lagrange_correction,         "LagrangeCorrection                     ");
+  // PrintTimings(time_lagrange_velocity_correction,"LagrangeVelocityCorrection             ");
+  // std::cerr << "\n\n\n";
+  // PrintTimings(time_compute_volume_fluxes_X,     "ComputeDirectionalLagrangianQuantitiesX");
+  // PrintTimings(time_compute_volume_fluxes_Y,     "ComputeDirectionalLagrangianQuantitiesY");
+  // std::cerr << "\n";
+  // PrintTimings(time_gradient_X,                  "ReconstructGradientX                   ");
+  // PrintTimings(time_gradient_Y,                  "ReconstructGradientY                   ");
+  // std::cerr << "\n";
+  // PrintTimings(time_mass_reconstruct_o2_X,       "ReconstructMassFluxOrder2X             ");
+  // PrintTimings(time_mass_reconstruct_o2_Y,       "ReconstructMassFluxOrder2Y             ");
+  // std::cerr << "\n";
+  // //  PrintTimings(time_project_mass_X,              "ProjectMassX                           ");
+  // //  PrintTimings(time_project_mass_Y,              "ProjectMassY                           ");
+  // std::cerr << "\n";
+  // PrintTimings(time_reconstruct_energy_o2_X,     "ReconstructIntensiveVariableFluxOrder2X");
+  // PrintTimings(time_reconstruct_energy_o2_Y,     "ReconstructIntensiveVariableFluxOrder2Y");
+  // std::cerr << "\n";
+  // PrintTimings(time_project_energy_X,            "MassProjectIntensiveVariableX          ");
+  // PrintTimings(time_project_energy_Y,            "MassProjectIntensiveVariableY          ");
+  // std::cerr << "\n";
+  // PrintTimings(time_gradient_nodal_X,            "ReconstructNodalGradientX              ");
+  // PrintTimings(time_gradient_nodal_Y,            "ReconstructNodalGradientY              ");
+  // std::cerr << "\n";
+  // PrintTimings(time_project_nodal_velocity_X,    "ProjectNodalIntensiveVariableOrder2X   ");
+  // PrintTimings(time_project_nodal_velocity_Y,    "ProjectNodalIntensiveVariableOrder2Y   ");
 
 
   std::cerr << "\n";

@@ -19,7 +19,7 @@ static void SampleArray(double value_first,
 
   for (int i = 0; i < resolution; ++i)
     array_ptr->at(i) = value_first + 
-      (double)i * (value_last - value_first) / (double)resolution;
+      (double)i * (value_last - value_first) / ((double)resolution - 1.);
 
 }
 
@@ -177,7 +177,7 @@ void StructuredGrid::ComputeGeometricQuantities(VariableStore* cell_variables,
 
       }
     }
-      
+    
   } else if (m_dimension == 3) {
 
     for (int k = 0; k < NZ + 1; ++k) {
@@ -247,7 +247,6 @@ void StructuredGrid::ComputeGeometricQuantities(VariableStore* cell_variables,
       }
     }
   }
-
 
 
 }
