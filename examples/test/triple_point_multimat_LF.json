@@ -5,7 +5,7 @@
 	"Clock": { "time": "0.0",
 		   "iteration": "0" },
 
-	"Timetable": { "end": "4." },
+	"Timetable": { "end": "4.5" },
 	
 	"Grid": { "name": "grid",
 		  "nx": "280",
@@ -17,7 +17,7 @@
 
  	"NumericalParams": { "BoundaryConditions": "Wall",
 			     "TypeOfProjection": "LagrangeFluxes",
-			     "CFL": "0.08",
+			     "CFL": "0.18",
 			     "NumberOfMaterials": "2",
 			     "TypeOfModel": "MultimaterialMix" },
 
@@ -129,7 +129,7 @@
     			      "expression": "(x < 1.5) ? 1.0 : 0.1" },
 
 	    "OutputSimulation": { "filename": "/tmp/res/sim%i",
-	    			  "Timetable": {"istep": "100"}},
+	    			  "Timetable": {"istep": "10"}},
 
 	    "OutputCartesianLine": { "filename": "/tmp/res/profile%i",
 	    			     "direction": "x",
