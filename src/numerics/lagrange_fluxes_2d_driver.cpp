@@ -333,7 +333,7 @@ void LagrangeFluxes2dDriver(//in
 
   if (BoundaryConditions == "Wall") {
     ComputeHLLFluxesZYBoundaryWall(nx,ny,dx,dy,nb_mat,
-				   in_rho,rho_e,beta,v_et,p_yet,in_rho_k,rhok_grady,in_c_k,alphak_grady_bot,rho_grady_bot,rho_e_grady_bot,u_grady_bot,v_grady_bot,
+				   masse_k,in_rho,rho_e,beta,v_et,p_yet,in_rho_k,rhok_grady,in_c_k,alphak_grady_bot,rho_grady_bot,rho_e_grady_bot,u_grady_bot,v_grady_bot,
 				   in_u_cell,in_v_cell,u2,v2,u2_grady,v2_grady,alphak_grady_top,rho_grady_top,rho_e_grady_top,u_grady_top,v_grady_top,beta_grady,
 				   // out		 
 				   masse_fluxes_k_y,alpha_beta_fluxes_k_y,rho_U_fluxes_y,rho_V_fluxes_y,beta_fluxes_y,rho_total_energy_fluxes_y);
@@ -518,7 +518,7 @@ void LagrangeFluxes2dDriver(//in
   if (BoundaryConditions == "Wall") {
     
     ComputeHLLFluxesZYBoundaryWall(nx,ny,dx,dy,nb_mat,
-				   in_rho,rho_e,beta,v_et,p_yet,in_rho_k,rhok_grady,in_c_k,alphak_grady_bot,rho_grady_bot,rho_e_grady_bot,u_grady_bot,v_grady_bot,
+				   masse_k,in_rho,rho_e,beta,v_et,p_yet,in_rho_k,rhok_grady,in_c_k,alphak_grady_bot,rho_grady_bot,rho_e_grady_bot,u_grady_bot,v_grady_bot,
 				   in_u_cell,in_v_cell,u2,v2,u2_grady,v2_grady,alphak_grady_top,rho_grady_top,rho_e_grady_top,u_grady_top,v_grady_top,beta_grady,
 				   // out		 
 				   masse_fluxes_k_y,alpha_beta_fluxes_k_y,rho_U_fluxes_y,rho_V_fluxes_y,beta_fluxes_y,rho_total_energy_fluxes_y);

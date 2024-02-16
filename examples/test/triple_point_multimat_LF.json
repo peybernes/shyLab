@@ -5,11 +5,11 @@
 	"Clock": { "time": "0.0",
 		   "iteration": "0" },
 
-	"Timetable": { "iend": "200" },
+	"Timetable": { "end": "4." },
 	
 	"Grid": { "name": "grid",
-		  "nx": "70",
-		  "ny": "30",
+		  "nx": "280",
+		  "ny": "120",
 		  "xmin": "0.0",
 		  "xmax": "7.0",
 		  "ymin": "0.0",
@@ -17,20 +17,14 @@
 
  	"NumericalParams": { "BoundaryConditions": "Wall",
 			     "TypeOfProjection": "LagrangeFluxes",
-			     "CFL": "0.18",
+			     "CFL": "0.08",
 			     "NumberOfMaterials": "2",
 			     "TypeOfModel": "MultimaterialMix" },
 
+        "PhysicalParams" : { "EOS_gamma_1" : "1.4",
+			     "EOS_gamma_2" : "1.5" },	
+	
 	"Variables": {
-
-	    "directional_lagrangian_volume"  : {"support": "cell"},
-	    "directional_lagrangian_density"  : {"support": "cell"},
-	    "directional_lagrangian_density_1"  : {"support": "cell"},
-	    "directional_lagrangian_density_2"  : {"support": "cell"},
-	    "directional_lagrangian_volume_y"  : {"support": "cell"},
-	    "directional_lagrangian_density_y"  : {"support": "cell"},
-	    "directional_lagrangian_density_1_y"  : {"support": "cell"},
-	    "directional_lagrangian_density_2_y"  : {"support": "cell"},
 
 	    "in_rho"  : {"support": "cell"},
 	    "out_rho" : {"support": "cell"},
@@ -82,15 +76,6 @@
 
 	    "lagrangian_u"  : {"support": "vertice"},
 	    "lagrangian_v"  : {"support": "vertice"},
-
-	    "in_u"  : {"support": "vertice"},
-	    "in_v"  : {"support": "vertice"},
-
-	    "predicted_u"  : {"support": "vertice"},
-	    "predicted_v"  : {"support": "vertice"},
-
-	    "out_u" : {"support": "vertice"},
-	    "out_v" : {"support": "vertice"},
 
 	    "u_ref" : {"support": "vertice"}
 
@@ -144,7 +129,7 @@
     			      "expression": "(x < 1.5) ? 1.0 : 0.1" },
 
 	    "OutputSimulation": { "filename": "/tmp/res/sim%i",
-	    			  "Timetable": {"istep": "10"}},
+	    			  "Timetable": {"istep": "100"}},
 
 	    "OutputCartesianLine": { "filename": "/tmp/res/profile%i",
 	    			     "direction": "x",

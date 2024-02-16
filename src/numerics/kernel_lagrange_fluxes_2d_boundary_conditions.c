@@ -1013,6 +1013,7 @@ void ComputeHLLFluxesZYBoundaryWall(index_t nx,
 			RealType   dx,
 			RealType   dy,
 			int        nb_mat,
+			RealType**  masse_k,
 			RealType*  in_rho,
 			RealType*  rho_e,
 			RealType*  beta,
@@ -1071,9 +1072,9 @@ void ComputeHLLFluxesZYBoundaryWall(index_t nx,
       const int face_bot   = CellFaceOM1(cell_ooo, iy, nx);
       
       for(int k = 0; k < nb_mat; k++){
-	// modif compared to phf Mahy mk ? rho k in following line ?
-	masse_fluxes_k_y[k][face_bot] = v_et[face_bot] * 
-                                       (in_rho_k[k][cell_ooo] - 0.5 * dy * rhok_grady[k][cell_ooo]);
+	// modif compared to phd Mahy mk ? rho k in following line ?
+	masse_fluxes_k_y[k][face_bot] = v_et[face_bot] * masse_k [k][cell_ooo];
+	  //(in_rho_k[k][cell_ooo] - 0.5 * dy * rhok_grady[k][cell_ooo]);
 
 	alpha_beta_fluxes_k_y[k][face_bot] = v_et[face_bot] * (in_c_k[k][cell_ooo]
 					    - 0.5 * dy * alphak_grady_bot[k][cell_ooo])
