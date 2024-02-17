@@ -9,7 +9,7 @@
 
 #include "cartesian_connectivity.h" 
 #include "kernel_tools.h"
-
+#include "offload_acc_omp.h"
 
 // Compute time-step
 RealType TimeStepLFMix(int nx,
@@ -85,6 +85,9 @@ void ComputeGradientAlpha(index_t nx,
   const RealType h_y     = 1./dy ;
   
   // inner cells
+  //GPU_PARALLEL_LOOP_ALL_LEVELS_COLLAPSE2 
+#pragma acc update device ( in_c_k[:nb_mat][:nx*ny] )  
+#pragma acc parallel loop collapse(2) present(in_c_k[:nb_mat][:nx*ny],alphak_gradx_left[:nb_mat][:nx*ny],alphak_gradx_right[:nb_mat][:nx*ny],alphak_grady_bot[:nb_mat][:nx*ny],alphak_grady_top[:nb_mat][:nx*ny])
   for (index_t iy = 1; iy < ny - 1; ++iy) {
     for (index_t ix = 1; ix < nx - 1; ++ix) {
       
@@ -102,6 +105,7 @@ void ComputeGradientAlpha(index_t nx,
       
     }
   }
+#pragma acc update host ( alphak_gradx_left[:nb_mat][:nx*ny],alphak_gradx_right[:nb_mat][:nx*ny],alphak_grady_bot[:nb_mat][:nx*ny],alphak_grady_top[:nb_mat][:nx*ny] )  
 }
 
 void ComputeGradientPplusPiPrime(index_t nx, 

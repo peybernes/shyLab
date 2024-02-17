@@ -30,7 +30,7 @@ using namespace std;
 #include "grid/structured_grid.hpp"
 #include "variables/variable_metadata.hpp"
 #include "euler_riemann_analytic_solver.hpp"
-
+#include "numerics/offload_acc_omp.h"
 
 //#include <likwid.h>
 
@@ -1074,6 +1074,14 @@ void Simulation::Run() {
 	  masse_k_tmp        [imat][cell_ooo] = masse_k      [imat][cell_ooo];
 	}
 	
+#pragma acc enter data copyin ( \
+          alphak_gradx_left[:nb_mat][:nx*ny],    \ 
+   	  alphak_gradx_right[:nb_mat][:nx*ny],   \
+	  alphak_grady_bot[:nb_mat][:nx*ny],     \
+	  alphak_grady_top[:nb_mat][:nx*ny],	 \
+	  in_c_k[:nb_mat][:nx*ny] )
+
+
       } else if (numerical_params.TypeOfModel == "MultimaterialMix") {
 	
 	in_c_2[cell_ooo] = 1.0 - in_c_1[cell_ooo];

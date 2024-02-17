@@ -18,9 +18,11 @@ message(STATUS "Configuring Shy")
 
 set(LD_LIBRARY_PATH "${LD_LIBRARY_PATH}" "${CMAKE_SOURCE_DIR}/external/muparser/lib ")
 
-#g++ or icpc
-set (CMAKE_C_COMPILER g++-10)
-set (CMAKE_CXX_COMPILER g++-10)
+#g++ or icpc or nvc++
+set (CMAKE_C_COMPILER nvc++)
+set (CMAKE_CXX_COMPILER nvc++)
+#set (CMAKE_C_COMPILER g++-10)
+#set (CMAKE_CXX_COMPILER g++-10)
 #set (CMAKE_C_COMPILER icpc)
 #set (CMAKE_CXX_COMPILER icpc)
 
@@ -60,6 +62,9 @@ set(CMAKE_CXX_FLAGS "-g -O2")
 #set(CMAKE_CXX_FLAGS "-O3 -xAVX -openmp")
 ENDIF( ${CMAKE_CXX_COMPILER} MATCHES "icpc" )
 
+if (${CMAKE_CXX_COMPILER_ID} MATCHES "PGI" OR ${CMAKE_CXX_COMPILER_ID} MATCHES "NVHPC")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -acc ")
+endif()
 
 # INCLUDE(TestBigEndian)
 # TEST_BIG_ENDIAN(WORDS_BIGENDIAN)
@@ -70,7 +75,7 @@ ENDIF( ${CMAKE_CXX_COMPILER} MATCHES "icpc" )
 # ENDIF (WORDS_BIGENDIAN)
 
 #standart
-ADD_DEFINITIONS(" -DNDEBUG -DRealType=double -DUnrollFactor=4 -I${CMAKE_SOURCE_DIR}/external")
+ADD_DEFINITIONS("-lrt -acc -D_POSIX_SOURCE -DNDEBUG -DRealType=double -DUnrollFactor=4 -I${CMAKE_SOURCE_DIR}/external")
 #profiling likwid
 #ADD_DEFINITIONS(" -DNDEBUG -DRealType=double -DUnrollFactor=4 -DLIKWIDPERFORMON -I${CMAKE_SOURCE_DIR}/external")
 #may add this for iaca linking but source files are not instrumented -I${CMAKE_SOURCE_DIR}/external/iaca-lin32/include")
