@@ -39,6 +39,7 @@ void ComputeGradientAlphaBoundaryWall(index_t nx,
   const RealType h_y     = 1./dy ;
   
   //Xmin and Xmax 
+#pragma acc parallel loop present(in_c_k[:nb_mat][:nx*ny],alphak_gradx_left[:nb_mat][:nx*ny],alphak_gradx_right[:nb_mat][:nx*ny],alphak_grady_bot[:nb_mat][:nx*ny],alphak_grady_top[:nb_mat][:nx*ny])
   for (index_t iy = 1; iy < ny - 1; ++iy) {
     { const index_t ix = 0;
 
@@ -74,6 +75,7 @@ void ComputeGradientAlphaBoundaryWall(index_t nx,
   }
 
   //Ymin and Ymax 
+#pragma acc parallel loop present(in_c_k[:nb_mat][:nx*ny],alphak_gradx_left[:nb_mat][:nx*ny],alphak_gradx_right[:nb_mat][:nx*ny],alphak_grady_bot[:nb_mat][:nx*ny],alphak_grady_top[:nb_mat][:nx*ny])
   for (index_t ix = 1; ix < nx - 1; ++ix) {
 
     { const index_t iy = 0;
@@ -110,6 +112,7 @@ void ComputeGradientAlphaBoundaryWall(index_t nx,
   //Corners
     
   //Xmin Ymin
+#pragma acc region
   { const index_t ix = 0;
     const index_t iy = 0;
       
@@ -128,6 +131,7 @@ void ComputeGradientAlphaBoundaryWall(index_t nx,
   }
 
   //Xmax Ymin
+#pragma acc region
   { const index_t ix = nx - 1;
     const index_t iy = 0;
 
@@ -147,6 +151,7 @@ void ComputeGradientAlphaBoundaryWall(index_t nx,
   }
 
   //Xmin Ymax
+#pragma acc region
   { const index_t ix = 0;
     const index_t iy = ny - 1;
 
@@ -166,6 +171,7 @@ void ComputeGradientAlphaBoundaryWall(index_t nx,
   }
 
   //Xmax Ymax
+#pragma acc region
   { const index_t ix = nx - 1;
     const index_t iy = ny - 1;
       
@@ -210,6 +216,7 @@ void ComputeGradientPplusPiPrimeBoundaryWall(index_t nx,
   const RealType h_y     = 1./dy ;
   
   //Xmin and Xmax 
+#pragma acc parallel loop present(p_plus_pi_prime[:nx*ny],pressure[:nx*ny],pi_prime_mix[:nx*ny],p_plus_pi_prime_gradx[:nx*ny],p_plus_pi_prime_grady[:nx*ny])
   for (index_t iy = 1; iy < ny - 1; ++iy) {
     { const index_t ix = 0;
 
@@ -249,6 +256,7 @@ void ComputeGradientPplusPiPrimeBoundaryWall(index_t nx,
   }
 
   //Ymin and Ymax 
+#pragma acc parallel loop present(p_plus_pi_prime[:nx*ny],pressure[:nx*ny],pi_prime_mix[:nx*ny],p_plus_pi_prime_gradx[:nx*ny],p_plus_pi_prime_grady[:nx*ny])
   for (index_t ix = 1; ix < nx - 1; ++ix) {
 
     { const index_t iy = 0;
@@ -289,6 +297,7 @@ void ComputeGradientPplusPiPrimeBoundaryWall(index_t nx,
   //Corners
     
   //Xmin Ymin
+#pragma acc region 
   { const index_t ix = 0;
     const index_t iy = 0;
       
@@ -309,6 +318,7 @@ void ComputeGradientPplusPiPrimeBoundaryWall(index_t nx,
   }
 
   //Xmax Ymin
+#pragma acc region
   { const index_t ix = nx - 1;
     const index_t iy = 0;
 
@@ -329,6 +339,7 @@ void ComputeGradientPplusPiPrimeBoundaryWall(index_t nx,
   }
 
   //Xmin Ymax
+#pragma acc region
   { const index_t ix = 0;
     const index_t iy = ny - 1;
 
@@ -349,6 +360,7 @@ void ComputeGradientPplusPiPrimeBoundaryWall(index_t nx,
   }
 
   //Xmax Ymax
+#pragma acc region
   { const index_t ix = nx - 1;
     const index_t iy = ny - 1;
       
@@ -416,6 +428,7 @@ void ComputeGradientPBoundaryWall(index_t nx,
   const RealType h_y     = 1./dy ;
   
   //Xmin and Xmax 
+#pragma acc parallel loop present(pi_prime_mix[:nx*ny],pressure[:nx*ny],in_c_k[:nb_mat][:nx*ny],gamma_k[:nb_mat],pi_prime_k[:nb_mat],alphak_gradx_left[:nb_mat][:nx*ny],alphak_gradx_right[:nb_mat][:nx*ny],alphak_grady_bot[:nb_mat][:nx*ny],alphak_grady_top[:nb_mat][:nx*ny],p_plus_pi_prime_gradx[:nx*ny],p_plus_pi_prime_grady[:nx*ny],rho_e[:nx*ny],rho_e_gradx_left[:nx*ny],rho_e_gradx_right[:nx*ny],rho_e_grady_bot[:nx*ny],rho_e_grady_top[:nx*ny],p_gradx_left[:nx*ny],p_gradx_right[:nx*ny],p_grady_bot[:nx*ny],p_grady_top[:nx*ny])
   for (index_t iy = 1; iy < ny - 1; ++iy) {
     { const index_t ix = 0;
 
@@ -451,6 +464,7 @@ void ComputeGradientPBoundaryWall(index_t nx,
   }
 
   //Ymin and Ymax 
+#pragma acc parallel loop present(pi_prime_mix[:nx*ny],pressure[:nx*ny],in_c_k[:nb_mat][:nx*ny],gamma_k[:nb_mat],pi_prime_k[:nb_mat],alphak_gradx_left[:nb_mat][:nx*ny],alphak_gradx_right[:nb_mat][:nx*ny],alphak_grady_bot[:nb_mat][:nx*ny],alphak_grady_top[:nb_mat][:nx*ny],p_plus_pi_prime_gradx[:nx*ny],p_plus_pi_prime_grady[:nx*ny],rho_e[:nx*ny],rho_e_gradx_left[:nx*ny],rho_e_gradx_right[:nx*ny],rho_e_grady_bot[:nx*ny],rho_e_grady_top[:nx*ny],p_gradx_left[:nx*ny],p_gradx_right[:nx*ny],p_grady_bot[:nx*ny],p_grady_top[:nx*ny])
   for (index_t ix = 1; ix < nx - 1; ++ix) {
 
     { const index_t iy = 0;
@@ -487,6 +501,7 @@ void ComputeGradientPBoundaryWall(index_t nx,
   //Corners
     
   //Xmin Ymin
+#pragma acc region
   { const index_t ix = 0;
     const index_t iy = 0;
       
@@ -505,6 +520,7 @@ void ComputeGradientPBoundaryWall(index_t nx,
   }
 
   //Xmax Ymin
+#pragma acc region
   { const index_t ix = nx - 1;
     const index_t iy = 0;
 
@@ -523,6 +539,7 @@ void ComputeGradientPBoundaryWall(index_t nx,
   }
 
   //Xmin Ymax
+#pragma acc region
   { const index_t ix = 0;
     const index_t iy = ny - 1;
 
@@ -541,6 +558,7 @@ void ComputeGradientPBoundaryWall(index_t nx,
   }
 
   //Xmax Ymax
+#pragma acc region
   { const index_t ix = nx - 1;
     const index_t iy = ny - 1;
       
@@ -594,6 +612,7 @@ void ComputeGradientRhoBoundaryWall(index_t nx,
   const RealType h_y     = 1./dy ;
   
   //Xmin and Xmax 
+#pragma acc parallel loop present(in_rho_k[:nb_mat][:nx*ny],in_c_k[:nb_mat][:nx*ny],alphak_gradx_left[:nb_mat][:nx*ny],alphak_gradx_right[:nb_mat][:nx*ny],alphak_grady_bot[:nb_mat][:nx*ny],alphak_grady_top[:nb_mat][:nx*ny],rho_gradx_left[:nx*ny],rho_gradx_right[:nx*ny],rho_grady_bot[:nx*ny],rho_grady_top[:nx*ny],rhok_gradx[:nb_mat][:nx*ny],rhok_grady[:nb_mat][:nx*ny])
   for (index_t iy = 1; iy < ny - 1; ++iy) {
     { const index_t ix = 0;
 
@@ -629,6 +648,7 @@ void ComputeGradientRhoBoundaryWall(index_t nx,
   }
 
   //Ymin and Ymax 
+#pragma acc parallel loop present(in_rho_k[:nb_mat][:nx*ny],in_c_k[:nb_mat][:nx*ny],alphak_gradx_left[:nb_mat][:nx*ny],alphak_gradx_right[:nb_mat][:nx*ny],alphak_grady_bot[:nb_mat][:nx*ny],alphak_grady_top[:nb_mat][:nx*ny],rho_gradx_left[:nx*ny],rho_gradx_right[:nx*ny],rho_grady_bot[:nx*ny],rho_grady_top[:nx*ny],rhok_gradx[:nb_mat][:nx*ny],rhok_grady[:nb_mat][:nx*ny])
   for (index_t ix = 1; ix < nx - 1; ++ix) {
 
     { const index_t iy = 0;
@@ -665,6 +685,7 @@ void ComputeGradientRhoBoundaryWall(index_t nx,
   //Corners
     
   //Xmin Ymin
+#pragma acc region
   { const index_t ix = 0;
     const index_t iy = 0;
       
@@ -683,6 +704,7 @@ void ComputeGradientRhoBoundaryWall(index_t nx,
   }
 
   //Xmax Ymin
+#pragma acc region
   { const index_t ix = nx - 1;
     const index_t iy = 0;
 
@@ -701,6 +723,7 @@ void ComputeGradientRhoBoundaryWall(index_t nx,
   }
 
   //Xmin Ymax
+#pragma acc region
   { const index_t ix = 0;
     const index_t iy = ny - 1;
 
@@ -719,6 +742,7 @@ void ComputeGradientRhoBoundaryWall(index_t nx,
   }
 
   //Xmax Ymax
+#pragma acc region
   { const index_t ix = nx - 1;
     const index_t iy = ny - 1;
       
@@ -740,6 +764,8 @@ void ComputeGradientRhoBoundaryWall(index_t nx,
 
 void ComputeHLLBoundaryWall(index_t nx, 
 		index_t    ny, 
+		index_t    nb_faces_x, 
+		index_t    nb_faces_y, 
 		RealType   dx,
 		RealType   dy,
 		RealType*  rho_gradx_left,
@@ -779,6 +805,7 @@ void ComputeHLLBoundaryWall(index_t nx,
   const RealType h_y     = 1./dy ;
   
   //Xmin and Xmax 
+#pragma acc parallel loop present(rho_gradx_left[:nx*ny],rho_gradx_right[:nx*ny],rho_grady_bot[:nx*ny],rho_grady_top[:nx*ny],in_rho[:nx*ny],pressure[:nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny],speed_of_sound_mix[:nx*ny],p_gradx_left[:nx*ny],p_gradx_right[:nx*ny],p_grady_bot[:nx*ny],p_grady_top[:nx*ny],u_gradx_left[:nx*ny],u_gradx_right[:nx*ny],v_grady_top[:nx*ny],v_grady_bot[:nx*ny],p_xet[nb_faces_x],p_yet[nb_faces_y],u_et[nb_faces_x],v_et[nb_faces_y])
   for (index_t iy = 1; iy < ny - 1; ++iy) {
     { const index_t ix = nx - 1;
       
@@ -795,6 +822,7 @@ void ComputeHLLBoundaryWall(index_t nx,
   }
 
   //Ymin and Ymax 
+#pragma acc parallel loop present(rho_gradx_left[:nx*ny],rho_gradx_right[:nx*ny],rho_grady_bot[:nx*ny],rho_grady_top[:nx*ny],in_rho[:nx*ny],pressure[:nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny],speed_of_sound_mix[:nx*ny],p_gradx_left[:nx*ny],p_gradx_right[:nx*ny],p_grady_bot[:nx*ny],p_grady_top[:nx*ny],u_gradx_left[:nx*ny],u_gradx_right[:nx*ny],v_grady_top[:nx*ny],v_grady_bot[:nx*ny],p_xet[nb_faces_x],p_yet[nb_faces_y],u_et[nb_faces_x],v_et[nb_faces_y])
   for (index_t ix = 1; ix < nx - 1; ++ix) {
 
     { const index_t iy = ny - 1;
@@ -813,6 +841,7 @@ void ComputeHLLBoundaryWall(index_t nx,
   //Corners
     
   //Xmax Ymin
+#pragma acc region
   { const index_t ix = nx - 1;
     const index_t iy = 0;
 
@@ -828,6 +857,7 @@ void ComputeHLLBoundaryWall(index_t nx,
   }
 
   //Xmin Ymax
+#pragma acc region
   { const index_t ix = 0;
     const index_t iy = ny - 1;
 
@@ -843,6 +873,7 @@ void ComputeHLLBoundaryWall(index_t nx,
   }
 
   //Xmax Ymax
+#pragma acc region
   { const index_t ix = nx - 1;
     const index_t iy = ny - 1;
       
@@ -858,6 +889,7 @@ void ComputeHLLBoundaryWall(index_t nx,
   }
 
   //Xmin and Xmax 
+#pragma acc parallel loop present(rho_gradx_left[:nx*ny],rho_gradx_right[:nx*ny],rho_grady_bot[:nx*ny],rho_grady_top[:nx*ny],in_rho[:nx*ny],pressure[:nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny],speed_of_sound_mix[:nx*ny],p_gradx_left[:nx*ny],p_gradx_right[:nx*ny],p_grady_bot[:nx*ny],p_grady_top[:nx*ny],u_gradx_left[:nx*ny],u_gradx_right[:nx*ny],v_grady_top[:nx*ny],v_grady_bot[:nx*ny],p_xet[nb_faces_x],p_yet[nb_faces_y],u_et[nb_faces_x],v_et[nb_faces_y])
   for (index_t iy = 0; iy < ny; ++iy) {
     { const index_t ix = 0;
 
@@ -881,6 +913,7 @@ void ComputeHLLBoundaryWall(index_t nx,
     }
   }
 
+#pragma acc parallel loop present(rho_gradx_left[:nx*ny],rho_gradx_right[:nx*ny],rho_grady_bot[:nx*ny],rho_grady_top[:nx*ny],in_rho[:nx*ny],pressure[:nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny],speed_of_sound_mix[:nx*ny],p_gradx_left[:nx*ny],p_gradx_right[:nx*ny],p_grady_bot[:nx*ny],p_grady_top[:nx*ny],u_gradx_left[:nx*ny],u_gradx_right[:nx*ny],v_grady_top[:nx*ny],v_grady_bot[:nx*ny],p_xet[nb_faces_x],p_yet[nb_faces_y],u_et[nb_faces_x],v_et[nb_faces_y])
   for (index_t ix = 0; ix < nx; ++ix) {
 
     const index_t iy = 0;
@@ -909,6 +942,7 @@ void ComputeHLLBoundaryWall(index_t nx,
 
 void ComputeHLLFluxesZXBoundaryWall(index_t nx, 
 			index_t    ny, 
+			index_t    nb_faces_x, 
 			RealType   dx,
 			RealType   dy,
 			int        nb_mat,
@@ -946,6 +980,7 @@ void ComputeHLLFluxesZXBoundaryWall(index_t nx,
 			) {
 
   //Xmin and Xmax 
+#pragma acc parallel loop present(in_rho[:nx*ny],rho_e[:nx*ny],beta[:nx*ny],u_et[nb_faces_x],p_xet[nb_faces_x],in_rho_k[:nb_mat][:nx*ny],rhok_gradx[:nb_mat][:nx*ny],in_c_k[:nb_mat][:nx*ny],alphak_gradx_left[:nb_mat][:nx*ny],rho_gradx_left[:nx*ny],rho_e_gradx_left[:nx*ny],u_gradx_left[nx*ny],v_gradx_left[nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny],u2[nx*ny],v2[nx*ny],u2_gradx[nx*ny],v2_gradx[nx*ny],alphak_gradx_right[:nb_mat][:nx*ny],rho_gradx_right[:nx*ny],rho_e_gradx_right[:nx*ny],u_gradx_right[:nx*ny],v_gradx_right[:nx*ny],beta_gradx[:nx*ny],masse_fluxes_k_x[:nb_mat][:nb_faces_x],alpha_beta_fluxes_k_x[:nb_mat][:nb_faces_x],rho_U_fluxes_x[:nb_faces_x],rho_V_fluxes_x[:nb_faces_x],beta_fluxes_x[:nb_faces_x],rho_total_energy_fluxes_x[:nb_faces_x])
   for (index_t iy = 0; iy < ny; ++iy) {
     {
       {
@@ -1010,6 +1045,7 @@ void ComputeHLLFluxesZXBoundaryWall(index_t nx,
 
 void ComputeHLLFluxesZYBoundaryWall(index_t nx, 
 			index_t    ny, 
+			index_t    nb_faces_y, 
 			RealType   dx,
 			RealType   dy,
 			int        nb_mat,
@@ -1048,6 +1084,7 @@ void ComputeHLLFluxesZYBoundaryWall(index_t nx,
 				    ) {
 
   //Ymin and Ymax 
+#pragma acc parallel loop present(in_rho[:nx*ny],rho_e[:nx*ny],beta[:nx*ny],v_et[nb_faces_y],p_yet[nb_faces_y],in_rho_k[:nb_mat][:nx*ny],rhok_grady[:nb_mat][:nx*ny],in_c_k[:nb_mat][:nx*ny],alphak_grady_bot[:nb_mat][:nx*ny],rho_grady_bot[:nx*ny],rho_e_grady_bot[:nx*ny],u_grady_bot[nx*ny],v_grady_bot[nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny],u2[nx*ny],v2[nx*ny],u2_grady[nx*ny],v2_grady[nx*ny],alphak_grady_top[:nb_mat][:nx*ny],rho_grady_top[:nx*ny],rho_e_grady_top[:nx*ny],u_grady_top[:nx*ny],v_grady_top[:nx*ny],beta_grady[:nx*ny],masse_fluxes_k_y[:nb_mat][:nb_faces_y],alpha_beta_fluxes_k_y[:nb_mat][:nb_faces_y],rho_U_fluxes_y[:nb_faces_y],rho_V_fluxes_y[:nb_faces_y],beta_fluxes_y[:nb_faces_y],rho_total_energy_fluxes_y[:nb_faces_y])
   for (index_t ix = 0; ix < nx; ++ix) {
 
     { const index_t iy = ny - 1;
@@ -1127,6 +1164,7 @@ void ComputeGradientBetaBoundaryWall(index_t nx,
   const RealType h_y     = 1./dy ;
   
   //Xmin and Xmax 
+#pragma acc parallel loop present(beta_gradx[:nx*ny],beta_grady[:nx*ny],beta[:nx*ny])
   for (index_t iy = 1; iy < ny - 1; ++iy) {
     { const index_t ix = 0;
 
@@ -1166,6 +1204,7 @@ void ComputeGradientBetaBoundaryWall(index_t nx,
   }
 
   //Ymin and Ymax 
+#pragma acc parallel loop present(beta_gradx[:nx*ny],beta_grady[:nx*ny],beta[:nx*ny])
   for (index_t ix = 1; ix < nx - 1; ++ix) {
 
     { const index_t iy = 0;
@@ -1206,6 +1245,7 @@ void ComputeGradientBetaBoundaryWall(index_t nx,
   //Corners
     
   //Xmin Ymin
+#pragma acc region
   { const index_t ix = 0;
     const index_t iy = 0;
       
@@ -1226,6 +1266,7 @@ void ComputeGradientBetaBoundaryWall(index_t nx,
   }
 
   //Xmax Ymin
+#pragma acc region
   { const index_t ix = nx - 1;
     const index_t iy = 0;
 
@@ -1246,6 +1287,7 @@ void ComputeGradientBetaBoundaryWall(index_t nx,
   }
 
   //Xmin Ymax
+#pragma acc region
   { const index_t ix = 0;
     const index_t iy = ny - 1;
 
@@ -1266,6 +1308,7 @@ void ComputeGradientBetaBoundaryWall(index_t nx,
   }
 
   //Xmax Ymax
+#pragma acc region
   { const index_t ix = nx - 1;
     const index_t iy = ny - 1;
       

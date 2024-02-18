@@ -1008,7 +1008,7 @@ void Simulation::Run() {
 
 // INIT
 
-#pragma omp parallel for
+//#pragma omp parallel for
   for (int iy = 0; iy < ny; ++iy) {
     for (int ix = 0; ix < nx; ++ix) {
 
@@ -1075,11 +1075,59 @@ void Simulation::Run() {
 	}
 	
 #pragma acc enter data copyin ( \
-          alphak_gradx_left[:nb_mat][:nx*ny],    \ 
-   	  alphak_gradx_right[:nb_mat][:nx*ny],   \
-	  alphak_grady_bot[:nb_mat][:nx*ny],     \
-	  alphak_grady_top[:nb_mat][:nx*ny],	 \
-	  in_c_k[:nb_mat][:nx*ny] )
+          alphak_gradx_left            [:nb_mat][:nx*ny],\
+   	  alphak_gradx_right           [:nb_mat][:nx*ny],\
+	  alphak_grady_bot             [:nb_mat][:nx*ny],\
+	  alphak_grady_top             [:nb_mat][:nx*ny],\
+	  in_c_k                       [:nb_mat][:nx*ny],\
+	  in_rho_k                     [:nb_mat][:nx*ny],\
+	  masse_k                      [:nb_mat][:nx*ny],\
+	  masse_k_tmp_bis              [:nb_mat][:nx*ny],\
+	  alpha_beta_k_tmp_bis         [:nb_mat][:nx*ny],\
+	  alpha_beta_k_tmp             [:nb_mat][:nx*ny],\
+	  masse_fluxes_k_x             [:nb_mat][:nb_faces_x],\
+	  alpha_beta_fluxes_k_x        [:nb_mat][:nb_faces_x],\
+	  rho_total_energy_fluxes_x             [:nb_faces_x],\
+	  rho_U_fluxes_x                        [:nb_faces_x],\
+	  rho_V_fluxes_x                        [:nb_faces_x],\
+	  beta_fluxes_x                         [:nb_faces_x],\
+	  masse_fluxes_k_y             [:nb_mat][:nb_faces_y],\
+	  alpha_beta_fluxes_k_y        [:nb_mat][:nb_faces_y],\
+	  rho_total_energy_fluxes_y             [:nb_faces_y],\
+	  rho_U_fluxes_y                        [:nb_faces_y],\
+	  rho_V_fluxes_y                        [:nb_faces_y],\
+	  beta_fluxes_y                         [:nb_faces_y],\
+	  p_plus_pi_prime_gradx                 [:nx*ny],\
+	  p_plus_pi_prime_grady                 [:nx*ny],\
+	  density                               [:nx*ny],\
+	  beta                                  [:nx*ny],\
+	  in_p                                  [:nx*ny],\
+	  in_rho                                [:nx*ny],\
+	  p_gradx_left                          [:nx*ny],\
+	  p_gradx_right                         [:nx*ny],\
+	  p_grady_top                           [:nx*ny],\
+	  p_grady_bot                           [:nx*ny],\
+	  rho_U                                 [:nx*ny],\
+	  rho_V                                 [:nx*ny],\
+	  rho_total_energy                      [:nx*ny],\
+	  rho_e                                 [:nx*ny],\
+	  rho_e_gradx_left                      [:nx*ny],\
+	  rho_e_gradx_right                     [:nx*ny],\
+	  rho_e_grady_top                       [:nx*ny],\
+	  rho_e_grady_bot                       [:nx*ny],\
+	  rho_gradx_left                        [:nx*ny],\
+	  rho_gradx_right                       [:nx*ny],\
+	  rho_grady_top                         [:nx*ny],\
+	  rho_grady_bot                         [:nx*ny],\
+	  in_u_cell                             [:nx*ny],\
+	  in_v_cell                             [:nx*ny],\
+	  p_plus_pi_prime                       [:nx*ny],\
+	  speed_of_sound_mix                    [:nx*ny],\
+	  gamma_mix                             [:nx*ny],\
+	  pi_prime_mix                          [:nx*ny],\
+	  gamma_k                      [:nb_mat]        ,\
+	  pi_prime_k                   [:nb_mat]         \
+	     )
 
 
       } else if (numerical_params.TypeOfModel == "MultimaterialMix") {

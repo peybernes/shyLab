@@ -31,6 +31,7 @@ RealType TimeStepLFMix(int nx,
  
   RealType h = std::min(dx,dy);
   RealType dt = CFL * h;
+#pragma acc parallel loop collapse(2) reduction(min:dt) present(in_c_k[:nb_mat][:nx*ny],speed_of_sound_mix[:nx*ny],gamma_mix[:nx*ny],pi_prime_mix[:nx*ny],gamma_k[:nb_mat],pi_prime_k[:nb_mat],pressure[:nx*ny],in_velocity_x[:nx*ny],in_velocity_y[:nx*ny],density[:nx*ny])
   for (int iy = 0; iy < ny; ++iy) {
     for (int ix = 0; ix < nx; ++ix) {
       const int cell_ooo  = (nx * iy) + ix;
@@ -86,7 +87,6 @@ void ComputeGradientAlpha(index_t nx,
   
   // inner cells
   //GPU_PARALLEL_LOOP_ALL_LEVELS_COLLAPSE2 
-#pragma acc update device ( in_c_k[:nb_mat][:nx*ny] )  
 #pragma acc parallel loop collapse(2) present(in_c_k[:nb_mat][:nx*ny],alphak_gradx_left[:nb_mat][:nx*ny],alphak_gradx_right[:nb_mat][:nx*ny],alphak_grady_bot[:nb_mat][:nx*ny],alphak_grady_top[:nb_mat][:nx*ny])
   for (index_t iy = 1; iy < ny - 1; ++iy) {
     for (index_t ix = 1; ix < nx - 1; ++ix) {
@@ -105,7 +105,6 @@ void ComputeGradientAlpha(index_t nx,
       
     }
   }
-#pragma acc update host ( alphak_gradx_left[:nb_mat][:nx*ny],alphak_gradx_right[:nb_mat][:nx*ny],alphak_grady_bot[:nb_mat][:nx*ny],alphak_grady_top[:nb_mat][:nx*ny] )  
 }
 
 void ComputeGradientPplusPiPrime(index_t nx, 
@@ -131,6 +130,7 @@ void ComputeGradientPplusPiPrime(index_t nx,
   const RealType h_y     = 1./dy ;
   
   // all cells
+#pragma acc parallel loop collapse(2) present(p_plus_pi_prime[:nx*ny],pressure[:nx*ny],pi_prime_mix[:nx*ny])
   for (index_t iy = 0; iy < ny; ++iy) {
     for (index_t ix = 0; ix < nx; ++ix) {
       const int cell_ooo  = (nx * iy) + ix;
@@ -138,6 +138,7 @@ void ComputeGradientPplusPiPrime(index_t nx,
     }
   }
   // inner cells
+#pragma acc parallel loop collapse(2) present(p_plus_pi_prime[:nx*ny],pressure[:nx*ny],pi_prime_mix[:nx*ny],p_plus_pi_prime_gradx[:nx*ny],p_plus_pi_prime_grady[:nx*ny])
   for (index_t iy = 1; iy < ny - 1; ++iy) {
     for (index_t ix = 1; ix < nx - 1; ++ix) {
       
@@ -210,6 +211,7 @@ void ComputeGradientP(index_t nx,
   const RealType h_y     = 1./dy ;
   
   // inner cells
+#pragma acc parallel loop collapse(2) present(pi_prime_mix[:nx*ny],pressure[:nx*ny],in_c_k[:nb_mat][:nx*ny],gamma_k[:nb_mat],pi_prime_k[:nb_mat],alphak_gradx_left[:nb_mat][:nx*ny],alphak_gradx_right[:nb_mat][:nx*ny],alphak_grady_bot[:nb_mat][:nx*ny],alphak_grady_top[:nb_mat][:nx*ny],p_plus_pi_prime_gradx[:nx*ny],p_plus_pi_prime_grady[:nx*ny],rho_e[:nx*ny],rho_e_gradx_left[:nx*ny],rho_e_gradx_right[:nx*ny],rho_e_grady_bot[:nx*ny],rho_e_grady_top[:nx*ny],p_gradx_left[:nx*ny],p_gradx_right[:nx*ny],p_grady_bot[:nx*ny],p_grady_top[:nx*ny])
   for (index_t iy = 1; iy < ny - 1; ++iy) {
     for (index_t ix = 1; ix < nx - 1; ++ix) {
       
@@ -264,6 +266,7 @@ void ComputeGradientRho(index_t nx,
   const RealType h_y     = 1./dy ;
   
   // inner cells
+#pragma acc parallel loop collapse(2) present(in_rho_k[:nb_mat][:nx*ny],in_c_k[:nb_mat][:nx*ny],alphak_gradx_left[:nb_mat][:nx*ny],alphak_gradx_right[:nb_mat][:nx*ny],alphak_grady_bot[:nb_mat][:nx*ny],alphak_grady_top[:nb_mat][:nx*ny],rho_gradx_left[:nx*ny],rho_gradx_right[:nx*ny],rho_grady_bot[:nx*ny],rho_grady_top[:nx*ny],rhok_gradx[:nb_mat][:nx*ny],rhok_grady[:nb_mat][:nx*ny])
   for (index_t iy = 1; iy < ny - 1; ++iy) {
     for (index_t ix = 1; ix < nx - 1; ++ix) {
       
@@ -288,6 +291,8 @@ void ComputeGradientRho(index_t nx,
 
 void ComputeHLL(index_t nx, 
 		index_t    ny, 
+		index_t    nb_faces_x, 
+		index_t    nb_faces_y, 
 		RealType   dx,
 		RealType   dy,
 		RealType*  rho_gradx_left,
@@ -326,7 +331,8 @@ void ComputeHLL(index_t nx,
   const RealType h_x     = 1./dx ;
   const RealType h_y     = 1./dy ;
   
-    for (index_t iy = 0; iy < ny - 1; ++iy) {
+#pragma acc parallel loop collapse(2) present(rho_gradx_left[:nx*ny],rho_gradx_right[:nx*ny],rho_grady_bot[:nx*ny],rho_grady_top[:nx*ny],in_rho[:nx*ny],pressure[:nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny],speed_of_sound_mix[:nx*ny],p_gradx_left[:nx*ny],p_gradx_right[:nx*ny],p_grady_bot[:nx*ny],p_grady_top[:nx*ny],u_gradx_left[:nx*ny],u_gradx_right[:nx*ny],v_grady_top[:nx*ny],v_grady_bot[:nx*ny],p_xet[nb_faces_x],p_yet[nb_faces_y],u_et[nb_faces_x],v_et[nb_faces_y])
+  for (index_t iy = 0; iy < ny - 1; ++iy) {
       for (index_t ix = 0; ix < nx - 1; ++ix) {
 
 	const index_t cell_ooo = (nx * iy) + ix;
@@ -355,6 +361,7 @@ void ComputeHLL(index_t nx,
 
 void ComputeHLLFluxesZX(index_t nx, 
 			index_t    ny, 
+			index_t    nb_faces_x, 
 			RealType   dx,
 			RealType   dy,
 			int        nb_mat,
@@ -391,6 +398,7 @@ void ComputeHLLFluxesZX(index_t nx,
 			RealType* rho_total_energy_fluxes_x
 			) {
 
+#pragma acc parallel loop collapse(2) present(in_rho[:nx*ny],rho_e[:nx*ny],beta[:nx*ny],u_et[nb_faces_x],p_xet[nb_faces_x],in_rho_k[:nb_mat][:nx*ny],rhok_gradx[:nb_mat][:nx*ny],in_c_k[:nb_mat][:nx*ny],alphak_gradx_left[:nb_mat][:nx*ny],rho_gradx_left[:nx*ny],rho_e_gradx_left[:nx*ny],u_gradx_left[nx*ny],v_gradx_left[nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny],u2[nx*ny],v2[nx*ny],u2_gradx[nx*ny],v2_gradx[nx*ny],alphak_gradx_right[:nb_mat][:nx*ny],rho_gradx_right[:nx*ny],rho_e_gradx_right[:nx*ny],u_gradx_right[:nx*ny],v_gradx_right[:nx*ny],beta_gradx[:nx*ny],masse_fluxes_k_x[:nb_mat][:nb_faces_x],alpha_beta_fluxes_k_x[:nb_mat][:nb_faces_x],rho_U_fluxes_x[:nb_faces_x],rho_V_fluxes_x[:nb_faces_x],beta_fluxes_x[:nb_faces_x],rho_total_energy_fluxes_x[:nb_faces_x])
   for (index_t iy = 0; iy < ny; ++iy) {
     for (index_t ix = 0; ix < nx - 1; ++ix) {
       
@@ -417,6 +425,7 @@ void ComputeHLLFluxesZX(index_t nx,
 
 void ComputeHLLFluxesZY(index_t nx, 
 			index_t    ny, 
+			index_t    nb_faces_y, 
 			RealType   dx,
 			RealType   dy,
 			int        nb_mat,
@@ -453,6 +462,7 @@ void ComputeHLLFluxesZY(index_t nx,
 			RealType* rho_total_energy_fluxes_y
 			) {
 
+#pragma acc parallel loop collapse(2) present(in_rho[:nx*ny],rho_e[:nx*ny],beta[:nx*ny],v_et[nb_faces_y],p_yet[nb_faces_y],in_rho_k[:nb_mat][:nx*ny],rhok_grady[:nb_mat][:nx*ny],in_c_k[:nb_mat][:nx*ny],alphak_grady_bot[:nb_mat][:nx*ny],rho_grady_bot[:nx*ny],rho_e_grady_bot[:nx*ny],u_grady_bot[nx*ny],v_grady_bot[nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny],u2[nx*ny],v2[nx*ny],u2_grady[nx*ny],v2_grady[nx*ny],alphak_grady_top[:nb_mat][:nx*ny],rho_grady_top[:nx*ny],rho_e_grady_top[:nx*ny],u_grady_top[:nx*ny],v_grady_top[:nx*ny],beta_grady[:nx*ny],masse_fluxes_k_y[:nb_mat][:nb_faces_y],alpha_beta_fluxes_k_y[:nb_mat][:nb_faces_y],rho_U_fluxes_y[:nb_faces_y],rho_V_fluxes_y[:nb_faces_y],beta_fluxes_y[:nb_faces_y],rho_total_energy_fluxes_y[:nb_faces_y])
   for (index_t iy = 0; iy < ny - 1; ++iy) {
     for (index_t ix = 0; ix < nx; ++ix) {
       
@@ -468,9 +478,6 @@ void ComputeHLLFluxesZY(index_t nx,
       else if (v_et[face_top] < 0.) {
 #include "lf_compute_flux_z_plus_y.h"	
       }
-      //printf("face_right = %d masse = %f \n",face_right,masse_fluxes_k_x[0][face_right]);
-      //printf("face_right = %d  rho = %f u_et = %f\n",face_right,in_rho_k[0][cell_p1o],u_et[face_right]);
-      
     }
   }
 
@@ -479,6 +486,8 @@ void ComputeHLLFluxesZY(index_t nx,
 
 void ComputeVariablesFromFluxes(index_t nx, 
 			index_t    ny, 
+			index_t    nb_faces_x, 
+			index_t    nb_faces_y, 
 			RealType   dx,
 			RealType   dy,
 			RealType   dt_local,
@@ -527,6 +536,7 @@ void ComputeVariablesFromFluxes(index_t nx,
   const RealType h_y     = 1./dy ;
 
   // inner cells
+#pragma acc parallel loop collapse(2) present(gamma_k[:nb_mat],pi_prime_k[:nb_mat],in_rho_total_energy[:nx*ny],in_rho_U[:nx*ny],in_rho_V[:nx*ny],in_beta[:nx*ny],in_masse_k_tmp[:nb_mat][:nx*ny],in_alpha_beta_k_tmp[:nb_mat][:nx*ny],masse_fluxes_k_x[:nb_mat][:nb_faces_x],alpha_beta_fluxes_k_x[:nb_mat][:nb_faces_x],rho_U_fluxes_x[:nb_faces_x],rho_V_fluxes_x[:nb_faces_x],beta_fluxes_x[:nb_faces_x],rho_total_energy_fluxes_x[:nb_faces_x],masse_fluxes_k_y[:nb_mat][:nb_faces_y],alpha_beta_fluxes_k_y[:nb_mat][:nb_faces_y],rho_U_fluxes_y[:nb_faces_y],rho_V_fluxes_y[:nb_faces_y],beta_fluxes_y[:nb_faces_y],rho_total_energy_fluxes_y[:nb_faces_y],in_rho[:nx*ny],out_beta[:nx*ny],in_rho_k[:nb_mat][:nx*ny],in_c_k[:nb_mat][:nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny],out_rho_total_energy[:nx*ny],out_rho_U[:nx*ny],out_rho_V[:nx*ny],masse_k[:nb_mat][:nx*ny],alpha_beta_k[:nb_mat][:nx*ny],out_alpha_beta_k_tmp[:nb_mat][:nx*ny],out_masse_k_tmp[:nb_mat][:nx*ny],in_total_energy[:nx*ny],rho_e[:nx*ny],pressure[:nx*ny])
   for (index_t iy = 0; iy < ny; ++iy) {
     for (index_t ix = 0; ix < nx; ++ix) {
       
@@ -536,32 +546,6 @@ void ComputeVariablesFromFluxes(index_t nx,
       const index_t face_right = CellFaceP1O(cell_ooo, iy, nx);
       const index_t face_bot   = CellFaceOM1(cell_ooo, iy, nx);
       const index_t face_left  = CellFaceM1O(cell_ooo, iy, nx);
-
-
-      // const int cell_m1m1 = CellCellM1M1(cell_ooo, nx);
-      // const int cell_p1p1 = CellCellP1P1(cell_ooo, nx);
-      // const int cell_m1p1 = CellCellM1P1(cell_ooo, nx);
-      // const int cell_p1m1 = CellCellP1M1(cell_ooo, nx);
-      // const int cell_om1  = CellCellOM1 (cell_ooo, nx);
-      // const int cell_op1  = CellCellOP1 (cell_ooo, nx);
-      // const int cell_m1o  = CellCellM1O (cell_ooo, nx);
-      // const int cell_p1o  = CellCellP1O (cell_ooo, nx);
-      // for(int k = 0; k < nb_mat; k++){
-      // 	if (cell_ooo==333) {
-      // RealType in_rho_k_ooo  = in_rho_k[k][cell_ooo];  
-      // RealType in_rho_k_m1m1 = in_rho_k[k][cell_m1m1];
-      // RealType in_rho_k_p1p1 = in_rho_k[k][cell_p1p1];
-      // RealType in_rho_k_m1p1 = in_rho_k[k][cell_m1p1];
-      // RealType in_rho_k_p1m1 = in_rho_k[k][cell_p1m1];
-      // RealType in_rho_k_om1  = in_rho_k[k][cell_om1];
-      // RealType in_rho_k_op1  = in_rho_k[k][cell_op1];
-      // RealType in_rho_k_m1o  = in_rho_k[k][cell_m1o];
-      // RealType in_rho_k_p1o  = in_rho_k[k][cell_p1o];
-      // 	  printf("les rho dans computevar = %f, %f, %f, %f, %f, %f, %f, %f, %f  \n",in_rho_k_ooo,in_rho_k_m1m1,in_rho_k_p1p1,in_rho_k_m1p1,in_rho_k_p1m1,in_rho_k_om1,in_rho_k_op1,in_rho_k_m1o,in_rho_k_p1o);
-      // 	}
-      // }
-
-
       
       out_rho_total_energy[cell_ooo] = in_rho_total_energy[cell_ooo] - dt_local * (
 				    h_x * rho_total_energy_fluxes_x[face_right] - h_x * rho_total_energy_fluxes_x[face_left]
@@ -625,6 +609,7 @@ void ComputeVariablesFromFluxes(index_t nx,
   RealType tmp;  
   RealType gamma_tmp = 0;
   // inner cells
+#pragma acc parallel loop collapse(2) present(gamma_k[:nb_mat],pi_prime_k[:nb_mat],in_rho_total_energy[:nx*ny],in_rho_U[:nx*ny],in_rho_V[:nx*ny],in_beta[:nx*ny],in_masse_k_tmp[:nb_mat][:nx*ny],in_alpha_beta_k_tmp[:nb_mat][:nx*ny],masse_fluxes_k_x[:nb_mat][:nb_faces_x],alpha_beta_fluxes_k_x[:nb_mat][:nb_faces_x],rho_U_fluxes_x[:nb_faces_x],rho_V_fluxes_x[:nb_faces_x],beta_fluxes_x[:nb_faces_x],rho_total_energy_fluxes_x[:nb_faces_x],masse_fluxes_k_y[:nb_mat][:nb_faces_y],alpha_beta_fluxes_k_y[:nb_mat][:nb_faces_y],rho_U_fluxes_y[:nb_faces_y],rho_V_fluxes_y[:nb_faces_y],beta_fluxes_y[:nb_faces_y],rho_total_energy_fluxes_y[:nb_faces_y],in_rho[:nx*ny],out_beta[:nx*ny],in_rho_k[:nb_mat][:nx*ny],in_c_k[:nb_mat][:nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny],out_rho_total_energy[:nx*ny],out_rho_U[:nx*ny],out_rho_V[:nx*ny],masse_k[:nb_mat][:nx*ny],alpha_beta_k[:nb_mat][:nx*ny],out_alpha_beta_k_tmp[:nb_mat][:nx*ny],out_masse_k_tmp[:nb_mat][:nx*ny],in_total_energy[:nx*ny],rho_e[:nx*ny],pressure[:nx*ny])
   for (index_t iy = 0; iy < ny; ++iy) {
     for (index_t ix = 0; ix < nx; ++ix) {
       
@@ -680,6 +665,7 @@ void ComputeGradientBeta(index_t nx,
   const RealType h_y     = 1./dy ;
   
   // inner cells
+#pragma acc parallel loop collapse(2) present(beta_gradx[:nx*ny],beta_grady[:nx*ny],beta[:nx*ny])
   for (index_t iy = 1; iy < ny - 1; ++iy) {
     for (index_t ix = 1; ix < nx - 1; ++ix) {
       

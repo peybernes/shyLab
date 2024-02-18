@@ -133,7 +133,11 @@ void LagrangeFluxes2dDriver(//in
     masse_k_tmp_bis      [k]  = new RealType[nb_cells];
     rhok_gradx           [k]  = new RealType[nb_cells];
     rhok_grady           [k]  = new RealType[nb_cells];
-  }  
+  }
+  
+#pragma acc enter data create(p_xet[:nb_faces_x],p_yet[:nb_faces_y],u_et[:nb_faces_x],v_et[:nb_faces_y],beta_gradx[:nb_cells],beta_grady[:nb_cells],u2[:nb_cells],v2[:nb_cells],u2_gradx[:nb_cells],v2_gradx[:nb_cells],u2_grady[:nb_cells],v2_grady[:nb_cells],u_gradx_left[:nb_cells],u_gradx_right[:nb_cells],v_gradx_left[:nb_cells],v_gradx_right[:nb_cells],u_grady_top[:nb_cells],u_grady_bot[:nb_cells],v_grady_top[:nb_cells],v_grady_bot[:nb_cells],beta_tmp[:nb_cells],rho_U_tmp[:nb_cells],rho_V_tmp[:nb_cells],rho_total_energy_tmp[:nb_cells],rhok_gradx[:nb_mat][:nb_cells],rhok_grady[:nb_mat][:nb_cells],alpha_beta_k_tmp_bis[:nb_mat][:nb_cells],masse_k_tmp_bis[:nb_mat][:nb_cells])
+
+#pragma acc parallel loop collapse(2) present(in_c_k[:nb_mat][:nx*ny],beta[:nb_cells],in_u_cell[:nb_cells],in_v_cell[:nb_cells],rho_U[:nb_cells],rho_V[:nb_cells],rho_total_energy[:nb_cells],alpha_beta_k_tmp[:nb_mat][:nx*ny],alpha_beta_k_tmp_bis[:nb_mat][:nx*ny],masse_k[:nb_mat][:nx*ny],masse_k_tmp_bis[:nb_mat][:nx*ny])  
   for (index_t iy = 0; iy < ny; ++iy) {
     for (index_t ix = 0; ix < nx; ++ix) {
       const int cell_ooo  = (nx * iy) + ix;
@@ -161,7 +165,7 @@ void LagrangeFluxes2dDriver(//in
       for (index_t imat = 0; imat < nb_mat; ++imat) {
 	alpha_beta_k_tmp    [imat][cell_ooo] = in_c_k          [imat][cell_ooo];
 	alpha_beta_k_tmp_bis[imat][cell_ooo] = alpha_beta_k_tmp[imat][cell_ooo];
-	masse_k_tmp_bis     [imat][cell_ooo] =  masse_k        [imat][cell_ooo];
+	masse_k_tmp_bis     [imat][cell_ooo] = masse_k         [imat][cell_ooo];
       }
     }
   }
@@ -178,17 +182,6 @@ void LagrangeFluxes2dDriver(//in
 				     alphak_gradx_left,alphak_gradx_right,alphak_grady_bot,alphak_grady_top);
   }
 
-  // for (int k = 0;k < nb_mat; k++) {
-  //   for (index_t iy = 0; iy < ny; ++iy) {
-  //     for (index_t ix = 0; ix < nx; ++ix) {
-  // 	const int cell_ooo  = (nx * iy) + ix;
-  // 	std::cout << "imat = " << k   << "cell = " << cell_ooo  << " alphak_gradx_left = " << alphak_gradx_left[k][cell_ooo] << std::endl;
-  // 	std::cout << "imat = " << k   << "cell = " << cell_ooo  << " alphak_gradx_right = " << alphak_gradx_right[k][cell_ooo] << std::endl;
-  // 	std::cout << "imat = " << k   << "cell = " << cell_ooo  << " alphak_grady_bot = " << alphak_grady_bot[k][cell_ooo] << std::endl;
-  // 	std::cout << "imat = " << k   << "cell = " << cell_ooo  << " alphak_grady_top = " << alphak_grady_top[k][cell_ooo] << std::endl;
-  //     }
-  //   }
-  // }
   ComputeGradientPplusPiPrime(nx,ny,dx,dy,pressure,pi_prime_mix,p_plus_pi_prime,
 		  // out		 
 			      p_plus_pi_prime_gradx,p_plus_pi_prime_grady);
@@ -218,19 +211,6 @@ void LagrangeFluxes2dDriver(//in
 		   p_gradx_left,p_gradx_right,p_grady_bot,p_grady_top);
   }
 
-  // for (index_t iy = 0; iy < ny; ++iy) {
-  //   for (index_t ix = 0; ix < nx; ++ix) {
-  //     const int cell_ooo  = (nx * iy) + ix;
-  //     std::cout << "RK1 cell = " << cell_ooo  << " p_gradx_left = " << p_gradx_left[cell_ooo] << std::endl;
-  //     std::cout << "RK1 cell = " << cell_ooo  << " rho_e_gradx_left = " << rho_e_gradx_left[cell_ooo] << std::endl;
-  //     std::cout << "RK1 cell = " << cell_ooo  << " p_gradx_right = " << p_gradx_right[cell_ooo] << std::endl;
-  //     std::cout << "RK1 cell = " << cell_ooo  << " rho_e_gradx_right = " << rho_e_gradx_right[cell_ooo] << std::endl;
-  //     std::cout << "RK1 cell = " << cell_ooo  << " p_grady_bot = " << p_grady_bot[cell_ooo] << std::endl;
-  //     std::cout << "RK1 cell = " << cell_ooo  << " rho_e_grady_bot = " << rho_e_grady_bot[cell_ooo] << std::endl;
-  //     std::cout << "RK1 cell = " << cell_ooo  << " p_grady_top = " << p_grady_top[cell_ooo] << std::endl;
-  //     std::cout << "RK1 cell = " << cell_ooo  << " rho_e_grady_top = " << rho_e_grady_top[cell_ooo] << std::endl;
-  //   }
-  // }
   
   ComputeGradientRho(nx,ny,dx,dy,nb_mat,in_rho_k,in_c_k,
 		     alphak_gradx_left,alphak_gradx_right,alphak_grady_bot,alphak_grady_top,
@@ -246,31 +226,7 @@ void LagrangeFluxes2dDriver(//in
 		       rhok_gradx,rhok_grady);
   }
 
-  // for (index_t iy = 0; iy < ny; ++iy) {
-  //   for (index_t ix = 0; ix < nx; ++ix) {
-  //     const int cell_ooo  = (nx * iy) + ix;
-  //     std::cout << "RK1 cell = " << cell_ooo  << " rho_gradx_left = " << rho_gradx_left[cell_ooo] << std::endl;
-  //     std::cout << "RK1 cell = " << cell_ooo  << " rho_gradx_right = " << rho_gradx_right[cell_ooo] << std::endl;
-  //     std::cout << "RK1 cell = " << cell_ooo  << " rho_grady_bot = " << rho_grady_bot[cell_ooo] << std::endl;
-  //     std::cout << "RK1 cell = " << cell_ooo  << " rho_grady_top = " << rho_grady_top[cell_ooo] << std::endl;
-  //   }
-  // }
-  // for (index_t iy = 0; iy < ny; ++iy) {
-  //   for (index_t ix = 0; ix < nx; ++ix) {
-  //     const int cell_ooo  = (nx * iy) + ix;
-  //     std::cout << "cell RK1 = " << cell_ooo  << " rho_gradx_left = " << rho_gradx_left[cell_ooo] << std::endl;
-  //     //std::cout << "cell = " << cell_ooo  << " rho_gradx_right= " << rho_gradx_right[cell_ooo] << std::endl;
-  //   }
-  // }
- 
-  // for (index_t iy = 0; iy < ny; ++iy) {
-  //   for (index_t ix = 0; ix < nx; ++ix) {
-  //     const int cell_ooo  = (nx * iy) + ix;
-  //     std::cout <<  "RK1 in_rho = " << in_rho[cell_ooo] << std::endl;
-  //   }
-  // }
-
-      ComputeHLL(nx,ny,dx,dy,
+  ComputeHLL(nx,ny,nb_faces_x,nb_faces_y,dx,dy,
 	      rho_gradx_left,rho_gradx_right,rho_grady_top,rho_grady_bot,
 	      in_rho,pressure,in_u_cell,in_v_cell,speed_of_sound_mix,
 	      p_gradx_left,p_gradx_right,p_grady_bot,p_grady_top,
@@ -279,7 +235,7 @@ void LagrangeFluxes2dDriver(//in
 	      p_xet,p_yet,u_et,v_et);
   
   if (BoundaryConditions == "Wall") {
-    ComputeHLLBoundaryWall(nx,ny,dx,dy,
+    ComputeHLLBoundaryWall(nx,ny,nb_faces_x,nb_faces_y,dx,dy,
 			   rho_gradx_left,rho_gradx_right,rho_grady_top,rho_grady_bot,
 			   in_rho,pressure,in_u_cell,in_v_cell,speed_of_sound_mix,
 			   p_gradx_left,p_gradx_right,p_grady_bot,p_grady_top,
@@ -288,16 +244,7 @@ void LagrangeFluxes2dDriver(//in
 			   p_xet,p_yet,u_et,v_et);
   }
 
-  // for(int i=0;i<nb_faces_x;i++){
-  //   std::cout<< "face = " << i << "p_xet = " << p_xet[i] << std::endl;
-  //   std::cout<< "face = " << i << "u_et = " << u_et[i] << std::endl;
-  // }
-  // for(int i=0;i<nb_faces_y;i++){
-  //   std::cout<< "face = " << i << "p_yet = " << p_yet[i] << std::endl;
-  //   std::cout<< "face = " << i << "v_et = " << v_et[i] << std::endl;
-  // }
-
-  ComputeHLLFluxesZX(nx,ny,dx,dy,nb_mat,
+  ComputeHLLFluxesZX(nx,ny,nb_faces_x,dx,dy,nb_mat,
 		  in_rho,rho_e,beta,u_et,p_xet,in_rho_k,rhok_gradx,in_c_k,alphak_gradx_left,rho_gradx_left,rho_e_gradx_left,u_gradx_left,v_gradx_left,
 		  in_u_cell,in_v_cell,u2,v2,u2_gradx,v2_gradx,alphak_gradx_right,rho_gradx_right,rho_e_gradx_right,u_gradx_right,v_gradx_right,beta_gradx,
 		  // out		 
@@ -305,26 +252,14 @@ void LagrangeFluxes2dDriver(//in
   
 
   if (BoundaryConditions == "Wall") {
-    ComputeHLLFluxesZXBoundaryWall(nx,ny,dx,dy,nb_mat,
+    ComputeHLLFluxesZXBoundaryWall(nx,ny,nb_faces_x,dx,dy,nb_mat,
 				   in_rho,rho_e,beta,u_et,p_xet,in_rho_k,rhok_gradx,in_c_k,alphak_gradx_left,rho_gradx_left,rho_e_gradx_left,u_gradx_left,v_gradx_left,
 				   in_u_cell,in_v_cell,u2,v2,u2_gradx,v2_gradx,alphak_gradx_right,rho_gradx_right,rho_e_gradx_right,u_gradx_right,v_gradx_right,beta_gradx,
 				   // out		 
 				   masse_fluxes_k_x,alpha_beta_fluxes_k_x,rho_U_fluxes_x,rho_V_fluxes_x,beta_fluxes_x,rho_total_energy_fluxes_x);
   }
-  
-  // //  for (index_t imat = 0; imat < nb_mat; ++imat) {
-  //   for (index_t ix = 0; ix < nb_faces_x; ++ix) {      
-  //     std::cout << "face = " << ix << " masse = " <<  masse_fluxes_k_x[0][ix] << std::endl;
-  //     std::cout << "face = " << ix << " masse = " <<  alpha_beta_fluxes_k_x[0][ix] << std::endl;
-  //     std::cout << "face = " << ix << " masse = " <<  rho_total_energy_fluxes_x[ix] << std::endl;
-  //     std::cout << "face = " << ix << " masse = " << rho_U_fluxes_x [ix] << std::endl;
-  //     std::cout << "face = " << ix << " masse = " << rho_V_fluxes_x [ix] << std::endl;
-  //     std::cout << "face = " << ix << " masse = " << beta_fluxes_x [ix] << std::endl;
-  //   }
-  //   //  }
 
-
-  ComputeHLLFluxesZY(nx,ny,dx,dy,nb_mat,
+  ComputeHLLFluxesZY(nx,ny,nb_faces_y,dx,dy,nb_mat,
 		  in_rho,rho_e,beta,v_et,p_yet,in_rho_k,rhok_grady,in_c_k,alphak_grady_bot,rho_grady_bot,rho_e_grady_bot,u_grady_bot,v_grady_bot,
 		  in_u_cell,in_v_cell,u2,v2,u2_grady,v2_grady,alphak_grady_top,rho_grady_top,rho_e_grady_top,u_grady_top,v_grady_top,beta_grady,
 		  // out		 
@@ -332,24 +267,16 @@ void LagrangeFluxes2dDriver(//in
   
 
   if (BoundaryConditions == "Wall") {
-    ComputeHLLFluxesZYBoundaryWall(nx,ny,dx,dy,nb_mat,
+    ComputeHLLFluxesZYBoundaryWall(nx,ny,nb_faces_y,dx,dy,nb_mat,
 				   masse_k,in_rho,rho_e,beta,v_et,p_yet,in_rho_k,rhok_grady,in_c_k,alphak_grady_bot,rho_grady_bot,rho_e_grady_bot,u_grady_bot,v_grady_bot,
 				   in_u_cell,in_v_cell,u2,v2,u2_grady,v2_grady,alphak_grady_top,rho_grady_top,rho_e_grady_top,u_grady_top,v_grady_top,beta_grady,
 				   // out		 
 				   masse_fluxes_k_y,alpha_beta_fluxes_k_y,rho_U_fluxes_y,rho_V_fluxes_y,beta_fluxes_y,rho_total_energy_fluxes_y);
   }
 
-  // for (index_t iy = 0; iy < ny; ++iy) {
-  //   for (index_t ix = 0; ix < nx; ++ix) {
-  //     const int cell_ooo  = (nx * iy) + ix;
-  //     std::cout <<  "masse = " << masse_k_tmp[0][cell_ooo] << std::endl;
-  //     std::cout <<  "masse = " << masse_k_tmp[1][cell_ooo] << std::endl;
-  //     std::cout <<  "masse = " << masse_k_tmp[2][cell_ooo] << std::endl;
-  //   }
-  // }
   dt_local = 0.5 * dt;
 
-  ComputeVariablesFromFluxes(nx,ny,dx,dy,dt_local,nb_mat,epsilon,gamma_k,pi_prime_k,
+  ComputeVariablesFromFluxes(nx,ny,nb_faces_x,nb_faces_y,dx,dy,dt_local,nb_mat,epsilon,gamma_k,pi_prime_k,
 			     rho_total_energy,rho_U,rho_V,beta,masse_k_tmp,alpha_beta_k_tmp,
 			     masse_fluxes_k_x,alpha_beta_fluxes_k_x,rho_U_fluxes_x,rho_V_fluxes_x,beta_fluxes_x,rho_total_energy_fluxes_x,
 			     masse_fluxes_k_y,alpha_beta_fluxes_k_y,rho_U_fluxes_y,rho_V_fluxes_y,beta_fluxes_y,rho_total_energy_fluxes_y,
@@ -357,31 +284,11 @@ void LagrangeFluxes2dDriver(//in
 			     in_rho,beta,in_rho_k,in_c_k,in_u_cell,in_v_cell,rho_total_energy,rho_U,rho_V,masse_k,alpha_beta_k,alpha_beta_k_tmp,masse_k_tmp,in_total_energy,rho_e,pressure);
   
 
-  // for (index_t iy = 0; iy < ny; ++iy) {
-  //   for (index_t ix = 0; ix < nx; ++ix) {
-  //     const int cell_ooo  = (nx * iy) + ix;
-  //     std::cout <<  "RK1 in_u_cell = " << in_u_cell[cell_ooo] << std::endl;
-  //     std::cout <<  "RK1 in_v_cell = " << in_v_cell[cell_ooo] << std::endl;
-  //     std::cout <<  "RK1 rho_U = " << rho_U[cell_ooo] << std::endl;
-  //     std::cout <<  "RK1 rho_V = " << rho_V[cell_ooo] << std::endl;
-  //   }
-  // }
-
-  // for (index_t iy = 0; iy < ny; ++iy) {
-  //   for (index_t ix = 0; ix < nx; ++ix) {
-  //     const int cell_ooo  = (nx * iy) + ix;
-  //     std::cout <<  "RK1 in_rho = " << in_rho[cell_ooo] << std::endl;
-  //     std::cout <<  "RK1 rho_total_energy = " << rho_total_energy[cell_ooo] << std::endl;
-  //     std::cout <<  "RK1 in_total_energy = " << in_total_energy[cell_ooo] << std::endl;
-  //     std::cout <<  "RK1 rho_e = " <<  rho_e[cell_ooo] << std::endl;
-  //     std::cout <<  "RK1 pressure = " << pressure[cell_ooo] << std::endl;
-  //   }
-  // }
-
   // RK2: 2nd step
 
   dt = TimeStepLFMix(nx, ny, dx, dy, nb_mat, CFL, gamma_mix, pi_prime_mix, speed_of_sound_mix, gamma_k,pi_prime_k, in_rho, pressure, in_c_k, in_u_cell, in_v_cell);  
 
+#pragma acc parallel loop collapse(2) present(u2[:nx*ny],v2[:nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny])
   for (index_t iy = 0; iy < ny; ++iy) {
     for (index_t ix = 0; ix < nx; ++ix) {
       const int cell_ooo  = (nx * iy) + ix;
@@ -429,20 +336,6 @@ void LagrangeFluxes2dDriver(//in
 		   p_gradx_left,p_gradx_right,p_grady_bot,p_grady_top);
   }
 
-  // for (index_t iy = 0; iy < ny; ++iy) {
-  //   for (index_t ix = 0; ix < nx; ++ix) {
-  //     const int cell_ooo  = (nx * iy) + ix;
-  //     std::cout << "RK2 cell = " << cell_ooo  << " p_gradx_left = " << p_gradx_left[cell_ooo] << std::endl;
-  //     std::cout << "RK2 cell = " << cell_ooo  << " rho_e_gradx_left = " << rho_e_gradx_left[cell_ooo] << std::endl;
-  //     std::cout << "RK2 cell = " << cell_ooo  << " p_gradx_right = " << p_gradx_right[cell_ooo] << std::endl;
-  //     std::cout << "RK2 cell = " << cell_ooo  << " rho_e_gradx_right = " << rho_e_gradx_right[cell_ooo] << std::endl;
-  //     std::cout << "RK2 cell = " << cell_ooo  << " p_grady_bot = " << p_grady_bot[cell_ooo] << std::endl;
-  //     std::cout << "RK2 cell = " << cell_ooo  << " rho_e_grady_bot = " << rho_e_grady_bot[cell_ooo] << std::endl;
-  //     std::cout << "RK2 cell = " << cell_ooo  << " p_grady_top = " << p_grady_top[cell_ooo] << std::endl;
-  //     std::cout << "RK2 cell = " << cell_ooo  << " rho_e_grady_top = " << rho_e_grady_top[cell_ooo] << std::endl;
-  //   }
-  // }
-
   ComputeGradientRho(nx,ny,dx,dy,nb_mat,in_rho_k,in_c_k,
 		     alphak_gradx_left,alphak_gradx_right,alphak_grady_bot,alphak_grady_top,
 		     // out		 
@@ -456,22 +349,7 @@ void LagrangeFluxes2dDriver(//in
 		       rho_gradx_left,rho_gradx_right,rho_grady_top,rho_grady_bot,
 		       rhok_gradx,rhok_grady);
   }
-  // for (index_t iy = 0; iy < ny; ++iy) {
-  //   for (index_t ix = 0; ix < nx; ++ix) {
-  //     const int cell_ooo  = (nx * iy) + ix;
-  //     std::cout << "RK2 cell = " << cell_ooo  << " rho_gradx_left = " << rho_gradx_left[cell_ooo] << std::endl;
-  //     std::cout << "RK2 cell = " << cell_ooo  << " rho_gradx_right = " << rho_gradx_right[cell_ooo] << std::endl;
-  //     std::cout << "RK2 cell = " << cell_ooo  << " rho_grady_bot = " << rho_grady_bot[cell_ooo] << std::endl;
-  //     std::cout << "RK2 cell = " << cell_ooo  << " rho_grady_top = " << rho_grady_top[cell_ooo] << std::endl;
-  //   }
-  // }
-  // for (index_t iy = 0; iy < ny; ++iy) {
-  //   for (index_t ix = 0; ix < nx; ++ix) {
-  //     const int cell_ooo  = (nx * iy) + ix;
-  //     std::cout << "cell RK2 = " << cell_ooo  << " rho_gradx_left = " << rho_gradx_left[cell_ooo] << std::endl;
-  //     //std::cout << "cell = " << cell_ooo  << " rho_gradx_right= " << rho_gradx_right[cell_ooo] << std::endl;
-  //   }
-  // }
+
   ComputeGradientBeta(nx,ny,dx,dy,beta,
 		  // out		 
 		       beta_gradx,beta_grady);
@@ -482,7 +360,7 @@ void LagrangeFluxes2dDriver(//in
 		       beta_gradx,beta_grady);
   }
 
-  ComputeHLLFluxesZX(nx,ny,dx,dy,nb_mat,
+  ComputeHLLFluxesZX(nx,ny,nb_faces_x,dx,dy,nb_mat,
 		  in_rho,rho_e,beta,u_et,p_xet,in_rho_k,rhok_gradx,in_c_k,alphak_gradx_left,rho_gradx_left,rho_e_gradx_left,u_gradx_left,v_gradx_left,
 		  in_u_cell,in_v_cell,u2,v2,u2_gradx,v2_gradx,alphak_gradx_right,rho_gradx_right,rho_e_gradx_right,u_gradx_right,v_gradx_right,beta_gradx,
 		  // out		 
@@ -490,26 +368,15 @@ void LagrangeFluxes2dDriver(//in
   
 
   if (BoundaryConditions == "Wall") {
-    ComputeHLLFluxesZXBoundaryWall(nx,ny,dx,dy,nb_mat,
+    ComputeHLLFluxesZXBoundaryWall(nx,ny,nb_faces_x,dx,dy,nb_mat,
 				   in_rho,rho_e,beta,u_et,p_xet,in_rho_k,rhok_gradx,in_c_k,alphak_gradx_left,rho_gradx_left,rho_e_gradx_left,u_gradx_left,v_gradx_left,
 				   in_u_cell,in_v_cell,u2,v2,u2_gradx,v2_gradx,alphak_gradx_right,rho_gradx_right,rho_e_gradx_right,u_gradx_right,v_gradx_right,beta_gradx,
 				   // out		 
 				   masse_fluxes_k_x,alpha_beta_fluxes_k_x,rho_U_fluxes_x,rho_V_fluxes_x,beta_fluxes_x,rho_total_energy_fluxes_x);
   }
   
-  // //  for (index_t imat = 0; imat < nb_mat; ++imat) {
-  //   for (index_t ix = 0; ix < nb_faces_x; ++ix) {      
-  //     std::cout << "face = " << ix << " masse = " <<  masse_fluxes_k_x[0][ix] << std::endl;
-  //     std::cout << "face = " << ix << " masse = " <<  alpha_beta_fluxes_k_x[0][ix] << std::endl;
-  //     std::cout << "face = " << ix << " masse = " <<  rho_total_energy_fluxes_x[ix] << std::endl;
-  //     std::cout << "face = " << ix << " masse = " << rho_U_fluxes_x [ix] << std::endl;
-  //     std::cout << "face = " << ix << " masse = " << rho_V_fluxes_x [ix] << std::endl;
-  //     std::cout << "face = " << ix << " masse = " << beta_fluxes_x [ix] << std::endl;
-  //   }
-  //   //  }
 
-
-  ComputeHLLFluxesZY(nx,ny,dx,dy,nb_mat,
+  ComputeHLLFluxesZY(nx,ny,nb_faces_y,dx,dy,nb_mat,
 		  in_rho,rho_e,beta,v_et,p_yet,in_rho_k,rhok_grady,in_c_k,alphak_grady_bot,rho_grady_bot,rho_e_grady_bot,u_grady_bot,v_grady_bot,
 		  in_u_cell,in_v_cell,u2,v2,u2_grady,v2_grady,alphak_grady_top,rho_grady_top,rho_e_grady_top,u_grady_top,v_grady_top,beta_grady,
 		  // out		 
@@ -517,7 +384,7 @@ void LagrangeFluxes2dDriver(//in
   
   if (BoundaryConditions == "Wall") {
     
-    ComputeHLLFluxesZYBoundaryWall(nx,ny,dx,dy,nb_mat,
+    ComputeHLLFluxesZYBoundaryWall(nx,ny,nb_faces_y,dx,dy,nb_mat,
 				   masse_k,in_rho,rho_e,beta,v_et,p_yet,in_rho_k,rhok_grady,in_c_k,alphak_grady_bot,rho_grady_bot,rho_e_grady_bot,u_grady_bot,v_grady_bot,
 				   in_u_cell,in_v_cell,u2,v2,u2_grady,v2_grady,alphak_grady_top,rho_grady_top,rho_e_grady_top,u_grady_top,v_grady_top,beta_grady,
 				   // out		 
@@ -526,91 +393,15 @@ void LagrangeFluxes2dDriver(//in
 
   dt_local = dt;
   
-  ComputeVariablesFromFluxes(nx,ny,dx,dy,dt_local,nb_mat,epsilon,gamma_k,pi_prime_k,
+  ComputeVariablesFromFluxes(nx,ny,nb_faces_x,nb_faces_y,dx,dy,dt_local,nb_mat,epsilon,gamma_k,pi_prime_k,
 			     rho_total_energy_tmp,rho_U_tmp,rho_V_tmp,beta_tmp,masse_k_tmp_bis,alpha_beta_k_tmp_bis,
 			     masse_fluxes_k_x,alpha_beta_fluxes_k_x,rho_U_fluxes_x,rho_V_fluxes_x,beta_fluxes_x,rho_total_energy_fluxes_x,
 			     masse_fluxes_k_y,alpha_beta_fluxes_k_y,rho_U_fluxes_y,rho_V_fluxes_y,beta_fluxes_y,rho_total_energy_fluxes_y,
 		  // out		 
 			     in_rho,beta,in_rho_k,in_c_k,in_u_cell,in_v_cell,rho_total_energy,rho_U,rho_V,masse_k,alpha_beta_k,alpha_beta_k_tmp,masse_k_tmp,in_total_energy,rho_e,pressure);
 
-  // for (index_t iy = 0; iy < ny; ++iy) {
-  //   for (index_t ix = 0; ix < nx; ++ix) {
-  //     const int cell_ooo  = (nx * iy) + ix;
-  //     std::cout <<  "RK2 in_rho = " << in_rho[cell_ooo] << std::endl;
-  //   }
-  // }
+#pragma acc exit data delete(p_xet[:nb_faces_x],p_yet[:nb_faces_y],u_et[:nb_faces_x],v_et[:nb_faces_y],beta_gradx[:nb_cells],beta_grady[:nb_cells],u2[:nb_cells],v2[:nb_cells],u2_gradx[:nb_cells],v2_gradx[:nb_cells],u2_grady[:nb_cells],v2_grady[:nb_cells],u_gradx_left[:nb_cells],u_gradx_right[:nb_cells],v_gradx_left[:nb_cells],v_gradx_right[:nb_cells],u_grady_top[:nb_cells],u_grady_bot[:nb_cells],v_grady_top[:nb_cells],v_grady_bot[:nb_cells],beta_tmp[:nb_cells],rho_U_tmp[:nb_cells],rho_V_tmp[:nb_cells],rho_total_energy_tmp[:nb_cells],alpha_beta_k_tmp_bis[:nb_mat],masse_k_tmp_bis[:nb_mat],rhok_gradx[:nb_mat],rhok_grady[:nb_mat],alpha_beta_k_tmp_bis[:nb_mat][:nb_cells],masse_k_tmp_bis[:nb_mat][:nb_cells],rhok_gradx[:nb_mat][:nb_cells],rhok_grady[:nb_mat][:nb_cells])
 
-  // for (index_t iy = 0; iy < ny; ++iy) {
-  //   for (index_t ix = 0; ix < nx; ++ix) {
-  //     const int cell_ooo  = (nx * iy) + ix;
-  //     std::cout <<  "RK2 in_u_cell = " << in_u_cell[cell_ooo] << std::endl;
-  //     std::cout <<  "RK2 in_v_cell = " << in_v_cell[cell_ooo] << std::endl;
-  //     std::cout <<  "RK2 rho_U = " << rho_U[cell_ooo] << std::endl;
-  //     std::cout <<  "RK2 rho_V = " << rho_V[cell_ooo] << std::endl;
-  //   }
-  // }
-  // for (index_t iy = 0; iy < ny; ++iy) {
-  //   for (index_t ix = 0; ix < nx; ++ix) {
-  //     const int cell_ooo  = (nx * iy) + ix;
-  //     std::cout <<  "RK2 in_rho = " << in_rho[cell_ooo] << std::endl;
-  //     std::cout <<  "RK2 rho_total_energy = " << rho_total_energy[cell_ooo] << std::endl;
-  //     std::cout <<  "RK2 in_total_energy = " << in_total_energy[cell_ooo] << std::endl;
-  //     std::cout <<  "RK2 rho_e = " <<  rho_e[cell_ooo] << std::endl;
-  //     std::cout <<  "RK2 pressure = " << pressure[cell_ooo] << std::endl;
-  //   }
-  // }
-
-  for (index_t iy = 0; iy < ny; ++iy) {
-    for (index_t ix = 0; ix < nx; ++ix) {
-      const int cell_ooo  = (nx * iy) + ix;
-      //std::cout << " cell = " << cell_ooo <<  " rho = " << in_rho[cell_ooo] << std::endl;
-      //std::cout << " cell = "  << cell_ooo <<  " E = " << in_total_energy[cell_ooo] << std::endl;
-      //std::cout << " cell = "  << cell_ooo <<  " ux = " << in_u_cell[cell_ooo] << std::endl;
-      //std::cout << " cell = "  << cell_ooo <<  " vy = " << in_v_cell[cell_ooo] << std::endl;
-      //std::cout << " cell = "  << cell_ooo <<  " pressure = " << pressure[cell_ooo] << std::endl;
-      //std::cout << " cell = "  << cell_ooo <<  " rho_e = " << rho_e[cell_ooo] << std::endl;
-    }
-  }
-
-
-
-  // //  for (index_t imat = 0; imat < nb_mat; ++imat) {
-  //   for (index_t ix = 0; ix < nb_faces_y; ++ix) {      
-  //     std::cout << "face = " << ix << " masse = " <<  masse_fluxes_k_y[0][ix] << std::endl;
-  //     std::cout << "face = " << ix << " masse = " <<  alpha_beta_fluxes_k_y[0][ix] << std::endl;
-  //     std::cout << "face = " << ix << " masse = " <<  rho_total_energy_fluxes_y[ix] << std::endl;
-  //     std::cout << "face = " << ix << " masse = " << rho_U_fluxes_y [ix] << std::endl;
-  //     std::cout << "face = " << ix << " masse = " << rho_V_fluxes_y [ix] << std::endl;
-  //     std::cout << "face = " << ix << " masse = " << beta_fluxes_y [ix] << std::endl;
-  //   }
-  //   //  }
-
-
-  //  for (index_t imat = 0; imat < nb_mat; ++imat) {
-    for (index_t ix = 0; ix < nb_faces_x; ++ix) {      
-      //std::cout << "face = " << ix << " masse = " << rho_U_fluxes_x [ix] << std::endl;
-      //std::cout << "face = " << ix << " masse = " << rho_V_fluxes_x [ix] << std::endl;
-      //std::cout << "face = " << ix << " masse = " << beta_fluxes_x [ix] << std::endl;
-    }
-    //  }
-	
-	//  for (index_t imat = 0; imat < 2; ++imat) {
-    for (index_t iy = 0; iy < ny; ++iy) {
-      for (index_t ix = 0; ix < nx; ++ix) {      
-	const int cell_ooo  = (nx * iy) + ix;
-	//std::cout <<   p_xet[cell_ooo] << std::endl;
-	//std::cout <<   p_yet[cell_ooo] << std::endl;
-	// std::cout <<  rhok_gradx  [imat][cell_ooo] << std::endl;
-	// std::cout <<  rho_grady_top  [cell_ooo] << std::endl;
-	// std::cout << p_gradx_left[cell_ooo] << " " << p_grady_top[cell_ooo] << std::endl;
-	// std::cout <<  alphak_grady_bot  [imat][cell_ooo] << std::endl;
-	// std::cout <<  alphak_grady_top  [imat][cell_ooo] << std::endl;
-	// std::cout <<  alphak_gradx_left [imat][cell_ooo] << std::endl;
-	// std::cout <<  alphak_gradx_right[imat][cell_ooo] << std::endl;
-      }
-    }
-    //  }
-  
 }
 
   
