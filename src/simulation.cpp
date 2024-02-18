@@ -1082,8 +1082,8 @@ void Simulation::Run() {
 	  in_c_k                       [:nb_mat][:nx*ny],\
 	  in_rho_k                     [:nb_mat][:nx*ny],\
 	  masse_k                      [:nb_mat][:nx*ny],\
-	  masse_k_tmp_bis              [:nb_mat][:nx*ny],\
-	  alpha_beta_k_tmp_bis         [:nb_mat][:nx*ny],\
+	  masse_k_tmp                  [:nb_mat][:nx*ny],\
+	  alpha_beta_k                 [:nb_mat][:nx*ny],\
 	  alpha_beta_k_tmp             [:nb_mat][:nx*ny],\
 	  masse_fluxes_k_x             [:nb_mat][:nb_faces_x],\
 	  alpha_beta_fluxes_k_x        [:nb_mat][:nb_faces_x],\
@@ -1109,6 +1109,7 @@ void Simulation::Run() {
 	  p_grady_bot                           [:nx*ny],\
 	  rho_U                                 [:nx*ny],\
 	  rho_V                                 [:nx*ny],\
+	  in_total_energy                       [:nx*ny],\
 	  rho_total_energy                      [:nx*ny],\
 	  rho_e                                 [:nx*ny],\
 	  rho_e_gradx_left                      [:nx*ny],\
@@ -1533,6 +1534,25 @@ void Simulation::Run() {
 			       alpha_beta_fluxes_k_x,
 			       alpha_beta_fluxes_k_y);
 
+    if (numerical_params.TypeOfProjection == "LagrangeFluxes") {
+
+#pragma acc update host ( \
+	  in_c_k                       [:nb_mat][:nx*ny],\
+ 	  in_rho_k                     [:nb_mat][:nx*ny],\
+ 	  masse_k                      [:nb_mat][:nx*ny],\
+ 	  density                               [:nx*ny],\
+ 	  in_p                                  [:nx*ny],\
+ 	  in_rho                                [:nx*ny],\
+ 	  rho_U                                 [:nx*ny],\
+ 	  rho_V                                 [:nx*ny],\
+ 	  in_total_energy                       [:nx*ny],\
+ 	  rho_total_energy                      [:nx*ny],\
+ 	  rho_e                                 [:nx*ny],\
+ 	  in_u_cell                             [:nx*ny],\
+ 	  in_v_cell                             [:nx*ny] \
+ 	     )
+
+    }
 	
 	// std::swap(in_cell_mass, out_cell_mass); 
 	// std::swap(in_cell_mass_1, out_cell_mass_1);
@@ -2425,7 +2445,6 @@ void Simulation::Run() {
       }
     }
   }
-
 
   // Computation of the L2 error
   RealType error_L2 = 0.0;

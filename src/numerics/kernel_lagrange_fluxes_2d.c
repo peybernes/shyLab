@@ -331,7 +331,7 @@ void ComputeHLL(index_t nx,
   const RealType h_x     = 1./dx ;
   const RealType h_y     = 1./dy ;
   
-#pragma acc parallel loop collapse(2) present(rho_gradx_left[:nx*ny],rho_gradx_right[:nx*ny],rho_grady_bot[:nx*ny],rho_grady_top[:nx*ny],in_rho[:nx*ny],pressure[:nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny],speed_of_sound_mix[:nx*ny],p_gradx_left[:nx*ny],p_gradx_right[:nx*ny],p_grady_bot[:nx*ny],p_grady_top[:nx*ny],u_gradx_left[:nx*ny],u_gradx_right[:nx*ny],v_grady_top[:nx*ny],v_grady_bot[:nx*ny],p_xet[nb_faces_x],p_yet[nb_faces_y],u_et[nb_faces_x],v_et[nb_faces_y])
+#pragma acc parallel loop collapse(2) present(rho_gradx_left[:nx*ny],rho_gradx_right[:nx*ny],rho_grady_bot[:nx*ny],rho_grady_top[:nx*ny],in_rho[:nx*ny],pressure[:nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny],speed_of_sound_mix[:nx*ny],p_gradx_left[:nx*ny],p_gradx_right[:nx*ny],p_grady_bot[:nx*ny],p_grady_top[:nx*ny],u_gradx_left[:nx*ny],u_gradx_right[:nx*ny],v_grady_top[:nx*ny],v_grady_bot[:nx*ny],p_xet[:nb_faces_x],p_yet[:nb_faces_y],u_et[:nb_faces_x],v_et[:nb_faces_y])
   for (index_t iy = 0; iy < ny - 1; ++iy) {
       for (index_t ix = 0; ix < nx - 1; ++ix) {
 
@@ -398,7 +398,7 @@ void ComputeHLLFluxesZX(index_t nx,
 			RealType* rho_total_energy_fluxes_x
 			) {
 
-#pragma acc parallel loop collapse(2) present(in_rho[:nx*ny],rho_e[:nx*ny],beta[:nx*ny],u_et[nb_faces_x],p_xet[nb_faces_x],in_rho_k[:nb_mat][:nx*ny],rhok_gradx[:nb_mat][:nx*ny],in_c_k[:nb_mat][:nx*ny],alphak_gradx_left[:nb_mat][:nx*ny],rho_gradx_left[:nx*ny],rho_e_gradx_left[:nx*ny],u_gradx_left[nx*ny],v_gradx_left[nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny],u2[nx*ny],v2[nx*ny],u2_gradx[nx*ny],v2_gradx[nx*ny],alphak_gradx_right[:nb_mat][:nx*ny],rho_gradx_right[:nx*ny],rho_e_gradx_right[:nx*ny],u_gradx_right[:nx*ny],v_gradx_right[:nx*ny],beta_gradx[:nx*ny],masse_fluxes_k_x[:nb_mat][:nb_faces_x],alpha_beta_fluxes_k_x[:nb_mat][:nb_faces_x],rho_U_fluxes_x[:nb_faces_x],rho_V_fluxes_x[:nb_faces_x],beta_fluxes_x[:nb_faces_x],rho_total_energy_fluxes_x[:nb_faces_x])
+#pragma acc parallel loop collapse(2) present(in_rho[:nx*ny],rho_e[:nx*ny],beta[:nx*ny],u_et[:nb_faces_x],p_xet[:nb_faces_x],in_rho_k[:nb_mat][:nx*ny],rhok_gradx[:nb_mat][:nx*ny],in_c_k[:nb_mat][:nx*ny],alphak_gradx_left[:nb_mat][:nx*ny],rho_gradx_left[:nx*ny],rho_e_gradx_left[:nx*ny],u_gradx_left[:nx*ny],v_gradx_left[:nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny],u2[:nx*ny],v2[:nx*ny],u2_gradx[:nx*ny],v2_gradx[:nx*ny],alphak_gradx_right[:nb_mat][:nx*ny],rho_gradx_right[:nx*ny],rho_e_gradx_right[:nx*ny],u_gradx_right[:nx*ny],v_gradx_right[:nx*ny],beta_gradx[:nx*ny],masse_fluxes_k_x[:nb_mat][:nb_faces_x],alpha_beta_fluxes_k_x[:nb_mat][:nb_faces_x],rho_U_fluxes_x[:nb_faces_x],rho_V_fluxes_x[:nb_faces_x],beta_fluxes_x[:nb_faces_x],rho_total_energy_fluxes_x[:nb_faces_x])
   for (index_t iy = 0; iy < ny; ++iy) {
     for (index_t ix = 0; ix < nx - 1; ++ix) {
       
@@ -462,7 +462,7 @@ void ComputeHLLFluxesZY(index_t nx,
 			RealType* rho_total_energy_fluxes_y
 			) {
 
-#pragma acc parallel loop collapse(2) present(in_rho[:nx*ny],rho_e[:nx*ny],beta[:nx*ny],v_et[nb_faces_y],p_yet[nb_faces_y],in_rho_k[:nb_mat][:nx*ny],rhok_grady[:nb_mat][:nx*ny],in_c_k[:nb_mat][:nx*ny],alphak_grady_bot[:nb_mat][:nx*ny],rho_grady_bot[:nx*ny],rho_e_grady_bot[:nx*ny],u_grady_bot[nx*ny],v_grady_bot[nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny],u2[nx*ny],v2[nx*ny],u2_grady[nx*ny],v2_grady[nx*ny],alphak_grady_top[:nb_mat][:nx*ny],rho_grady_top[:nx*ny],rho_e_grady_top[:nx*ny],u_grady_top[:nx*ny],v_grady_top[:nx*ny],beta_grady[:nx*ny],masse_fluxes_k_y[:nb_mat][:nb_faces_y],alpha_beta_fluxes_k_y[:nb_mat][:nb_faces_y],rho_U_fluxes_y[:nb_faces_y],rho_V_fluxes_y[:nb_faces_y],beta_fluxes_y[:nb_faces_y],rho_total_energy_fluxes_y[:nb_faces_y])
+#pragma acc parallel loop collapse(2) present(in_rho[:nx*ny],rho_e[:nx*ny],beta[:nx*ny],v_et[:nb_faces_y],p_yet[:nb_faces_y],in_rho_k[:nb_mat][:nx*ny],rhok_grady[:nb_mat][:nx*ny],in_c_k[:nb_mat][:nx*ny],alphak_grady_bot[:nb_mat][:nx*ny],rho_grady_bot[:nx*ny],rho_e_grady_bot[:nx*ny],u_grady_bot[:nx*ny],v_grady_bot[:nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny],u2[:nx*ny],v2[:nx*ny],u2_grady[:nx*ny],v2_grady[:nx*ny],alphak_grady_top[:nb_mat][:nx*ny],rho_grady_top[:nx*ny],rho_e_grady_top[:nx*ny],u_grady_top[:nx*ny],v_grady_top[:nx*ny],beta_grady[:nx*ny],masse_fluxes_k_y[:nb_mat][:nb_faces_y],alpha_beta_fluxes_k_y[:nb_mat][:nb_faces_y],rho_U_fluxes_y[:nb_faces_y],rho_V_fluxes_y[:nb_faces_y],beta_fluxes_y[:nb_faces_y],rho_total_energy_fluxes_y[:nb_faces_y])
   for (index_t iy = 0; iy < ny - 1; ++iy) {
     for (index_t ix = 0; ix < nx; ++ix) {
       
