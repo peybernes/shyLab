@@ -1073,63 +1073,6 @@ void Simulation::Run() {
 	  masse_k            [imat][cell_ooo] = in_c_k       [imat][cell_ooo] * in_rho_k[imat][cell_ooo];
 	  masse_k_tmp        [imat][cell_ooo] = masse_k      [imat][cell_ooo];
 	}
-	
-#pragma acc enter data copyin ( \
-          alphak_gradx_left            [:nb_mat][:nx*ny],\
-   	  alphak_gradx_right           [:nb_mat][:nx*ny],\
-	  alphak_grady_bot             [:nb_mat][:nx*ny],\
-	  alphak_grady_top             [:nb_mat][:nx*ny],\
-	  in_c_k                       [:nb_mat][:nx*ny],\
-	  in_rho_k                     [:nb_mat][:nx*ny],\
-	  masse_k                      [:nb_mat][:nx*ny],\
-	  masse_k_tmp                  [:nb_mat][:nx*ny],\
-	  alpha_beta_k                 [:nb_mat][:nx*ny],\
-	  alpha_beta_k_tmp             [:nb_mat][:nx*ny],\
-	  masse_fluxes_k_x             [:nb_mat][:nb_faces_x],\
-	  alpha_beta_fluxes_k_x        [:nb_mat][:nb_faces_x],\
-	  rho_total_energy_fluxes_x             [:nb_faces_x],\
-	  rho_U_fluxes_x                        [:nb_faces_x],\
-	  rho_V_fluxes_x                        [:nb_faces_x],\
-	  beta_fluxes_x                         [:nb_faces_x],\
-	  masse_fluxes_k_y             [:nb_mat][:nb_faces_y],\
-	  alpha_beta_fluxes_k_y        [:nb_mat][:nb_faces_y],\
-	  rho_total_energy_fluxes_y             [:nb_faces_y],\
-	  rho_U_fluxes_y                        [:nb_faces_y],\
-	  rho_V_fluxes_y                        [:nb_faces_y],\
-	  beta_fluxes_y                         [:nb_faces_y],\
-	  p_plus_pi_prime_gradx                 [:nx*ny],\
-	  p_plus_pi_prime_grady                 [:nx*ny],\
-	  density                               [:nx*ny],\
-	  beta                                  [:nx*ny],\
-	  in_p                                  [:nx*ny],\
-	  in_rho                                [:nx*ny],\
-	  p_gradx_left                          [:nx*ny],\
-	  p_gradx_right                         [:nx*ny],\
-	  p_grady_top                           [:nx*ny],\
-	  p_grady_bot                           [:nx*ny],\
-	  rho_U                                 [:nx*ny],\
-	  rho_V                                 [:nx*ny],\
-	  in_total_energy                       [:nx*ny],\
-	  rho_total_energy                      [:nx*ny],\
-	  rho_e                                 [:nx*ny],\
-	  rho_e_gradx_left                      [:nx*ny],\
-	  rho_e_gradx_right                     [:nx*ny],\
-	  rho_e_grady_top                       [:nx*ny],\
-	  rho_e_grady_bot                       [:nx*ny],\
-	  rho_gradx_left                        [:nx*ny],\
-	  rho_gradx_right                       [:nx*ny],\
-	  rho_grady_top                         [:nx*ny],\
-	  rho_grady_bot                         [:nx*ny],\
-	  in_u_cell                             [:nx*ny],\
-	  in_v_cell                             [:nx*ny],\
-	  p_plus_pi_prime                       [:nx*ny],\
-	  speed_of_sound_mix                    [:nx*ny],\
-	  gamma_mix                             [:nx*ny],\
-	  pi_prime_mix                          [:nx*ny],\
-	  gamma_k                      [:nb_mat]        ,\
-	  pi_prime_k                   [:nb_mat]         \
-	     )
-
 
       } else if (numerical_params.TypeOfModel == "MultimaterialMix") {
 	
@@ -1288,6 +1231,63 @@ void Simulation::Run() {
   //likwid_markerThreadInit(); //init for deamon access and/or multithread profiling
     index_t ret = 0;
 
+if (numerical_params.TypeOfProjection == "LagrangeFluxes") {
+#pragma acc enter data copyin ( \
+          alphak_gradx_left            [:nb_mat][:nx*ny],\
+   	  alphak_gradx_right           [:nb_mat][:nx*ny],\
+	  alphak_grady_bot             [:nb_mat][:nx*ny],\
+	  alphak_grady_top             [:nb_mat][:nx*ny],\
+	  in_c_k                       [:nb_mat][:nx*ny],\
+	  in_rho_k                     [:nb_mat][:nx*ny],\
+	  masse_k                      [:nb_mat][:nx*ny],\
+	  masse_k_tmp                  [:nb_mat][:nx*ny],\
+	  alpha_beta_k                 [:nb_mat][:nx*ny],\
+	  alpha_beta_k_tmp             [:nb_mat][:nx*ny],\
+	  masse_fluxes_k_x             [:nb_mat][:nb_faces_x],\
+	  alpha_beta_fluxes_k_x        [:nb_mat][:nb_faces_x],\
+	  rho_total_energy_fluxes_x             [:nb_faces_x],\
+	  rho_U_fluxes_x                        [:nb_faces_x],\
+	  rho_V_fluxes_x                        [:nb_faces_x],\
+	  beta_fluxes_x                         [:nb_faces_x],\
+	  masse_fluxes_k_y             [:nb_mat][:nb_faces_y],\
+	  alpha_beta_fluxes_k_y        [:nb_mat][:nb_faces_y],\
+	  rho_total_energy_fluxes_y             [:nb_faces_y],\
+	  rho_U_fluxes_y                        [:nb_faces_y],\
+	  rho_V_fluxes_y                        [:nb_faces_y],\
+	  beta_fluxes_y                         [:nb_faces_y],\
+	  p_plus_pi_prime_gradx                 [:nx*ny],\
+	  p_plus_pi_prime_grady                 [:nx*ny],\
+	  density                               [:nx*ny],\
+	  beta                                  [:nx*ny],\
+	  in_p                                  [:nx*ny],\
+	  in_rho                                [:nx*ny],\
+	  p_gradx_left                          [:nx*ny],\
+	  p_gradx_right                         [:nx*ny],\
+	  p_grady_top                           [:nx*ny],\
+	  p_grady_bot                           [:nx*ny],\
+	  rho_U                                 [:nx*ny],\
+	  rho_V                                 [:nx*ny],\
+	  in_total_energy                       [:nx*ny],\
+	  rho_total_energy                      [:nx*ny],\
+	  rho_e                                 [:nx*ny],\
+	  rho_e_gradx_left                      [:nx*ny],\
+	  rho_e_gradx_right                     [:nx*ny],\
+	  rho_e_grady_top                       [:nx*ny],\
+	  rho_e_grady_bot                       [:nx*ny],\
+	  rho_gradx_left                        [:nx*ny],\
+	  rho_gradx_right                       [:nx*ny],\
+	  rho_grady_top                         [:nx*ny],\
+	  rho_grady_bot                         [:nx*ny],\
+	  in_u_cell                             [:nx*ny],\
+	  in_v_cell                             [:nx*ny],\
+	  p_plus_pi_prime                       [:nx*ny],\
+	  speed_of_sound_mix                    [:nx*ny],\
+	  gamma_mix                             [:nx*ny],\
+	  pi_prime_mix                          [:nx*ny],\
+	  gamma_k                      [:nb_mat]        ,\
+	  pi_prime_k                   [:nb_mat]         \
+	     )
+ }
   while (!timetable.IsFinished(clock)) {
     
     if (process_rank == 0)
@@ -1553,7 +1553,6 @@ void Simulation::Run() {
  	     )
 
     }
-	
 	// std::swap(in_cell_mass, out_cell_mass); 
 	// std::swap(in_cell_mass_1, out_cell_mass_1);
 	// std::swap(in_cell_mass_2, out_cell_mass_2);
@@ -1586,7 +1585,6 @@ void Simulation::Run() {
 	
 	std::cerr << "CFL : " << numerical_params.CFL << "\n"; 
 	std::cerr << "          dt = " << dt << "\n";
-	
 	// Lagrange 2D algorithm for compressible Euler equations.
 	
 	Lagrange2dDriver(//in
