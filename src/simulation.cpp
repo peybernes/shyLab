@@ -1534,25 +1534,6 @@ if (numerical_params.TypeOfProjection == "LagrangeFluxes") {
 			       alpha_beta_fluxes_k_x,
 			       alpha_beta_fluxes_k_y);
 
-    if (numerical_params.TypeOfProjection == "LagrangeFluxes") {
-
-#pragma acc update host ( \
-	  in_c_k                       [:nb_mat][:nx*ny],\
- 	  in_rho_k                     [:nb_mat][:nx*ny],\
- 	  masse_k                      [:nb_mat][:nx*ny],\
- 	  density                               [:nx*ny],\
- 	  in_p                                  [:nx*ny],\
- 	  in_rho                                [:nx*ny],\
- 	  rho_U                                 [:nx*ny],\
- 	  rho_V                                 [:nx*ny],\
- 	  in_total_energy                       [:nx*ny],\
- 	  rho_total_energy                      [:nx*ny],\
- 	  rho_e                                 [:nx*ny],\
- 	  in_u_cell                             [:nx*ny],\
- 	  in_v_cell                             [:nx*ny] \
- 	     )
-
-    }
 	// std::swap(in_cell_mass, out_cell_mass); 
 	// std::swap(in_cell_mass_1, out_cell_mass_1);
 	// std::swap(in_cell_mass_2, out_cell_mass_2);
@@ -2430,6 +2411,25 @@ if (numerical_params.TypeOfProjection == "LagrangeFluxes") {
 
       if (event->Timetable2().Happens(this->clock)) {
 
+	if (numerical_params.TypeOfProjection == "LagrangeFluxes") {
+	  
+#pragma acc update host ( \
+			 in_c_k                       [:nb_mat][:nx*ny], \
+			 in_rho_k                     [:nb_mat][:nx*ny], \
+			 masse_k                      [:nb_mat][:nx*ny], \
+			 density                               [:nx*ny], \
+			 in_p                                  [:nx*ny], \
+			 in_rho                                [:nx*ny], \
+			 rho_U                                 [:nx*ny], \
+			 rho_V                                 [:nx*ny], \
+			 in_total_energy                       [:nx*ny], \
+			 rho_total_energy                      [:nx*ny], \
+			 rho_e                                 [:nx*ny], \
+			 in_u_cell                             [:nx*ny], \
+			 in_v_cell                             [:nx*ny] \
+			  )
+	  
+	}
 	event->Execute();
 	event->ResetTimetableClock();
     
