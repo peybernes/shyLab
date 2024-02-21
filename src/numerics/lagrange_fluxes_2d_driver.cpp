@@ -402,6 +402,14 @@ void LagrangeFluxes2dDriver(//in
 
 #pragma acc exit data delete(p_xet[:nb_faces_x],p_yet[:nb_faces_y],u_et[:nb_faces_x],v_et[:nb_faces_y],beta_gradx[:nb_cells],beta_grady[:nb_cells],u2[:nb_cells],v2[:nb_cells],u2_gradx[:nb_cells],v2_gradx[:nb_cells],u2_grady[:nb_cells],v2_grady[:nb_cells],u_gradx_left[:nb_cells],u_gradx_right[:nb_cells],v_gradx_left[:nb_cells],v_gradx_right[:nb_cells],u_grady_top[:nb_cells],u_grady_bot[:nb_cells],v_grady_top[:nb_cells],v_grady_bot[:nb_cells],beta_tmp[:nb_cells],rho_U_tmp[:nb_cells],rho_V_tmp[:nb_cells],rho_total_energy_tmp[:nb_cells],alpha_beta_k_tmp_bis[:nb_mat],masse_k_tmp_bis[:nb_mat],rhok_gradx[:nb_mat],rhok_grady[:nb_mat],alpha_beta_k_tmp_bis[:nb_mat][:nb_cells],masse_k_tmp_bis[:nb_mat][:nb_cells],rhok_gradx[:nb_mat][:nb_cells],rhok_grady[:nb_mat][:nb_cells])
 
+
+  for (int k = 0;k < nb_mat; k++) {
+    delete [] alpha_beta_k_tmp_bis[k];
+    delete [] masse_k_tmp_bis[k];
+    delete [] rhok_gradx[k];
+    delete [] rhok_grady[k];
+  }
+
 }
 
   
