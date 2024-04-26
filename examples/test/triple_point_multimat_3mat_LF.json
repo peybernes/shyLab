@@ -158,7 +158,7 @@
 	    
 	    "InitVariable": { "name": "in_pressure_1",
     			      "expression": "0.1" },
-x
+
 	    "InitVariable": { "name": "in_pressure_2",
     			      "expression": "(x < 1.5) ? 1.0 : 0.1" },
 
