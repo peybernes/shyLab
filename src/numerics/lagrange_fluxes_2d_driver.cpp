@@ -137,7 +137,7 @@ void LagrangeFluxes2dDriver(//in
   
 #pragma acc enter data create(p_xet[:nb_faces_x],p_yet[:nb_faces_y],u_et[:nb_faces_x],v_et[:nb_faces_y],beta_gradx[:nb_cells],beta_grady[:nb_cells],u2[:nb_cells],v2[:nb_cells],u2_gradx[:nb_cells],v2_gradx[:nb_cells],u2_grady[:nb_cells],v2_grady[:nb_cells],u_gradx_left[:nb_cells],u_gradx_right[:nb_cells],v_gradx_left[:nb_cells],v_gradx_right[:nb_cells],u_grady_top[:nb_cells],u_grady_bot[:nb_cells],v_grady_top[:nb_cells],v_grady_bot[:nb_cells],beta_tmp[:nb_cells],rho_U_tmp[:nb_cells],rho_V_tmp[:nb_cells],rho_total_energy_tmp[:nb_cells],rhok_gradx[:nb_mat][:nb_cells],rhok_grady[:nb_mat][:nb_cells],alpha_beta_k_tmp_bis[:nb_mat][:nb_cells],masse_k_tmp_bis[:nb_mat][:nb_cells])
 
-#pragma acc parallel loop collapse(2) present(in_c_k[:nb_mat][:nx*ny],beta[:nb_cells],in_u_cell[:nb_cells],in_v_cell[:nb_cells],rho_U[:nb_cells],rho_V[:nb_cells],rho_total_energy[:nb_cells],alpha_beta_k_tmp[:nb_mat][:nx*ny],alpha_beta_k_tmp_bis[:nb_mat][:nx*ny],masse_k[:nb_mat][:nx*ny],masse_k_tmp_bis[:nb_mat][:nx*ny])  
+#pragma omp parallel for collapse(2) //present(in_c_k[:nb_mat][:nx*ny],beta[:nb_cells],in_u_cell[:nb_cells],in_v_cell[:nb_cells],rho_U[:nb_cells],rho_V[:nb_cells],rho_total_energy[:nb_cells],alpha_beta_k_tmp[:nb_mat][:nx*ny],alpha_beta_k_tmp_bis[:nb_mat][:nx*ny],masse_k[:nb_mat][:nx*ny],masse_k_tmp_bis[:nb_mat][:nx*ny])  
   for (index_t iy = 0; iy < ny; ++iy) {
     for (index_t ix = 0; ix < nx; ++ix) {
       const int cell_ooo  = (nx * iy) + ix;
@@ -288,7 +288,7 @@ void LagrangeFluxes2dDriver(//in
 
   dt = TimeStepLFMix(nx, ny, dx, dy, nb_mat, CFL, gamma_mix, pi_prime_mix, speed_of_sound_mix, gamma_k,pi_prime_k, in_rho, pressure, in_c_k, in_u_cell, in_v_cell);  
 
-#pragma acc parallel loop collapse(2) present(u2[:nx*ny],v2[:nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny])
+#pragma omp parallel for collapse(2) //present(u2[:nx*ny],v2[:nx*ny],in_u_cell[:nx*ny],in_v_cell[:nx*ny])
   for (index_t iy = 0; iy < ny; ++iy) {
     for (index_t ix = 0; ix < nx; ++ix) {
       const int cell_ooo  = (nx * iy) + ix;

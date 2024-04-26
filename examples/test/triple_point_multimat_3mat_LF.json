@@ -2,43 +2,30 @@
 {
     "Simulation": {
 
-	"Clock": { "time": "0.",
+	"Clock": { "time": "0.0",
 		   "iteration": "0" },
 
-	"Timetable": { "iend": "5000" },
+	"Timetable": { "end": "4.5" },
 	
 	"Grid": { "name": "grid",
-		  "nx": "400",
-		  "ny": "200",
+		  "nx": "280",
+		  "ny": "120",
 		  "xmin": "0.0",
-		  "xmax": "1.0",
+		  "xmax": "7.0",
 		  "ymin": "0.0",
-		  "ymax": "0.5" },
+		  "ymax": "3.0" },
 
  	"NumericalParams": { "BoundaryConditions": "Wall",
-			     // "TypeOfProjection": "DirectProjectionCornerFluxes",
 			     "TypeOfProjection": "LagrangeFluxes",
-			     "TypeOfModel": "MultimaterialMix",
 			     "CFL": "0.18",
-			     "NumberOfMaterials": "3" },
+			     "NumberOfMaterials": "3",
+			     "TypeOfModel": "MultimaterialMix" },
 
- 	"PhysicalParams": { "EOS_gamma_1" : "1.4",
-			    "EOS_gamma_2" : "2.",
-			    "EOS_gamma_3" : "1.648",
-			    "EOS_pi_1" : "0.0",
-			    "EOS_pi_2" : "200.0" ,
-			    "EOS_pi_3" : "0.0" },
-
+        "PhysicalParams" : { "EOS_gamma_1" : "1.4",
+			     "EOS_gamma_2" : "1.5",
+			     "EOS_gamma_3" : "1.5" },	
+	
 	"Variables": {
-
-	    "directional_lagrangian_volume"  : {"support": "cell"},
-	    "directional_lagrangian_density"  : {"support": "cell"},
-	    "directional_lagrangian_density_1"  : {"support": "cell"},
-	    "directional_lagrangian_density_2"  : {"support": "cell"},
-	    "directional_lagrangian_volume_y"  : {"support": "cell"},
-	    "directional_lagrangian_density_y"  : {"support": "cell"},
-	    "directional_lagrangian_density_1_y"  : {"support": "cell"},
-	    "directional_lagrangian_density_2_y"  : {"support": "cell"},
 
 	    "in_rho"  : {"support": "cell"},
 	    "out_rho" : {"support": "cell"},
@@ -118,55 +105,44 @@
     	"Events": {
     	
 	    "InitVariable": { "name": "in_rho_1",
-    			      "expression": "(x <= 0.3) ? 1.0 : ( ((y-0.25)*(y-0.25)+(x-0.45)*(x-0.45) <= 0.08*0.08) ? 2.0 : (((y-0.25)*(y-0.25)+(x-0.45)*(x-0.45) <= 0.1*0.1) ? 0.0125 : 0.125)  ) " },
-
-	    "InitVariable": { "name": "in_rho",
-    			      "expression": "in_rho_1" },
-
-	    "InitVariable": { "name": "out_rho",
-    			      "expression": "in_rho" },
+    			      "expression": "1.0" },
 
 	    "InitVariable": { "name": "out_rho_1",
     			      "expression": "in_rho_1" },
 
 	    "InitVariable": { "name": "in_rho_2",
-    	    		      "expression": "in_rho_1" },
+    			      "expression": "(x < 1.5) ? 1.0 : 0.125" },
 
 	    "InitVariable": { "name": "out_rho_2",
-    	    		      "expression": "in_rho_2" },
+    			      "expression": "in_rho_2" },
 
 	    "InitVariable": { "name": "in_rho_3",
-    	    		      "expression": "in_rho_1" },
+    			      "expression": "(x < 1.5) ? 1.0 : 0.125" },
 
 	    "InitVariable": { "name": "out_rho_3",
-    	    		      "expression": "in_rho_3" },
+    			      "expression": "in_rho_3" },
 
+
+	    "InitVariable": { "name": "in_rho",
+    			      "expression": "in_rho_1" },
+	    
 	    "InitVariable": { "name": "in_c_1",
-    			      "expression": "(x <= 0.3) ? 1.0 : ( ((y-0.25)*(y-0.25)+(x-0.45)*(x-0.45) <= 0.08*0.08) ? 0.0 : (((y-0.25)*(y-0.25)+(x-0.45)*(x-0.45) <= 0.1*0.1) ? 0.0 : 1.)  ) " },
+    			      "expression": "(x < 1.5) ? 0.0 : ((y < 1.5) ? 1.0 : 0.0)" },
 
 	    "InitVariable": { "name": "out_c_1",
     			      "expression": "in_c_1" },
     	
 	    "InitVariable": { "name": "in_c_2",
-    			      "expression": "(x <= 0.3) ? 0.0 : ( ((y-0.25)*(y-0.25)+(x-0.45)*(x-0.45) <= 0.08*0.08) ? 1.0 : (((y-0.25)*(y-0.25)+(x-0.45)*(x-0.45) <= 0.1*0.1) ? 0.0 : 0.)  ) " },
+    			      "expression": "(x < 1.5) ? 1.0 : ((y < 1.5) ? 0.0 : 0.0)" },
 
 	    "InitVariable": { "name": "out_c_2",
     			      "expression": "in_c_2" },
 
 	    "InitVariable": { "name": "in_c_3",
-    			      "expression": "(x <= 0.3) ? 0.0 : ( ((y-0.25)*(y-0.25)+(x-0.45)*(x-0.45) <= 0.08*0.08) ? 0.0 : (((y-0.25)*(y-0.25)+(x-0.45)*(x-0.45) <= 0.1*0.1) ? 1.0 : 0.)  ) " },
+    			      "expression": "(x < 1.5) ? 0.0 : ((y < 1.5) ? 0.0 : 1.0)" },
 
 	    "InitVariable": { "name": "out_c_3",
     			      "expression": "in_c_3" },
-
-	    "InitVariable": { "name": "in_pressure_1",
-    			      "expression": "(x < 0.3) ? 1.0 : 0.1" },
-
-	    "InitVariable": { "name": "in_pressure_2",
-    			      "expression": "in_pressure_1" },
-
-	    "InitVariable": { "name": "in_pressure_3",
-    			      "expression": "in_pressure_1" },
 
 	    "InitVariable": { "name": "in_u_cell",
     			      "expression": "0.0" },
@@ -174,31 +150,28 @@
 	    "InitVariable": { "name": "in_v_cell",
     			      "expression": "0.0" },
 
-	    "InitVariable": { "name": "in_u",
-    			      "expression": "0.0" },
-
-	    "InitVariable": { "name": "in_v",
-    			      "expression": "0.0" },
-
 	    "InitVariable": { "name": "out_u_cell",
     			      "expression": "in_u_cell" },
 
 	    "InitVariable": { "name": "out_v_cell",
     			      "expression": "in_v_cell" },
+	    
+	    "InitVariable": { "name": "in_pressure_1",
+    			      "expression": "0.1" },
+x
+	    "InitVariable": { "name": "in_pressure_2",
+    			      "expression": "(x < 1.5) ? 1.0 : 0.1" },
 
-	    "InitVariable": { "name": "out_u",
-    			      "expression": "in_u" },
-
-	    "InitVariable": { "name": "out_v",
-    			      "expression": "in_v" },
+	    "InitVariable": { "name": "in_pressure_3",
+    			      "expression": "(x < 1.5) ? 1.0 : 0.1" },
 
 	    "OutputSimulation": { "filename": "/scratch/peyberne/shyLab/examples/test/res/sim%i",
 	    			  "Timetable": {"istep": "500"}},
 
-	    "OutputCartesianLine": { "filename": "/scratch/peyberne/shyLab/examples/test/res/sim%i",
+	    "OutputCartesianLine": { "filename": "/scratch/peyberne/shyLab/examples/test/res/profile%i",
 	    			     "direction": "x",
 	    			     "indice": "4",
-	    			     "Timetable": {"istep": "10000"}}
+	    			     "Timetable": {"istep": "100"}}
 
 			      
     	}

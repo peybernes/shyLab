@@ -19,10 +19,10 @@ message(STATUS "Configuring Shy")
 set(LD_LIBRARY_PATH "${LD_LIBRARY_PATH}" "${CMAKE_SOURCE_DIR}/external/muparser/lib ")
 
 #g++ or icpc or nvc++
-set (CMAKE_C_COMPILER nvc++)
-set (CMAKE_CXX_COMPILER nvc++)
-#set (CMAKE_C_COMPILER g++-10)
-#set (CMAKE_CXX_COMPILER g++-10)
+#set (CMAKE_C_COMPILER nvc++)
+#set (CMAKE_CXX_COMPILER nvc++)
+set (CMAKE_C_COMPILER g++)
+set (CMAKE_CXX_COMPILER g++)
 #set (CMAKE_C_COMPILER icpc)
 #set (CMAKE_CXX_COMPILER icpc)
 
@@ -34,8 +34,8 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 #set(CMAKE_C_FLAGS "-g -O3 -ftree-vectorize")
 #set(CMAKE_CXX_FLAGS "-g -O3")
 #standart option
-set(CMAKE_C_FLAGS "-g -O2")
-set(CMAKE_CXX_FLAGS "-g -O2")
+set(CMAKE_C_FLAGS "-g -O2 -fopenmp")
+set(CMAKE_CXX_FLAGS "-g -O2 -fopenmp")
 #old option for vectorisation
 #set(CMAKE_C_FLAGS "-g -ffast-math -ftree-vectorize -ftree-vectorizer-verbose=2 -O3")
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
@@ -76,7 +76,8 @@ ENDIF()
 # ENDIF (WORDS_BIGENDIAN)
 
 #standart
-ADD_DEFINITIONS("-lrt -acc -D_POSIX_SOURCE -DNDEBUG -DRealType=double -I${CMAKE_SOURCE_DIR}/external")
+#ADD_DEFINITIONS("-lrt -acc -D_POSIX_SOURCE -DNDEBUG -DRealType=double -I${CMAKE_SOURCE_DIR}/external")
+ADD_DEFINITIONS("-lrt -D_POSIX_SOURCE -DNDEBUG -DRealType=double -I${CMAKE_SOURCE_DIR}/external")
 #profiling likwid
 #ADD_DEFINITIONS(" -DNDEBUG -DRealType=double -DUnrollFactor=4 -DLIKWIDPERFORMON -I${CMAKE_SOURCE_DIR}/external")
 #may add this for iaca linking but source files are not instrumented -I${CMAKE_SOURCE_DIR}/external/iaca-lin32/include")
