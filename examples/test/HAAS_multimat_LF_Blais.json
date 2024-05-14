@@ -5,7 +5,7 @@
 	"Clock": { "time": "0.0",
 		   "iteration": "0" },
 
-	"Timetable": { "iend": "0.001" },
+	"Timetable": { "end": "1.1e-03" },
 	
 	"Grid": { "name": "grid",
 		  "nx": "1000",
