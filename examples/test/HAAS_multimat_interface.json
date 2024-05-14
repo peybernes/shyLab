@@ -5,21 +5,23 @@
 	"Clock": { "time": "0.0",
 		   "iteration": "0" },
 
-	"Timetable": { "end": "3.5" },
+	"Timetable": { "end": "0.000674" },
 	
 	"Grid": { "name": "grid",
-		  "nx": "2048",
-		  "ny": "878",
+		  "nx": "600",
+		  "ny": "267",
 		  "xmin": "0.0",
-		  "xmax": "7.0",
+		  "xmax": "0.2",
 		  "ymin": "0.0",
-		  "ymax": "3.0" },
+		  "ymax": "0.089" },
 
  	"NumericalParams": { "BoundaryConditions": "Wall",
-			     "TypeOfModel": "MultimaterialInterface" },
+			     "TypeOfProjection": "DirectProjectionCornerFluxes",
+			     "TypeOfModel": "MultimaterialInterface"
+			   },
 
-        "PhysicalParams" : { "EOS_gamma_1" : "1.4",
-			     "EOS_gamma_2" : "1.5" },	
+ 	"PhysicalParams": { "EOS_gamma_1" : "1.648",
+			    "EOS_gamma_2" : "1.4"  },
 
 	"Variables": {
 
@@ -92,36 +94,44 @@
     	"Events": {
     	
 	    "InitVariable": { "name": "in_rho_1",
-    			      "expression": "1.0" },
+    			      "expression": "0.25463" },
 
 	    "InitVariable": { "name": "out_rho_1",
     			      "expression": "in_rho_1" },
 
 	    "InitVariable": { "name": "in_rho_2",
-    			      "expression": "(x < 1.) ? 1.0 : 0.125" },
+    			      "expression": "(x < 0.155) ? 1.4 : 1.92691" },
 
 	    "InitVariable": { "name": "out_rho_2",
     			      "expression": "in_rho_2" },
 
 	    "InitVariable": { "name": "in_cell_volumic_fraction",
-    			      "expression": "(x < 1.) ? 0.0 : ((y < 1.5) ? 1.0 : 0.0)" },
+    			      "expression": "0.0" },
+
+	    "InitVariable": { "name": "out_cell_volumic_fraction",
+    			      "expression": "in_cell_volumic_fraction" },
 
 	    "InitVariable": { "name": "in_pressure_1",
-    			      "expression": "0.1" },
+    			      "expression": "1.0e5" },
 
 	    "InitVariable": { "name": "in_pressure_2",
-    			      "expression": "(x < 1.) ? 1.0 : 0.1" },
+    			      "expression": "(x < 0.155) ? 1.0e5 : 1.5698*1.0e5" },
+
+	    "InitVariable": { "name": "in_u",
+    			      "expression": "(x < 0.155) ? 0.0 : -114.42" },
+
+	    "InitVariable": { "name": "out_u",
+    			      "expression": "in_u" },
 
 	    "OutputSimulation": { "filename": "/scratch/peyberne/shyLab/examples/test/res/sim%i",
-	    			  "Timetable": {"step": "0.5"}},
+	    			  "Timetable": {"step": "0.0001"}},
 
 	    "OutputCartesianLine": { "filename": "/scratch/peyberne/shyLab/examples/test/res/profile%i",
 	    			     "direction": "x",
 	    			     "indice": "4",
-	    			     "Timetable": {"step": "0.5"}}
-
-			      
-    	}
-    	
+	    			     "Timetable": {"step": "0.1"}}
+	
     }
+}
+
 }

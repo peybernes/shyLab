@@ -5,11 +5,11 @@
 	"Clock": { "time": "0.0",
 		   "iteration": "0" },
 
-	"Timetable": { "end": "4.5" },
+	"Timetable": { "end": "3.5" },
 	
 	"Grid": { "name": "grid",
-		  "nx": "280",
-		  "ny": "120",
+		  "nx": "600",
+		  "ny": "258",
 		  "xmin": "0.0",
 		  "xmax": "7.0",
 		  "ymin": "0.0",
@@ -111,13 +111,13 @@
     			      "expression": "in_rho_1" },
 
 	    "InitVariable": { "name": "in_rho_2",
-    			      "expression": "(x < 1.5) ? 1.0 : 0.125" },
+    			      "expression": "(x < 1.) ? 1.0 : 0.125" },
 
 	    "InitVariable": { "name": "out_rho_2",
     			      "expression": "in_rho_2" },
 
 	    "InitVariable": { "name": "in_rho_3",
-    			      "expression": "(x < 1.5) ? 1.0 : 0.125" },
+    			      "expression": "(x < 1.) ? 1.0 : 0.125" },
 
 	    "InitVariable": { "name": "out_rho_3",
     			      "expression": "in_rho_3" },
@@ -127,19 +127,19 @@
     			      "expression": "in_rho_1" },
 	    
 	    "InitVariable": { "name": "in_c_1",
-    			      "expression": "(x < 1.5) ? 0.0 : ((y < 1.5) ? 1.0 : 0.0)" },
+    			      "expression": "(x < 1.) ? 0.0 : ((y < 1.5) ? 1.0 : 0.0)" },
 
 	    "InitVariable": { "name": "out_c_1",
     			      "expression": "in_c_1" },
     	
 	    "InitVariable": { "name": "in_c_2",
-    			      "expression": "(x < 1.5) ? 1.0 : ((y < 1.5) ? 0.0 : 0.0)" },
+    			      "expression": "(x < 1.) ? 1.0 : ((y < 1.5) ? 0.0 : 0.0)" },
 
 	    "InitVariable": { "name": "out_c_2",
     			      "expression": "in_c_2" },
 
 	    "InitVariable": { "name": "in_c_3",
-    			      "expression": "(x < 1.5) ? 0.0 : ((y < 1.5) ? 0.0 : 1.0)" },
+    			      "expression": "(x < 1.) ? 0.0 : ((y < 1.5) ? 0.0 : 1.0)" },
 
 	    "InitVariable": { "name": "out_c_3",
     			      "expression": "in_c_3" },
@@ -160,18 +160,18 @@
     			      "expression": "0.1" },
 
 	    "InitVariable": { "name": "in_pressure_2",
-    			      "expression": "(x < 1.5) ? 1.0 : 0.1" },
+    			      "expression": "(x < 1.) ? 1.0 : 0.1" },
 
 	    "InitVariable": { "name": "in_pressure_3",
-    			      "expression": "(x < 1.5) ? 1.0 : 0.1" },
+    			      "expression": "(x < 1.) ? 1.0 : 0.1" },
 
 	    "OutputSimulation": { "filename": "/scratch/peyberne/shyLab/examples/test/res/sim%i",
-	    			  "Timetable": {"istep": "500"}},
+	    			  "Timetable": {"step": "0.5"}},
 
 	    "OutputCartesianLine": { "filename": "/scratch/peyberne/shyLab/examples/test/res/profile%i",
 	    			     "direction": "x",
 	    			     "indice": "4",
-	    			     "Timetable": {"istep": "100"}}
+	    			     "Timetable": {"step": "0.5"}}
 
 			      
     	}

@@ -16,21 +16,15 @@
 		  "ymax": "3.0" },
 
  	"NumericalParams": { "BoundaryConditions": "Wall",
-			     "TypeOfModel": "MultimaterialInterface" },
+			     "TypeOfProjection": "LagrangeFluxes",
+			     "CFL": "0.18",
+			     "NumberOfMaterials": "2",
+			     "TypeOfModel": "MultimaterialMix" },
 
         "PhysicalParams" : { "EOS_gamma_1" : "1.4",
 			     "EOS_gamma_2" : "1.5" },	
-
+	
 	"Variables": {
-
-	    "directional_lagrangian_volume"  : {"support": "cell"},
-	    "directional_lagrangian_density"  : {"support": "cell"},
-	    "directional_lagrangian_density_1"  : {"support": "cell"},
-	    "directional_lagrangian_density_2"  : {"support": "cell"},
-	    "directional_lagrangian_volume_y"  : {"support": "cell"},
-	    "directional_lagrangian_density_y"  : {"support": "cell"},
-	    "directional_lagrangian_density_1_y"  : {"support": "cell"},
-	    "directional_lagrangian_density_2_y"  : {"support": "cell"},
 
 	    "in_rho"  : {"support": "cell"},
 	    "out_rho" : {"support": "cell"},
@@ -47,6 +41,8 @@
 	    "out_cell_mass_1" : {"support": "cell"},
 	    "in_cell_mass_2"  : {"support": "cell"},
 	    "out_cell_mass_2" : {"support": "cell"},
+	    "in_cell_mass_3"  : {"support": "cell"},
+	    "out_cell_mass_3" : {"support": "cell"},
 
 	    "in_cell_volumic_fraction"  : {"support": "cell"},
 	    "out_cell_volumic_fraction" : {"support": "cell"},
@@ -79,6 +75,12 @@
 	    "in_u"  : {"support": "vertice"},
 	    "in_v"  : {"support": "vertice"},
 
+	    "in_u_cell"  : {"support": "cell"},
+	    "in_v_cell"  : {"support": "cell"},
+
+	    "out_u_cell"  : {"support": "cell"},
+	    "out_v_cell"  : {"support": "cell"},
+
 	    "predicted_u"  : {"support": "vertice"},
 	    "predicted_v"  : {"support": "vertice"},
 
@@ -103,9 +105,33 @@
 	    "InitVariable": { "name": "out_rho_2",
     			      "expression": "in_rho_2" },
 
-	    "InitVariable": { "name": "in_cell_volumic_fraction",
+	    "InitVariable": { "name": "in_rho",
+    			      "expression": "in_rho_1" },
+	    
+	    "InitVariable": { "name": "in_c_1",
     			      "expression": "(x < 1.) ? 0.0 : ((y < 1.5) ? 1.0 : 0.0)" },
 
+	    "InitVariable": { "name": "out_c_1",
+    			      "expression": "in_c_1" },
+    	
+	    "InitVariable": { "name": "in_c_2",
+    			      "expression": "(x < 1.) ? 1.0 : ((y < 1.5) ? 0.0 : 1.0)" },
+
+	    "InitVariable": { "name": "out_c_2",
+    			      "expression": "in_c_2" },
+
+	    "InitVariable": { "name": "in_u_cell",
+    			      "expression": "0.0" },
+
+	    "InitVariable": { "name": "in_v_cell",
+    			      "expression": "0.0" },
+
+	    "InitVariable": { "name": "out_u_cell",
+    			      "expression": "in_u_cell" },
+
+	    "InitVariable": { "name": "out_v_cell",
+    			      "expression": "in_v_cell" },
+	    
 	    "InitVariable": { "name": "in_pressure_1",
     			      "expression": "0.1" },
 

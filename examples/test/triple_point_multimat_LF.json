@@ -129,7 +129,7 @@
     			      "expression": "(x < 1.5) ? 1.0 : 0.1" },
 
 	    "OutputSimulation": { "filename": "/tmp/res/sim%i",
-	    			  "Timetable": {"istep": "10"}},
+	    			  "Timetable": {"istep": "500"}},
 
 	    "OutputCartesianLine": { "filename": "/tmp/res/profile%i",
 	    			     "direction": "x",
