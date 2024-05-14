@@ -984,38 +984,43 @@ void Simulation::Run() {
 
 
 // INIT
-  //  // FOR TEST HAAS
+   // FOR TEST HAAS
 
-  // //RealType xC = 57.0;
-  // //RealType yC = 4.45;
-  // //RealType r = 2.5;
-  // //If change, change in file_init --> INIT_MMX/  
-  // ifstream file_ini_HAAS("/home/mathieu/Codes/shyLab_jed/examples/test/volume_fractions.dat", ios::in);
-  // if (file_ini_HAAS.is_open()) {
-  //   string line;
-  //   index_t ix, iy;
-  //   RealType vol_fraction_1, vol_fraction_2;
+  //RealType xC = 57.0;
+  //RealType yC = 4.45;
+  //RealType r = 2.5;
+  //If change, change in file_init --> INIT_MMX/  
+  ifstream file_ini_HAAS("/home/mathieu/Codes/shyLab_jed/examples/test/volume_fractions.dat", ios::in);
+  if (file_ini_HAAS.is_open()) {
+    string line;
+    index_t ix, iy;
+    RealType vol_fraction_1, vol_fraction_2;
     
-  //   in_cell_volumic_fraction[0] = 0.;
-    
-  //   while (getline(file_ini_HAAS,line)) {
-  //     file_ini_HAAS >> ix >> iy >> vol_fraction_1 >> vol_fraction_2;
-  //     const int cell_ooo = (nx * iy) + ix;
+    if (numerical_params.TypeOfProjection == "LagrangeFluxes") {
+      in_c_k[0][0] = 0;
+      in_c_k[1][0] = 1;
+    }
+    else {
+      in_cell_volumic_fraction[0] = 0.;
+    }
+    while (getline(file_ini_HAAS,line)) {
+      file_ini_HAAS >> ix >> iy >> vol_fraction_1 >> vol_fraction_2;
+      const int cell_ooo = (nx * iy) + ix;
       
-  //     if (numerical_params.TypeOfProjection == "LagrangeFluxes") {
-  // 	in_c_k[0][cell_ooo] = vol_fraction_1;
-  // 	in_c_k[1][cell_ooo] = vol_fraction_2;
-  //     }
-  //     else {
-  // 	in_cell_volumic_fraction[cell_ooo] = vol_fraction_1;
-  //     }
-  //     //cout << ix << " " << iy<< " " << cell_ooo << " "  << in_cell_volumic_fraction[cell_ooo] << endl;
-  //   }
-  // } else {   
-  //   cout << "Impossible to open INIT FILE !" << endl;
-  //   exit(0);
-  // }
-  // file_ini_HAAS.close();
+      if (numerical_params.TypeOfProjection == "LagrangeFluxes") {
+	in_c_k[0][cell_ooo] = vol_fraction_1;
+	in_c_k[1][cell_ooo] = vol_fraction_2;
+      }
+      else {
+	in_cell_volumic_fraction[cell_ooo] = vol_fraction_1;
+      }
+      cout << ix << " " << iy<< " " << cell_ooo << " "  << in_c_k[0][cell_ooo] << " " << in_c_k[1][cell_ooo] << endl;
+    }
+  } else {   
+    cout << "Impossible to open INIT FILE !" << endl;
+    exit(0);
+  }
+  file_ini_HAAS.close();
 
 
 //#pragma omp parallel for
