@@ -893,29 +893,6 @@ void Simulation::Run() {
   RealType* in_X_x = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
   RealType* in_X_y = (RealType*) memalign(ALIGN_BYTES, nb_nodes * sizeof(RealType));
 
-  /*
-   // FOR TEST HAAS
-
-  //RealType xC = 57.0;
-  //RealType yC = 4.45;
-  //RealType r = 2.5;
-  //If change, change in file_init --> INIT_MMX/  
-  ifstream file_ini_HAAS("../INIT_MMX/fracs_HAAS.plt", ios::in);
-  if (file_ini_HAAS) {
-    string line;
-    index_t ix, iy;
-    RealType vol_fraction_1, vol_fraction_2;
-    
-    while (getline(file_ini_HAAS,line)) {
-      file_ini_HAAS >> ix >> iy >> vol_fraction_2 >> vol_fraction_1;
-      index_t cell_ooo = (iy - 1) * nx + (ix - 1);
-      in_cell_volumic_fraction[cell_ooo] = vol_fraction_1;
-    }
-    file_ini_HAAS.close();
-  } else {   
-    cout << "Impossible to open INIT FILE !" << endl;
-  }
-  */
 
 
   /*  
@@ -1007,6 +984,39 @@ void Simulation::Run() {
 
 
 // INIT
+  //  // FOR TEST HAAS
+
+  // //RealType xC = 57.0;
+  // //RealType yC = 4.45;
+  // //RealType r = 2.5;
+  // //If change, change in file_init --> INIT_MMX/  
+  // ifstream file_ini_HAAS("/home/mathieu/Codes/shyLab_jed/examples/test/volume_fractions.dat", ios::in);
+  // if (file_ini_HAAS.is_open()) {
+  //   string line;
+  //   index_t ix, iy;
+  //   RealType vol_fraction_1, vol_fraction_2;
+    
+  //   in_cell_volumic_fraction[0] = 0.;
+    
+  //   while (getline(file_ini_HAAS,line)) {
+  //     file_ini_HAAS >> ix >> iy >> vol_fraction_1 >> vol_fraction_2;
+  //     const int cell_ooo = (nx * iy) + ix;
+      
+  //     if (numerical_params.TypeOfProjection == "LagrangeFluxes") {
+  // 	in_c_k[0][cell_ooo] = vol_fraction_1;
+  // 	in_c_k[1][cell_ooo] = vol_fraction_2;
+  //     }
+  //     else {
+  // 	in_cell_volumic_fraction[cell_ooo] = vol_fraction_1;
+  //     }
+  //     //cout << ix << " " << iy<< " " << cell_ooo << " "  << in_cell_volumic_fraction[cell_ooo] << endl;
+  //   }
+  // } else {   
+  //   cout << "Impossible to open INIT FILE !" << endl;
+  //   exit(0);
+  // }
+  // file_ini_HAAS.close();
+
 
 //#pragma omp parallel for
   for (int iy = 0; iy < ny; ++iy) {
@@ -1018,7 +1028,7 @@ void Simulation::Run() {
       const RealType y = iy * dy;
 
       cell_volumes[cell_ooo] = dx * dy;
-
+      
       if (numerical_params.TypeOfModel == "Monomaterial") {
 
 	in_cell_mass[cell_ooo] = in_rho[cell_ooo] * cell_volumes[cell_ooo];
@@ -1028,8 +1038,36 @@ void Simulation::Run() {
 	out_e[cell_ooo] = in_e[cell_ooo];
 
       } else if (numerical_params.TypeOfProjection == "LagrangeFluxes") {
+
+	RealType deno = in_c_1[cell_ooo] + in_c_2[cell_ooo];
+	if (nb_mat > 2) {
+	  deno = deno + in_c_3[cell_ooo];
+	}	  
+	RealType vol_fraction_1 = in_c_1[cell_ooo] / deno;
+	RealType vol_fraction_2 = in_c_2[cell_ooo] / deno;
+	RealType vol_fraction_3 = 0.;
+	if (nb_mat > 2) {
+	  vol_fraction_3 = in_c_3[cell_ooo] / deno;
+	}	
+	in_cell_mass_1[cell_ooo] = in_rho_1[cell_ooo] * cell_volumes[cell_ooo] * vol_fraction_1;
+	out_cell_mass_1[cell_ooo] = in_cell_mass_1[cell_ooo];
+	in_cell_mass_2[cell_ooo] = in_rho_2[cell_ooo] * cell_volumes[cell_ooo] * vol_fraction_2;
+	out_cell_mass_2[cell_ooo] = in_cell_mass_2[cell_ooo];
+	if (nb_mat > 2) {
+	  in_cell_mass_3[cell_ooo] = in_rho_3[cell_ooo] * cell_volumes[cell_ooo] * vol_fraction_3;
+	  out_cell_mass_3[cell_ooo] = in_cell_mass_3[cell_ooo];
+	}	
+	in_cell_mass[cell_ooo] = in_cell_mass_1[cell_ooo] + in_cell_mass_2[cell_ooo];
+	if (nb_mat > 2) {
+	  in_cell_mass[cell_ooo] = in_cell_mass[cell_ooo] + in_cell_mass_3[cell_ooo];
+	}
+	out_cell_mass[cell_ooo] = in_cell_mass[cell_ooo];
 	
-	in_cell_mass[cell_ooo]         = in_rho[cell_ooo] * cell_volumes[cell_ooo];
+	in_rho[cell_ooo] = in_cell_mass[cell_ooo] / cell_volumes[cell_ooo];
+	
+	out_rho[cell_ooo] = in_rho[cell_ooo];
+	
+	in_cell_mass[cell_ooo] = in_rho[cell_ooo] * cell_volumes[cell_ooo];	
 
 	// [VM] Gamma*Pi from VM is equivalent to Pi here in Stiffened Gas 
 	in_e_1[cell_ooo]               =  EnergyEOS(physical_params.gamma_1, in_rho_1[cell_ooo], in_p_1[cell_ooo], physical_params.pi_1);
@@ -1038,10 +1076,10 @@ void Simulation::Run() {
 	out_e_2[cell_ooo]              = in_e_2[cell_ooo];
 	if (nb_mat > 2) {
 	  in_e_3[cell_ooo]             =  EnergyEOS(physical_params.gamma_3, in_rho_3[cell_ooo], in_p_3[cell_ooo], physical_params.pi_3);
-	  out_e_3[cell_ooo]              = in_e_3[cell_ooo];
+	  out_e_3[cell_ooo]            = in_e_3[cell_ooo];
 	}
 
-	in_e[cell_ooo]                   = 0.;
+	in_e[cell_ooo]                 = 0.;
 	for (int k = 0; k < nb_mat; k++) {
 	  in_e[cell_ooo]                 = in_e_k[k][cell_ooo] * in_c_k[k][cell_ooo];
 	}
