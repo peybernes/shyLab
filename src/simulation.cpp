@@ -1014,7 +1014,7 @@ void Simulation::Run() {
       else {
 	in_cell_volumic_fraction[cell_ooo] = vol_fraction_1;
       }
-      cout << ix << " " << iy<< " " << cell_ooo << " "  << in_c_k[0][cell_ooo] << " " << in_c_k[1][cell_ooo] << endl;
+      //cout << ix << " " << iy<< " " << cell_ooo << " "  << in_c_k[0][cell_ooo] << " " << in_c_k[1][cell_ooo] << endl;
     }
   } else {   
     cout << "Impossible to open INIT FILE !" << endl;
