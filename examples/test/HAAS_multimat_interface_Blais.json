@@ -8,14 +8,15 @@
 	"Timetable": { "end": "1.1e-03" },
 	
 	"Grid": { "name": "grid",
-		  "nx": "1000",
-		  "ny": "90",
+		  "nx": "2000",
+		  "ny": "180",
 		  "xmin": "0.0",
 		  "xmax": "1.0",
 		  "ymin": "0.0",
 		  "ymax": "0.09" },
 
  	"NumericalParams": { "BoundaryConditions": "Wall",
+			     "TypeOfProjection": "DirectProjectionCornerFluxes",
 			     "TypeOfModel": "MultimaterialInterface",
 			     "CFL" : "0.34" },
 
