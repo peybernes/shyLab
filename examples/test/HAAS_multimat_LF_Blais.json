@@ -5,11 +5,11 @@
 	"Clock": { "time": "0.0",
 		   "iteration": "0" },
 
-	"Timetable": { "end": "1.1e-03" },
+	"Timetable": { "end": "1.2e-3" },
 	
 	"Grid": { "name": "grid",
-		  "nx": "1000",
-		  "ny": "90",
+		  "nx": "2000",
+		  "ny": "180",
 		  "xmin": "0.0",
 		  "xmax": "1.0",
 		  "ymin": "0.0",
@@ -101,7 +101,7 @@
     			      "expression": "in_rho_1" },
 
 	    "InitVariable": { "name": "in_rho_2",
-    			      "expression": "(x < 53.0) ? 1.376363 : 1.0" },
+    			      "expression": "(x < 0.53) ? 1.376363 : 1.0" },
 
 	    "InitVariable": { "name": "out_rho_2",
     			      "expression": "in_rho_2" },
@@ -139,10 +139,10 @@
 	    "InitVariable": { "name": "out_v_cell",
     			      "expression": "in_v_cell" },
 	    
-	    "OutputSimulation": { "filename": "/home/mathieu/Codes/shyLab_jed/examples/test/res/sim%i",
-	    			  "Timetable": {"step": "0.0001"}},
+	    "OutputSimulation": { "filename": "/home/mathieu/Codes/shyLab_jed/examples/test/res_lf/sim%i",
+	    			  "Timetable": {"step": "1.e-4"}},
 
-	    "OutputCartesianLine": { "filename": "/home/mathieu/Codes/shyLab_jed/examples/test/res/profile%i",
+	    "OutputCartesianLine": { "filename": "/home/mathieu/Codes/shyLab_jed/examples/test/res_lf/profile%i",
 	    			     "direction": "x",
 	    			     "indice": "4",
 	    			     "Timetable": {"step": "1.e-3"}}
